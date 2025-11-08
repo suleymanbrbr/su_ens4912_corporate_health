@@ -8,7 +8,7 @@ from langchain_core.tools import Tool
 from langgraph.prebuilt import create_react_agent
 
 # ----------------------------------------------------------------------
-# ARAYÜZ FONKSİYONLARI (MODIFIED)
+# ARAYÜZ FONKSİYONLARI (MODIFIED) - BU KISIM AYNI KALIYOR
 # ----------------------------------------------------------------------
 
 def display_sidebar(engine):
@@ -52,21 +52,19 @@ def display_chat_interface(engine):
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"], unsafe_allow_html=True)
-            # If the message has associated sources, display them as expanders
             if "sources" in msg and msg["sources"]:
                 for source in msg["sources"]:
                     with st.expander(f"İncelenen Kaynak: {source['title']}"):
-                        st.text_area("Kaynak Metni", value=source['content'], height=200, disabled=True, key=f"source_{msg['id']}_{source['title']}")
+                        cleaned_content = source['content'].replace('~~', '')
+                        st.markdown(cleaned_content, unsafe_allow_html=True)
 
     # Handle new chat input
     if prompt := st.chat_input("SUT ile ilgili bir soru sorun..."):
-        # Add user message to state and display it
         user_msg_id = f"user_{time.time()}"
         st.session_state.messages.append({"role": "user", "content": prompt, "id": user_msg_id})
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # Start displaying agent's response
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
             full_response_text = ""
@@ -74,8 +72,8 @@ def display_chat_interface(engine):
             start_time = time.time()
             
             try:
-                # Stream the agent's thought process and final answer
-                for step in engine.query_agentic_rag_stream(prompt, k=5):
+                # Increased k to 10 to retrieve more documents
+                for step in engine.query_agentic_rag_stream(prompt, k=10):
                     current_display_text = full_response_text
                     if "status" in step:
                         current_display_text += f"*{step['status']}*\n\n"
@@ -88,18 +86,17 @@ def display_chat_interface(engine):
                     elif "final_answer" in step:
                         full_response_text = step['final_answer']
                         final_sources = step.get("used_sources", [])
-                        current_display_text = full_response_text # Only show the final text at the end
+                        current_display_text = full_response_text
                     
                     message_placeholder.markdown(current_display_text + "▌")
 
-                # After streaming is complete, render the final state permanently
                 message_placeholder.markdown(full_response_text)
                 if final_sources:
                     for source in final_sources:
                         with st.expander(f"İncelenen Kaynak: {source['title']}"):
-                            st.text_area("Kaynak Metni", value=source['content'], height=200, disabled=True, key=f"source_current_{source['title']}")
+                            cleaned_content = source['content'].replace('~~', '')
+                            st.markdown(cleaned_content, unsafe_allow_html=True)
                 
-                # Save the complete response (text + sources) to session state for history
                 assistant_msg_id = f"asst_{time.time()}"
                 st.session_state.messages.append({
                     "role": "assistant",
@@ -114,6 +111,9 @@ def display_chat_interface(engine):
             elapsed_time = time.time() - start_time
             st.caption(f"Sorgu süresi: {elapsed_time:.2f} saniye")
 
+# ----------------------------------------------------------------------
+# DEĞİŞTİRİLECEK ALAN
+# ----------------------------------------------------------------------
 
 @st.cache_resource
 def get_rag_engine():
@@ -123,13 +123,11 @@ def get_rag_engine():
     """
     engine = SUT_RAG_Engine()
     
-    # Define the core agentic logic as a function that will be bound to the engine instance.
     def query_agentic_rag_stream(self, query: str, k: int = 5):
         """
         A generator function that executes the agentic RAG process and yields
-        the state of each step for real-time display in the UI.
+        the state of each step. INCLUDES DEBUG PRINTS TO THE TERMINAL.
         """
-        # --- 1. Initial Setup and Retrieval ---
         if self.llm is None:
             yield {"error": "[LLM DEVRE DIŞI] Lütfen GEMINI_API_KEY'i ayarlayın."}
             return
@@ -144,7 +142,6 @@ def get_rag_engine():
         chunk_id_to_metadata_map = {chunk['id']: chunk['metadata'] for chunk in candidate_chunks}
         yield {"status": "Potansiyel olarak ilgili bölümler bulundu. LLM'e gönderiliyor..."}
 
-        # --- 2. Define Agent's Tools ---
         tools = [
             Tool(
                 name="get_sut_section_content_by_id",
@@ -160,32 +157,58 @@ def get_rag_engine():
         
         agent_executor = create_react_agent(self.llm, tools)
         
-        # --- 3. Construct the Prompt for the Agent ---
         context_summary = ""
         for i, chunk in enumerate(candidate_chunks):
-            section_info = '; '.join([v for k, v in chunk['metadata'].items() if k.startswith('Header') and v])
-            context_summary += f"[{i+1}] ID: '{chunk['id']}'\n    Başlık: {section_info}\n    Önizleme: {chunk['text'][:150].strip()}...\n\n"
+            section_info = ' > '.join([v for k, v in chunk['metadata'].items() if k.startswith('Header') and v])
+            context_summary += f"[{i+1}] ID: '{chunk['id']}'\n    Başlık: {section_info}\n    Önizleme: {chunk['text'][:200].strip()}...\n\n"
 
-        system_message = """SEN BİR SAĞLIK UZMANI ASİSTANISIN. Görevin, SUT (Sağlık Uygulama Tebliği) hakkındaki soruları cevaplamaktır.
+        system_message = """SEN BİR SAĞLIK UZMANI ASİSTANISIN. Görevin, SUT (Sağlık Uygulama Tebliği) hakkındaki soruları cevaplamaktır. Sadece sana verilen metinlere ve araçlara dayanarak cevap ver. Yorum yapma, sadece metinlerdeki bilgiyi özetle.
 
 GÖREVİN:
-1.  **Analiz Et:** Sağlanan bölüm özetlerini dikkatlice incele. Cevap için yeterli olup olmadıklarına karar ver.
+1.  **Analiz Et:** Sağlanan bölüm özetlerini dikkatlice incele. Kullanıcının sorusunu doğrudan cevaplayan bir bilgi içerip içermediklerini kontrol et.
 2.  **Araç Kullan (Gerekirse):**
-    *   Eğer özetler yetersizse, en alakalı görünen bölümün tam metnini almak için `get_sut_section_content_by_id` aracını KULLAN.
-    *   EĞER OKUDUĞUN BİR METNİN İÇİNDE başka bir SUT bölümüne atıf yapıldığını (örneğin '2.5.3.A maddesine bakınız') görürsen, o referans verilen bölümün içeriğini getirmek için `get_sut_section_by_title` aracını KULLAN. Bu, cevabı zenginleştirmek için çok önemlidir.
-3.  **Cevapla:** Gerekli tüm bilgileri topladıktan sonra, kullanıcı sorusunu net ve kapsamlı bir şekilde Türkçe olarak yanıtla.
-4.  **Kaynak Belirt:** Cevabının sonuna `\n\n**Kullanılan Kaynaklar:**` başlığı ekle. Bu başlığın altına, cevabını dayandırdığın SUT bölümlerinin başlıklarını (örneğin, '2.5.3.A - Yurt dışı tedavi') madde imleri kullanarak listele."""
+    *   Eğer özetler soruyu cevaplamak için yetersizse, en alakalı görünen bölümün tam metnini almak için `get_sut_section_content_by_id` aracını KULLAN. Birden fazla aracı sırayla kullanabilirsin.
+    *   EĞER OKUDUĞUN BİR METNİN İÇİNDE başka bir SUT bölümüne atıf yapıldığını görürsen, o referans verilen bölümün içeriğini getirmek için `get_sut_section_by_title` aracını KULLAN.
+3.  **Cevapla:** Gerekli tüm bilgileri topladıktan sonra, kullanıcı sorusunu net ve kapsamlı bir şekilde Türkçe olarak yanıtla. Cevabın kesinlikle bilgi topladığın metinlerden türetilmelidir. Eğer metinlerde cevap yoksa, "Sağlanan SUT metinlerinde bu soruya doğrudan bir cevap bulunmamaktadır." de.
+4.  **Kaynak Belirt:** Cevabının sonuna `\n\n**Kullanılan Kaynaklar:**` başlığı ekle. Bu başlığın altına, cevabını dayandırdığın SUT bölümlerinin başlıklarını madde imleri kullanarak listele.
+ARAÇ KULLANIM FORMATI:
+Araç kullanmaya karar verdiğinde, düşüncelerini ve hangi aracı hangi argümanla kullanacağını aşağıdaki formatta belirtmelisin. BU FORMAT KESİNLİKLE ZORUNLUDUR.
+
+```json
+{
+  "tool_name": "get_sut_section_content_by_id",
+  "tool_input": {
+    "chunk_id": "kullanilacak_id_buraya"
+  }
+}```"""
         
         human_input = f"Kullanıcı Sorusu: {query}\n\nİlgili Olabilecek SUT Bölümleri:\n---\n{context_summary}"
         messages = [SystemMessage(content=system_message), HumanMessage(content=human_input)]
         
-        # --- 4. Execute Agent and Stream Results ---
         used_sources = []
         last_called_header = "Bilinmeyen Kaynak"
         final_answer = "Cevap oluşturulamadı."
 
+        ### ======================== DEBUG BAŞLANGICI ======================== ###
+        print("\n" + "="*50 + " YENİ SORGU İÇİN AJAN BAŞLATILIYOR " + "="*50)
+        print("\n[DEBUG] AJANA GÖNDERİLEN PROMPT:\n")
+        print("--- SYSTEM MESSAGE ---\n" + system_message + "\n")
+        print("--- HUMAN MESSAGE ---\n" + human_input)
+        print("-" * 120)
+        ### ================================================================== ###
+
         try:
             response = agent_executor.invoke({"messages": messages})
+
+            ### ======================== DEBUG BAŞLANGICI ======================== ###
+            print("\n[DEBUG] AJANDAN GELEN HAM YANIT (RAW RESPONSE):\n")
+            # --- DEĞİŞİKLİK BURADA ---
+            # json.dumps yerine standart print kullanıyoruz.
+            print(response)
+            # --- DEĞİŞİKLİK BİTTİ ---
+            print("\n" + "="*120 + "\n")
+            ### ================================================================== ###
+
             output_messages = response.get("messages", [])
 
             for msg in output_messages:
@@ -200,12 +223,19 @@ GÖREVİN:
                             elif isinstance(args_raw, dict):
                                 args_dict = args_raw
                             
-                            header_text = "Bölüm Başlığı"
-                            chunk_id = args_dict.get('chunk_id')
-                            if chunk_id:
-                                metadata = chunk_id_to_metadata_map.get(chunk_id, {})
-                                section_titles = [v for k, v in metadata.items() if k.startswith("Header") and v]
-                                if section_titles: header_text = ', '.join(section_titles)
+                            header_text = "Bilinmeyen Kaynak" 
+                            tool_name = tool_call['name']
+
+                            if tool_name == 'get_sut_section_content_by_id':
+                                chunk_id = args_dict.get('chunk_id')
+                                if chunk_id:
+                                    metadata = chunk_id_to_metadata_map.get(chunk_id, {})
+                                    if metadata:
+                                        section_titles = [v for k, v in metadata.items() if k.startswith("Header") and v]
+                                        if section_titles: header_text = ' > '.join(section_titles)
+                            elif tool_name == 'get_sut_section_by_title':
+                                section_title_arg = args_dict.get('section_title')
+                                if section_title_arg: header_text = section_title_arg
                             
                             last_called_header = header_text
                             yield {"tool_call": {"name": tool_call['name'], "header": header_text, "args": json.dumps(args_dict)}}
@@ -217,17 +247,26 @@ GÖREVİN:
                             for part in msg.content:
                                 if isinstance(part, dict) and 'text' in part:
                                     final_answer_content += part['text']
-                        final_answer = final_answer_content.strip() if final_answer_content else "Anlaşılır bir cevap üretilemedi."
-                
+                        
+                        final_answer = final_answer_content.strip() if final_answer_content.strip() else "Anlaşılır bir cevap üretilemedi."
+
+                        ### ======================== DEBUG BAŞLANGICI ======================== ###
+                        print(f"\n[DEBUG] PARSE EDİLEN NİHAİ CEVAP: '{final_answer}'\n")
+                        ### ================================================================== ###
+
                 elif isinstance(msg, ToolMessage):
                     used_sources.append({"title": last_called_header, "content": msg.content})
                     yield {"tool_output": msg.content}
 
             yield {"final_answer": final_answer, "used_sources": used_sources}
         except Exception as e:
+            ### ======================== DEBUG BAŞLANGICI ======================== ###
+            print(f"\n[DEBUG] AJAN ÇALIŞTIRILIRKEN KRİTİK HATA: {e}\n")
+            ### ================================================================== ###
             yield {"error": f"[AGENT ERROR] Ajan çalıştırılırken hata: {e}"}
 
-    SUT_RAG_Engine.query_agentic_rag_stream = query_agentic_rag_stream
+    # Monkey-patch the streaming method onto the engine instance
+    engine.query_agentic_rag_stream = query_agentic_rag_stream.__get__(engine, SUT_RAG_Engine)
     return engine
 
 def main_app():
