@@ -28,6 +28,16 @@ AVAILABLE_MODELS = {
         "model_name": "local-model",
         "api_key_name": None  # Yerel model için API anahtarı gerekmez
     },
+        "LM Studio: llama 3.1 8B": {
+        "provider": "lmstudio",
+        "model_name": "meta-llama-3.1-8b-instruct",
+        "api_key_name": None  # Yerel model için API anahtarı gerekmez
+    },
+        "LM Studio: qwen3 8B": {
+        "provider": "lmstudio",
+        "model_name": "qwen/qwen3-8b",
+        "api_key_name": None  # Yerel model için API anahtarı gerekmez
+    },
     "Google Gemini 2.5 Flash": {
         "provider": "google",
         "model_name": "gemini-2.5-flash",
