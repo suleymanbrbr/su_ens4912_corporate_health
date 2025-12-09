@@ -1,0 +1,201 @@
+﻿ID,Kategori,Soru,Cevap,Kaynak
+1,Genel,İkinci basamak özel sağlık hizmeti sunucularında yapılan hekim ve diş hekimi muayenesinden katılım payı ne kadardır?,50 TL.,1.8.1
+2,Genel,"Organ, doku ve kök hücre nakli tedavilerinde katılım payı alınır mı?","Hayır, bu tedavilerden katılım payı alınmaz.",1.8.5
+3,Genel,Yoğun bakım hizmetleri için ilave ücret talep edilebilir mi?,"Hayır, yoğun bakım hizmetlerinden ilave ücret alınamaz.",1.9.3
+4,Genel,Yeşil alan muayenesi işlem kodu nedir?,520.021.,2.2.1.B-2
+5,Genel,Organ nakli durumunda vericinin (donör) yol giderleri karşılanır mı?,"Evet, vericinin yol ve gündelik giderleri Kurumca karşılanır.",2.6.5
+6,Genel,3713 sayılı Kanun kapsamındaki harp malulleri katılım payından muaf mıdır?,"Evet, kendileri ve bakmakla yükümlü oldukları kişiler muaftır.",1.8.5
+7,Genel,Acil servislerde yapılan 'Yeşil Alan' muayeneleri için katılım payı ödenir mi?,"Evet, yeşil alan muayeneleri için katılım payı alınır.",1.8.5
+8,Genel,Kardiyovasküler cerrahi işlemleri için ilave ücret alınabilir mi?,"Hayır, istisnai sağlık hizmetleri hariç olmak üzere alınamaz.",1.9.3
+9,Genel,Yardımcı üreme yöntemi (Tüp Bebek) tedavilerinde birinci deneme için katılım payı oranı nedir?,%30.,1.8.4
+10,Genel,Kaplıca tedavileri için yol gideri ödenir mi?,"Evet, tedavinin sağlanabildiği en yakın kaplıca tesisine göre ödenir.",2.6.6
+11,Genel,Diyaliz tedavisi için hastanın servis kullanması durumunda ayrıca yol parası ödenir mi?,"Hayır, servis hizmetinden faydalananlara ayrıca yol gideri ödenmez.",2.6.1.A
+12,Genel,Acil haller nedeniyle sözleşmesiz bir hastaneye gidildiğinde tedavi ücreti ödenir mi?,"Evet, acil halin Kurumca kabul edilmesi şartıyla SUT bedelleri üzerinden ödenir.",2.3
+13,Genel,Gazi ve harp malullerinden otelcilik hizmeti için ilave ücret alınır mı?,"Hayır, bu kişilerden otelcilik hizmeti farkı alınmaz.",1.9.2
+14,Genel,Yurtdışına tedaviye gönderilen hastanın refakatçisinin yol gideri karşılanır mı?,"Evet, raporda öngörülmesi halinde bir kişiyle sınırlı olmak üzere karşılanır.",2.5.3.C-1
+15,Genel,Aile hekimliği muayenelerinden katılım payı alınır mı?,"Hayır, aile hekimi muayenelerinden katılım payı alınmaz.",1.8.1
+16,Diş,SGK normal şartlarda diş implantı bedelini karşılar mı?,"Hayır, sadece maksillofasiyal travma gibi istisnai durumlarda karşılar.",2.4.1
+17,Diş,İstisnai durumlarda her bir çene için en fazla kaç implant ödenir?,Her çene için en fazla 4 implant.,2.4.1
+18,Diş,18 yaşından büyükler için ortodontik tedavi bedeli ödenir mi?,"Hayır, ödenmez.",2.4.1
+19,Diş,Hareketli diş protezlerinin yenilenme süresi ne kadardır?,4 yıl.,2.4.1
+20,Diş,Altın gibi kıymetli madenler kullanılarak yapılan diş tedavileri ödenir mi?,"Hayır, kıymetli maden bedelleri ödenmez.",2.4.1
+21,Diş,%40 ve üzeri engelli kişilerin özel diş merkezlerine sevki mümkün müdür?,"Evet, resmi kurumda tedavi sağlanamazsa sevk edilebilirler.",2.4.1.B
+22,Diş,Şehit yakınları ve gaziler için implant bedeli ne kadardır?,Her implant için en fazla 2500 TL (veya güncel SUT rakamı) ödenir.,2.4.1
+23,Diş,Kanser tedavisi nedeniyle çenesini kaybedenlerde protez yenileme süresi aranır mı?,"Hayır, bu hastalarda 4 yıllık süre şartı aranmaz.",2.4.1
+24,Diş,Özel diş hekimliklerinde yapılan tedaviler için sevk gerekli midir?,"Evet, istisnalar hariç olmak üzere sevk zorunludur.",2.4.1.B
+25,Diş,Engellilerde genel anestezi altında diş tedavisi ödenebilir mi?,"Evet, %40 ve üzeri engellilerde belgelendirilmek şartıyla ödenir.",2.4.1.B
+26,Göz,Yetişkinler için gözlük çerçevesi yenileme süresi kaç yıldır?,3 yıl.,3.3.3.A
+27,Göz,14 yaş ve altı çocuklar için gözlük çerçevesi yenileme süresi kaç yıldır?,1 yıl.,3.3.3.A
+28,Göz,Gözlük camları süresi dolmadan hangi durumda yenilenebilir?,"Diyoptride en az 0,5 değişiklik olması durumunda.",3.3.3.A
+29,Göz,Teleskopik gözlükler kimler için ödenir?,İyi gören gözde düzeltilmiş görme keskinliği 3/10 ve altında olan hastalar için.,3.3.3.B
+30,Göz,Kontakt lens solüsyon bedelleri ödenir mi?,"Hayır, ödenmez.",3.3.3.C
+31,Göz,Kozmetik amaçlı renkli lensler ödenir mi?,Hayır.,3.3.3.C
+32,Göz,Keratokonus hastalarında kontakt lens ödenir mi?,"Evet, gözlükle görme keskinliği tama artmayan vakalarda ödenir.",3.3.3.C
+33,Göz,Prizmatik cam bedeli ödenir mi?,"Evet, kalıcı çift görme (diplopi) durumunda sağlık kurulu raporu ile ödenir.",3.3.3.D
+34,Göz,Teleskopik gözlüklerin yenilenme süresi nedir?,3 yıl.,3.3.3.B
+35,Göz,Gözlük reçetesi düzenlendikten sonra kaç iş günü içinde alınmalıdır?,10 iş günü.,3.3.3
+36,Tüp Bebek,Tüp bebek tedavisi için kadının yaş sınırı nedir?,"23 yaşından büyük, 40 yaşından gün almamış olmalıdır.",2.4.4.İ-1
+37,Tüp Bebek,Kurum en fazla kaç tüp bebek denemesini karşılar?,En fazla 3 deneme.,2.4.4.İ-1
+38,Tüp Bebek,İkinci tüp bebek denemesinde katılım payı oranı nedir?,%25.,1.8.4
+39,Tüp Bebek,Tüp bebek tedavisi için en az kaç yıllık genel sağlık sigortalısı olunmalıdır?,En az 5 yıl.,2.4.4.İ-1
+40,Tüp Bebek,Preimplantasyon Genetik Tanı (PGT) hangi durumda ödenir?,EK-2/K listesindeki kalıtsal hastalığı olan ve sağlıklı çocuğu olmayan çiftlerde.,2.4.4.İ-3
+41,Tüp Bebek,Kök hücre vericisi kardeş doğmasına yönelik tüp bebek ödenir mi?,"Evet, hasta çocuğun tedavisi için tıbben zorunluysa ödenir.",2.4.4.İ-2
+42,Tüp Bebek,40 yaşından gün almış bir kadının tüp bebek bedeli ödenir mi?,"Hayır, ancak rapor 40 yaş öncesi düzenlenmiş ve 30 gün içinde işlem yapılmışsa ödenir.",2.4.4.İ-1
+43,Tüp Bebek,Tüp bebek raporu nerede düzenlenmelidir?,Bünyesinde tüp bebek merkezi olan üçüncü basamak sağlık kurumlarında.,2.4.4.İ-1-2
+44,Genetik,Moleküler genetik testler nerede faturalandırılabilir?,Ruhsatlı Genetik Hastalıklar Değerlendirme Merkezleri tarafından.,2.4.4.G
+45,Tüp Bebek,Erkek infertilitesi durumunda aşılama şartı aranır mı?,"Hayır, sperm sayısı 5 milyonun altındaysa veya azoospermi varsa aranmaz.",2.4.4.İ-1
+46,İlaç,Sürekli kullanım gerektiren ilaç raporları genellikle kaç yıl geçerlidir?,2 yıl.,4.1.3
+47,İlaç,Rapor olmadan bir reçeteye en fazla kaç günlük ilaç yazılabilir?,10 günlük doz.,4.1.4
+48,İlaç,Raporlu ilaçlar bir seferde en fazla kaç aylık dozda verilebilir?,3 aylık doz.,4.1.4
+49,İlaç,Diş hekimleri antibiyotik yazabilir mi?,Sadece ağız ve diş sağlığı ile ilgiliyse yazabilirler.,4.1.1
+50,İlaç,Hastanın ilk defa kullanacağı bir ilaç en fazla ne kadar süreyle ödenir?,1 aylık doz.,4.1.4
+51,İlaç,Endikasyon dışı ilaç kullanımı için kimden onay alınmalıdır?,Sağlık Bakanlığı'ndan.,4.1.4
+52,İlaç,Kırmızı reçeteli ilaçlar e-reçete olarak yazılabilir mi?,Evet.,4.1.5
+53,İlaç,Bedeli Ödenecek İlaçlar Listesi'nde (EK-4/A) olmayan ilaç ödenir mi?,"Hayır, ödenmez.",4.1.9
+54,İlaç,Katılım payından muaf ilaçlar listesi hangisidir?,EK-4/D listesi.,4.1.6
+55,İlaç,Yatarak tedavide kullanılan ilaçları kim temin eder?,Hastanenin temin etmesi zorunludur.,4.1.2
+56,İlaç-Özel,Romatoid Artrit tedavisinde Anti-TNF başlama kriteri olan DAS28 skoru kaçtır?,DAS28 > 5.1.,4.2.1.C-1
+57,İlaç-Özel,Romatoid Artritte Anti-TNF öncesi kaç DMARD ilacı denenmelidir?,En az 3 farklı ilaç (biri metotreksat olmalı).,4.2.1.C-1
+58,İlaç-Özel,"Rituksimab, Romatoid Artritte ilk seçenek midir?","Hayır, Anti-TNF tedavisine yanıt vermeyenlerde kullanılır.",4.2.1.C-2
+59,İlaç-Özel,Kronik Hepatit B'de oral antiviral başlamak için HBV DNA eşiği nedir?,10.000 kopya/ml (2.000 IU/ml).,4.2.13.1
+60,İlaç-Özel,40 yaş üstü Hepatit B hastalarında biyopsi şartı var mıdır?,HBV DNA > 20.000 IU/mL ise biyopsi şartı aranmaz.,4.2.13.1
+61,İlaç-Özel,2 yaş altı çocuklarda Tenofovir Hepatit B tedavisinde kullanılır mı?,"Hayır, genellikle 12 yaş üzeri veya belirli kilo üstü için önerilir.",4.2.13.1
+62,İlaç-Özel,Astım tedavisinde Omalizumab tedavisi ne zaman sonlandırılır?,16. haftada beklenen iyileşme görülmezse.,4.2.24.A
+63,İlaç-Özel,Fingolimod hangi hastalık tedavisinde kullanılır?,Multipl Skleroz (MS).,4.2.34
+64,İlaç-Özel,ITP hastalığında Eltrombopag başlamak için trombosit sayısı kaç olmalıdır?,30.000'in altında.,4.2.27.D
+65,İlaç-Özel,Bevacizumab metastatik kolon kanserinde ödenir mi?,"Evet, kemoterapi ile kombine olarak.",4.2.14.C
+66,İlaç-Özel,Kronik böbrek yetmezliğinde Eritropoietin başlamak için hemoglobin değeri ne olmalıdır?,10 g/dL'nin altında.,4.2.9.A
+67,İlaç-Özel,Eritropoietin tedavisi hemoglobin kaç olunca kesilir?,12 g/dL'yi aşınca.,4.2.9.A
+68,İlaç-Özel,Sildenafil erektil disfonksiyon için ödenir mi?,"Hayır, sadece Pulmoner Arteriyel Hipertansiyon için ödenir.",4.2.30
+69,İlaç-Özel,Hemofili profilaksisinde haftalık maksimum Faktör VIII dozu nedir?,4500 ünite.,4.2.27.A
+70,İlaç-Özel,Palivizumab (Synagis) hangi bebeklere ödenir?,Kronik akciğer hastalığı olan veya hemodinamik anlamlı kalp hastalığı olan riskli bebeklere.,4.2.20
+71,İlaç-Özel,Kronik migren tedavisinde Botox ödenir mi?,"Evet, profilaktik tedaviye yanıt vermeyen kronik migrende ödenir.",4.2.19
+72,İlaç-Özel,Klopidogrel ve Prasugrel birlikte reçete edilebilir mi?,"Hayır, ikili antiplatelet tedavide genellikle Aspirin ile kombine edilirler, birbirleriyle değil.",4.2.15
+73,İlaç-Özel,Donepezil (Alzheimer ilacı) raporunu kim çıkarabilir?,"Nöroloji, Geriatri veya Psikiyatri uzmanı.",4.2.2
+74,İlaç-Özel,Nivolumab Renal Hücreli Karsinomda ödenir mi?,"Evet, daha önce anti-anjiyojenik tedavi almış hastalarda.",4.2.14.C
+75,İlaç-Özel,Büyüme hormonunun (Somatropin) kullanımı ne zaman sonlandırılır?,Epifiz hatları kapandığında veya boy uzaması durduğunda.,4.2.6
+76,İlaç-Özel,Gabapentin anksiyete bozukluğu için ödenir mi?,"Hayır, nöropatik ağrı veya epilepsi için ödenir.",4.2.25
+77,İlaç-Özel,Omalizumab kronik ürtikerde ödenir mi?,"Evet, dirençli kronik spontan ürtikerde ödenir.",4.2.24
+78,İlaç-Özel,Altın preparatlarını hangi uzmanlar reçete edebilir?,Romatoloji veya Fiziksel Tıp ve Rehabilitasyon uzmanları.,4.2.1.B
+79,İlaç-Özel,Leflunomid psoriatik artritte kullanılır mı?,Evet.,4.2.1.A
+80,İlaç-Özel,Adalimumab (Humira) üveit tedavisinde ödenir mi?,"Evet, enfeksiyöz olmayan orta/arka üveitte ödenir.",4.2.1.C-1
+81,İlaç-Özel,Ankilozan Spondilitte biyolojik ajan başlamak için BASDAI skoru kaç olmalıdır?,"BASDAI > 4 (veya 5, güncel SUT'a göre kontrol edilmeli).",4.2.1.C-1
+82,İlaç-Özel,Anakinra FMF (Ailevi Akdeniz Ateşi) hastalarında ne zaman kullanılır?,Kolşisin tedavisine dirençli veya tolere edemeyen hastalarda.,4.2.1.C-7
+83,İlaç-Özel,Osteoporoz tedavisinde Denosumab ne zaman ödenir?,Bifosfonatları tolere edemeyen veya yanıt alınamayan hastalarda.,4.2.17.A
+84,İlaç-Özel,Prostat kanserinde Abirateron kemoterapi öncesi verilebilir mi?,"Evet, asemptomatik veya hafif semptomatik hastalarda.",4.2.14.C
+85,İlaç-Özel,Sorafenib tiroid kanserinde ödenir mi?,"Evet, radyoaktif iyota dirençli diferansiye tiroid kanserinde.",4.2.14.C
+86,İlaç-Özel,Migren tedavisinde triptanları kim reçete eder?,Nöroloji uzmanları.,4.2.19
+87,İlaç-Özel,Parenteral demir tedavisi (İV demir) hangi durumda ödenir?,Ferritin < 100 veya oral demiri tolere edemeyenlerde.,4.2.41
+88,İlaç-Özel,Enteral beslenme ürünleri zayıflama amacıyla ödenir mi?,"Hayır, sadece malnütrisyon durumunda ödenir.",4.2.8.A
+89,İlaç-Özel,Bupropiyon sigara bırakma tedavisinde ödenir mi?,"Hayır, SUT kapsamında sadece Majör Depresyon için ödenir.",4.2.2
+90,İlaç-Özel,Aripiprazol'ü aile hekimi yazabilir mi?,"Hayır, genellikle Psikiyatri veya Nöroloji uzmanı yazar.",4.2.2
+91,İlaç-Özel,Valgansiklovir organ nakli sonrası CMV profilaksisinde ödenir mi?,Evet.,4.2.13
+92,İlaç-Özel,Pulmoner Hipertansiyonda Bosentan'ı kim reçete edebilir?,"Kardiyoloji, Göğüs Hastalıkları veya Kalp Damar Cerrahisi uzmanları.",4.2.30
+93,İlaç-Özel,Klopidogrel stent takılan hastada raporsuz ödenir mi?,"Evet, işlemden sonra 4 haftaya kadar raporsuz ödenir.",4.2.15.A
+94,İlaç-Özel,Rivaroksaban DVT tedavisinde ödenir mi?,Evet.,4.2.15.D
+95,İlaç-Özel,Dabigatran mekanik kalp kapağı olan hastada kullanılır mı?,"Hayır, kontrendikedir ve ödenmez.",4.2.15.D
+96,İlaç-Özel,İvabradin hangi kalp atım hızında başlanır?,Sinüs ritminde ve kalp hızı dakikada 75 ve üzeri olanlarda.,4.2.15.C
+97,İlaç-Özel,Levosimendan ayaktan tedavide ödenir mi?,"Hayır, sadece yatarak tedavide ödenir.",4.2.26
+98,İlaç-Özel,Fampiridin MS hastalarında ne için kullanılır?,Yürüme yeteneğindeki bozukluğu düzeltmek için.,4.2.34
+99,İlaç-Özel,Natalizumab Crohn hastalığı için ödenir mi?,"Hayır, SUT'ta sadece MS için tanımlanmıştır.",4.2.34
+100,İlaç-Özel,Teriparatid osteoporozda ömür boyu kullanılabilir mi?,"Hayır, toplam tedavi süresi 18 (veya 24) ayı geçemez.",4.2.17.D
+101,Malzeme,CPAP cihazı bedeli SGK tarafından karşılanır mı?,"Evet, Kuruma iade edilmek şartıyla karşılanır.",3.3.6
+102,Malzeme,CPAP cihazının geri alınmaması için yıllık minimum kullanım saati nedir?,1200 saat.,3.3.6.A
+103,Malzeme,İşitme cihazı yenileme süresi kaç yıldır?,5 yıl.,3.3.35
+104,Malzeme,Hasta alt bezi raporunu kim düzenler?,İkinci veya üçüncü basamak sağlık kurumlarındaki uzman hekimler.,3.3.37
+105,Malzeme,Günde en fazla kaç adet hasta alt bezi ödenir?,4 adet.,3.3.37
+106,Malzeme,5 yaşındaki çocuğa koklear implant takılabilir mi?,"Evet, kriterleri karşılıyorsa (ileri derecede işitme kaybı vb.) takılabilir.",3.3.36
+107,Malzeme,Koklear implant pilleri ödenir mi?,"Evet, yıllık belirli bir tutarda ödenir.",3.3.36
+108,Malzeme,Akülü tekerlekli sandalye yenileme süresi nedir?,5 yıl.,3.3.6
+109,Malzeme,Hidrofilik sondalar (TAK sondası) ödenir mi?,"Evet, nörojenik mesane gibi durumlarda ödenir.",3.3.5
+110,Malzeme,İşitme cihazı pili için hastalara nakit ödeme yapılır mı?,"Evet, şahıs ödemesi şeklinde yapılabilir.",3.3.35
+111,Malzeme,Evde kullanılmak üzere Vakum Yardımlı Yara Kapama (VAC) seti ödenir mi?,"Evet, belirli yara evrelerinde sağlık kurulu raporu ile ödenir.",3.3.1
+112,Malzeme,Tip 2 diyabet hastası (insülin kullanan) için ayda kaç şeker ölçüm çubuğu ödenir?,150 adet.,3.3.2
+113,Malzeme,Sadece hap kullanan diyabet hastası için 3 ayda kaç şeker ölçüm çubuğu ödenir?,100 adet.,3.3.2
+114,Malzeme,Miyoelektrik kol protezi kimlere ödenir?,İki taraflı kol amputasyonu olanlara veya işlevsel gerekliliği kanıtlananlara.,3.3.3
+115,Malzeme,Kozmetik amaçlı kontakt lens ödenir mi?,Hayır.,3.3.3.C
+116,Malzeme,Albinizm hastaları için güneş kremi ödenir mi?,"Evet, aylık belirli bir limite kadar ödenir.",4.2.39
+117,Malzeme,Ev tipi ventilatör cihazı ödenir mi?,"Evet, kronik solunum yetmezliği olanlarda iade alınmak kaydıyla verilir.",3.3.6
+118,Malzeme,Manuel tekerlekli sandalye yenileme süresi nedir?,5 yıl.,3.3.6
+119,Malzeme,Nebulizatör cihazı bedeli karşılanır mı?,"Evet, uzman hekim raporu ile.",3.3.6
+120,Malzeme,Bir hasta hem Oksijen Konsantratörü hem CPAP kullanabilir mi?,"Evet, her iki cihaz için de tıbbi endikasyon varsa (örn. KOAH + Uyku Apnesi).",3.3.6
+121,Malzeme,Kolostomi torbası için rapor süresi ne kadardır?,Genellikle 2 yıldır.,3.1.2
+122,Malzeme,Varis çorabı ödenir mi?,"Evet, kalp damar cerrahisi veya ilgili uzman raporu ile.",3.3.9
+123,Malzeme,Yanık bası giysisi ödenir mi?,"Evet, 2. ve 3. derece yanıklardan sonra hipertrofik skar riskinde.",3.3.9
+124,Malzeme,Tekerlekli sandalye aküsü biterse yenisi ödenir mi?,"Evet, belirli periyotlarla akü değişimi karşılanır.",3.3.6
+125,Malzeme,Havalı yatak bedeli ödenir mi?,"Evet, yatalak hastalarda bası yarasını önlemek için.",3.3.6
+126,Tedavi,Fizik tedavide bir bölge için yılda en fazla kaç seans ödenir?,30 seans.,2.4.4.F
+127,Tedavi,Serebral Palsi (G80) hastalarında fizik tedavi seans sınırı var mıdır?,"Hayır, 30 seans sınırı uygulanmaz, daha fazla seans ödenebilir.",2.4.4.F
+128,Tedavi,Ani işitme kaybında Hiperbarik Oksijen Tedavisi ödenir mi?,"Evet, erken dönemde başvurulursa ödenir.",2.4.4.B
+129,Tedavi,Otizm tedavisinde Hiperbarik Oksijen ödenir mi?,"Hayır, SUT endikasyonları arasında yoktur.",2.4.4.B
+130,Tedavi,Diyaliz hastaları haftada en fazla kaç seans hemodiyalize girebilir?,Genellikle haftada 3 seans ödenir.,2.4.4.D
+131,Tedavi,Miyopi için Excimer Lazer (Göz çizdirme) ödenir mi?,"Hayır, refraktif cerrahi kozmetik kabul edilir ve ödenmez.",2.4.4.I
+132,Tedavi,Obezite cerrahisi (Tüp Mide) hangi vücut kitle indeksinde (VKİ) ödenir?,VKİ > 40 olmalı veya VKİ 35-40 olup ek hastalığı bulunmalı.,2.4.4.O
+133,Tedavi,Robotik Rehabilitasyon (Yürüme Robotu) ödenir mi?,"Evet, belirli nörolojik hastalıklarda ek ödeme olarak karşılanır.",2.4.4.F-5
+134,Tedavi,Sünnet işlemi SGK tarafından karşılanır mı?,"Evet, cerrahi işlem olarak karşılanır.",2.4.3
+135,Tedavi,Evde Sağlık Hizmetleri kapsamında doktor muayenesi ödenir mi?,"Evet, ödenir.",2.1.1.A
+136,Tedavi,ESWL (Böbrek taşı kırma) işlemi yılda en fazla kaç seans ödenir?,Taş başına en fazla 3 seans (veya belirli prosedür sınırı).,2.4.4.A
+137,Tedavi,Cyberknife (Radyocerrahi) tedavisi ödenir mi?,"Evet, belirli tümörlerde ödenir.",2.4.4.C
+138,Tedavi,PET-BT çekimi hangi durumlarda ödenir?,"Kanser evrelemesi, yeniden evreleme ve tedaviye yanıtın değerlendirilmesinde.",2.4.4.H
+139,Tedavi,Terapötik Aferez işlemleri ödenir mi?,"Evet, hematolojik hastalıklarda endikasyon dahilinde ödenir.",2.4.2
+140,Tedavi,Kök hücre nakli bedeli ödenir mi?,"Evet, ruhsatlı merkezlerde yapılması şartıyla ödenir.",2.4.2
+141,Tedavi,Alerji deri testleri ödenir mi?,"Evet, alerji ve immünoloji uzmanlarınca yapıldığında ödenir.",2.4.3
+142,Tedavi,Genetik testler (BRCA vb.) ödenir mi?,"Evet, Genetik Hastalıklar Tanı Merkezlerinde yapıldığında ödenir.",2.4.4.G
+143,Tedavi,Palyatif bakım merkezinde yatış ücreti ödenir mi?,Evet.,2.4.4.K
+144,Tedavi,Ağrı tedavisinde epidural enjeksiyon ödenir mi?,"Evet, Algoloji veya Anestezi uzmanı tarafından yapıldığında ödenir.",2.4.4.L
+145,Tedavi,Omurga cerrahisinde intraoperatif nöromonitorizasyon ödenir mi?,Evet.,2.4.4.M
+146,Fatura,Acil serviste 'Yeşil Alan' muayenesi için fark ücreti alınabilir mi?,"Hayır, ancak katılım payı tahsil edilir.",1.8.5
+147,Fatura,Aynı il içinde yapılan sevklere yol parası ödenir mi?,"Genellikle hayır, yerleşim yeri dışına sevklerde ödenir.",2.6.1
+148,Fatura,Yoğun bakımda yatan hastanın refakatçisine gündelik ödenir mi?,"Hayır, yoğun bakımda refakatçi kalamayacağı için ödenmez.",2.6.2
+149,Fatura,"Ameliyatlarda kullanılan sarf malzemeler (eldiven, gazlı bez) hastaya fatura edilir mi?","Hayır, paket fiyat veya işlem puanına dahildir.",2.2.2
+150,Fatura,Mutat taşıt (otobüs) ile sevklerde bilet ibrazı zorunlu mudur?,"Hayır, rayiç bedel üzerinden ödenir.",2.6.1.B
+151,Fatura,Hava ambulansı ücreti ödenir mi?,"Evet, organ nakli veya uzuv kopması gibi acil durumlarda ödenir.",2.6.1.B-3
+152,Fatura,Cenaze nakil ücreti ödenir mi?,"Evet, sevkli hastanın tedavi sırasında vefatı halinde ödenir.",2.6.8
+153,Fatura,Üniversite hastanelerinde öğretim üyesi farkı alınabilir mi?,"Evet, mesai dışı öğretim üyesi muayenelerinde ilave ücret alınabilir.",1.9.1
+154,Fatura,Özel hastanede tek kişilik odada yatış için fark alınır mı?,"Evet, otelcilik hizmeti farkı alınabilir.",1.9.4
+155,Fatura,SUT fiyatlarına KDV dahil midir?,"Hayır, fiyatlar genellikle KDV hariçtir.",6.1
+156,Fatura,İş kazası reçetelerini kim öder?,SGK (kısa vadeli sigorta kolları) öder.,1.2
+157,Fatura,Diyaliz hastaları için yol parası ödenir mi?,"Evet, servis yoksa mutat taşıt ücreti ödenir.",2.6.1.A
+158,Fatura,"Diş protez ücreti hastaya mı, merkeze mi ödenir?",Sözleşmeli merkez ise merkeze ödenir.,2.4.1.A
+159,Fatura,Özel hastanede acil serviste 'Kırmızı Alan' hastasından ücret alınır mı?,"Hayır, kırmızı alan hastalarından ilave ücret alınamaz.",2.3
+160,Fatura,Yatarak tedavide ilaç parası hastadan istenir mi?,"Hayır, hastane temin etmek zorundadır.",4.1.2
+161,Fatura,Eczane indirimi reçete bedelinden düşülür mü?,Evet.,4.4.1
+162,Fatura,Günde birden fazla fizik tedavi seansı fatura edilebilir mi?,"Genellikle hayır, günde 1 seans ödenir.",2.4.4.F
+163,Fatura,Kemoterapi tedavisi için ilave ücret alınabilir mi?,"Hayır, kanser tedavileri ilave ücretten muaftır.",1.9.3
+164,Fatura,İstisnai sağlık hizmetlerinde ilave ücret sınırı nedir?,SUT fiyatının 3 katına kadar alınabilir.,1.9.5
+165,Fatura,Akıllı lens (trifokal mercek) farkı ödenir mi?,"Hayır, SGK sadece standart (monofokal) mercek bedelini öder.",3.3.3
+166,Fatura,Refakatçi ücreti ne zaman ödenir?,Tıbben gerekli görüldüğü belgelenirse yatak ve yemek gideri olarak ödenir.,2.6.3
+167,Fatura,Günübirlik tedavilerde (örn. kemoterapi) refakatçi ücreti ödenir mi?,"Hayır, günübirlik işlemlerde refakatçi ödenmez.",2.2.2
+168,Fatura,Yurtdışı sigortalılarının (Almanya vb.) tedavisi SGK kapsamında mıdır?,"Evet, YUPASS üzerinden provizyon alınarak karşılanır.",1.7.1
+169,Fatura,Trafik kazasında tedavi giderlerini sigorta şirketi mi SGK mı öder?,"İlk müdahale ve tedavi giderlerini SGK karşılar, sonra rücu edebilir.",1.7
+170,Fatura,İlaç katılım payı emeklilerden nasıl tahsil edilir?,Emekli maaşından kesilir.,1.8.2
+171,İstisna,Nusinersen (Spinraza) ilacı SMA Tip-2 hastaları için ödenir mi?,"Evet, belirli kriterler sağlandığında ödenir.",4.2.49.B
+172,İstisna,Valbenazin hangi hastalıkta ödenir?,Tardif Diskinezi tedavisinde (ilgili maddeye bakılmalı).,4.2
+173,İstisna,Hepatit C Genotip 2 hastalarında Ombitasvir kullanılır mı?,"Hayır, genellikle Genotip 1 ve 4 için kullanılır.",4.2.13.3
+174,İstisna,"Crizotinib, ROS1 pozitif akciğer kanserinde ödenir mi?",Evet.,4.2.14.C
+175,İstisna,Botoks migren için hangi ICD kodu ile girilmelidir?,G43 (Kronik Migren).,4.2.19
+176,İstisna,"Ruksolitinib, Polistemia Vera tedavisinde ödenir mi?","Evet, hidroksiüreye dirençli vakalarda.",4.2.14.C
+177,İstisna,"Pazopanib, Sarkom tedavisinde kullanılır mı?",Evet.,4.2.14.C
+178,İstisna,Atipik HÜS hastasında Eculizumab başlama kriteri nedir?,ADAMTS13 aktivitesinin %5'in üzerinde olması.,4.2.12.B
+179,İstisna,İbrutinib Mantle Hücreli Lenfomada ödenir mi?,Evet.,4.2.14.C
+180,İstisna,Obinutuzumab Foliküler Lenfomada ödenir mi?,Evet.,4.2.14.C
+181,İstisna,"Venetoklaks, KLL hastasında hangi genetik bozukluk varsa ödenir?",17p delesyonu veya TP53 mutasyonu varsa.,4.2.14.C
+182,İstisna,"Palbosiklib, Üçlü Negatif Meme Kanserinde ödenir mi?","Hayır, Hormon Reseptör Pozitif (HR+) olmalıdır.",4.2.14.C
+183,İstisna,Ribosiklib meme kanserinde ödenir mi?,"Evet, Palbosiklib ile benzer endikasyonlarda.",4.2.14.C
+184,İstisna,Atezolizumab hangi kanser türlerinde ödenir?,Ürotelyal kanser ve Küçük Hücreli Dışı Akciğer Kanseri (belirli şartlarda).,4.2.14.C
+185,İstisna,Pembrolizumab Melanom tedavisinde ödenir mi?,Evet.,4.2.14.C
+186,İstisna,Dev Hücreli Arterit tedavisinde Tosilizumab ödenir mi?,Evet.,4.2.1.C-5
+187,İstisna,Ankilozan Spondilitte Sekukinumab ödenir mi?,"Evet, Anti-TNF dirençli hastalarda.",4.2.1.C-9
+188,İstisna,Ustekinumab Crohn hastalığında ödenir mi?,Evet.,4.2.1.C-4
+189,İstisna,Vedolizumab Ülseratif Kolit tedavisinde ödenir mi?,Evet.,4.2.1.C-8
+190,İstisna,Tofasitinib RA tedavisinde ne zaman kullanılır?,Anti-TNF tedavisine yanıt alınamadığında.,4.2.1.C-6
+191,İstisna,Teriflunomid MS tedavisinde ödenir mi?,Evet.,4.2.34
+192,İstisna,Dimetil Fumarat MS tedavisinde ödenir mi?,Evet.,4.2.34
+193,İstisna,Alemtuzumab MS tedavisinde ne zaman kullanılır?,Yüksek hastalık aktivitesi olan hastalarda.,4.2.34
+194,İstisna,Okrelizumab (Ocrevus) hangi MS tipinde ödenir?,Primer Progresif MS (PPMS) veya Relapsing MS.,4.2.34
+195,İstisna,Kladribin MS tedavisinde ödenir mi?,Evet.,4.2.34
+196,İstisna,Vigabatrin epilepsi tedavisinde ödenir mi?,Evet.,4.2.25
+197,İstisna,Levetirasetam profilaksi amaçlı kullanılır mı?,"Evet, kranial cerrahi sonrası vb. durumlarda.",4.2.25
+198,İstisna,Zonisamid epilepsi tedavisinde ödenir mi?,Evet.,4.2.25
+199,İstisna,Lakosamid hangi tür nöbetlerde ödenir?,Parsiyel başlangıçlı nöbetlerde.,4.2.25
+200,İstisna,Perampanel epilepsi tedavisinde ödenir mi?,Evet.,4.2.25
