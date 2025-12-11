@@ -1,0 +1,177 @@
+{
+  "nodes": [
+    {
+      "id": "ROOT",
+      "label": "SOSYAL GÜVENLİK KURUMU SAĞLIK UYGULAMA TEBLİĞİ",
+      "type": "RULE",
+      "text": "Sosyal Güvenlik Kurumundan:\nSOSYAL GÜVENLİK KURUMU SAĞLIK UYGULAMA TEBLİĞİ\n7\n7\n7\n7\n8\n8\n10\n10\n11\n11\n1\n2\n2\n2\n4\n4\n5\n5\n6\n6\n7\n7\n8\n8\n9\n9\n9\n9\n9\n9\n9\n9\n9\n2\n3\n7\n30"
+    },
+    {
+      "id": "2.3.1",
+      "label": "Madde 2.3.1",
+      "type": "RULE",
+      "text": "Sözleşmesiz sağlık hizmeti sunucularında acil hallerde sunulan sağlık hizmetleri"
+    },
+    {
+      "id": "ACIL HALLER",
+      "label": "Acil haller",
+      "type": "CONDITION",
+      "text": ""
+    },
+    {
+      "id": "SÖZLEŞMESIZ SAĞLIK HIZMETI SUNUCULARINDA",
+      "label": "Sözleşmesiz sağlık hizmeti sunucularında",
+      "type": "CONDITION",
+      "text": ""
+    },
+    {
+      "id": "4.2.56",
+      "label": "Large Neutral Amino Acids (LNNA) etken maddesini içeren beslenme ürünlerinin kullanım ilkeleri",
+      "type": "RULE",
+      "text": "4.2.56 - Large Neutral Amino Acids (LNNA) etken maddesini içeren beslenme ürünlerinin kullanım ilkeleri       ………………………………………………………………………………………………………………..248                                                                                            248\n248\n248\n248\n249\n249"
+    },
+    {
+      "id": "LARGE NEUTRAL AMINO ACIDS (LNNA)",
+      "label": "Large Neutral Amino Acids (LNNA)",
+      "type": "DRUG",
+      "text": ""
+    },
+    {
+      "id": "4.2.63",
+      "label": "Madde 4.2.63",
+      "type": "RULE",
+      "text": "4.2.63 - Trientin hidroklorür kullanım ilkeleri\t249"
+    },
+    {
+      "id": "TRIENTIN HIDROKLORÜR",
+      "label": "Trientin hidroklorür",
+      "type": "DRUG",
+      "text": ""
+    },
+    {
+      "id": "4.2.64",
+      "label": "4.2.64",
+      "type": "RULE",
+      "text": "4.2.64 - Wilson hastalığında D-penicillamine kullanım ilkeleri\t249"
+    },
+    {
+      "id": "WILSON HASTALIĞI",
+      "label": "Wilson hastalığı",
+      "type": "DIAGNOSIS",
+      "text": ""
+    },
+    {
+      "id": "D-PENICILLAMINE",
+      "label": "D-penicillamine",
+      "type": "DRUG",
+      "text": ""
+    },
+    {
+      "id": "4.2.65",
+      "label": "Madde 4.2.65",
+      "type": "RULE",
+      "text": "4.2.65 - Diyabetik ayak ülserinde epidermal büyüme faktörü (topikal formu) kullanım ilkeleri\t249"
+    },
+    {
+      "id": "DIYABETIK AYAK ÜLSERI",
+      "label": "Diyabetik ayak ülseri",
+      "type": "DIAGNOSIS",
+      "text": ""
+    },
+    {
+      "id": "EPIDERMAL BÜYÜME FAKTÖRÜ (TOPIKAL FORMU)",
+      "label": "Epidermal Büyüme Faktörü (Topikal Formu)",
+      "type": "DRUG",
+      "text": ""
+    },
+    {
+      "id": "4.2.69",
+      "label": "Sakrosidaz kullanım ilkeleri",
+      "type": "RULE",
+      "text": "4.2.69 - Sakrosidaz kullanım ilkeleri\t250"
+    },
+    {
+      "id": "SAKROSIDAZ",
+      "label": "Sakrosidaz",
+      "type": "DRUG",
+      "text": ""
+    }
+  ],
+  "edges": [
+    {
+      "source": "2.3.1",
+      "target": "ACIL HALLER",
+      "relation": "REQUIRES_CONDITION"
+    },
+    {
+      "source": "2.3.1",
+      "target": "SÖZLEŞMESIZ SAĞLIK HIZMETI SUNUCULARINDA",
+      "relation": "REQUIRES_CONDITION"
+    },
+    {
+      "source": "2.3",
+      "target": "2.3.1",
+      "relation": "HAS_SUBRULE"
+    },
+    {
+      "source": "4.2.56",
+      "target": "LARGE NEUTRAL AMINO ACIDS (LNNA)",
+      "relation": "COVERS"
+    },
+    {
+      "source": "4.2",
+      "target": "4.2.56",
+      "relation": "HAS_SUBRULE"
+    },
+    {
+      "source": "4.2.63",
+      "target": "TRIENTIN HIDROKLORÜR",
+      "relation": "COVERS"
+    },
+    {
+      "source": "4.2",
+      "target": "4.2.63",
+      "relation": "HAS_SUBRULE"
+    },
+    {
+      "source": "4.2.64",
+      "target": "D-PENICILLAMINE",
+      "relation": "COVERS"
+    },
+    {
+      "source": "D-PENICILLAMINE",
+      "target": "WILSON HASTALIĞI",
+      "relation": "TREATS"
+    },
+    {
+      "source": "4.2",
+      "target": "4.2.64",
+      "relation": "HAS_SUBRULE"
+    },
+    {
+      "source": "4.2.65",
+      "target": "EPIDERMAL BÜYÜME FAKTÖRÜ (TOPIKAL FORMU)",
+      "relation": "COVERS"
+    },
+    {
+      "source": "EPIDERMAL BÜYÜME FAKTÖRÜ (TOPIKAL FORMU)",
+      "target": "DIYABETIK AYAK ÜLSERI",
+      "relation": "TREATS"
+    },
+    {
+      "source": "4.2",
+      "target": "4.2.65",
+      "relation": "HAS_SUBRULE"
+    },
+    {
+      "source": "4.2.69",
+      "target": "SAKROSIDAZ",
+      "relation": "COVERS"
+    },
+    {
+      "source": "4.2",
+      "target": "4.2.69",
+      "relation": "HAS_SUBRULE"
+    }
+  ]
+}
