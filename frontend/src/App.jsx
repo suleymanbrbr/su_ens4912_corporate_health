@@ -13,6 +13,15 @@ function App() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Theme initialization
+    const savedTheme = localStorage.getItem('theme')
+    if (savedTheme) {
+      document.documentElement.setAttribute('data-theme', savedTheme)
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.setAttribute('data-theme', 'dark')
+      localStorage.setItem('theme', 'dark')
+    }
+
     const token = localStorage.getItem('token')
     if (token) {
       fetch('/api/auth/me', {

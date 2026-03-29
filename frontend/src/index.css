@@ -10,6 +10,22 @@
   --radius: 12px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --text-gradient-start: #1e293b;
+  --text-gradient-end: #3b82f6;
+}
+
+[data-theme='dark'] {
+  --primary: #f8fafc;
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --bg: #0f172a;
+  --card-bg: #1e293b;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border: #334155;
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
+  --text-gradient-start: #f8fafc;
+  --text-gradient-end: #60a5fa;
 }
 
 * {

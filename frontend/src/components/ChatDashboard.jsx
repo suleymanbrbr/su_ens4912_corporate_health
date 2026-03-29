@@ -95,11 +95,11 @@ function ChatDashboard({ user, onLogout }) {
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {parsedSources.map((src, i) => (
-                <details key={i} style={{ background: '#f8fafc', borderRadius: '8px', border: '1px solid var(--border)', overflow: 'hidden' }}>
-                  <summary style={{ padding: '0.75rem 1rem', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer', outline: 'none', userSelect: 'none', color: 'var(--primary)', background: '#f1f5f9' }}>
+                <details key={i} style={{ background: 'var(--card-bg)', borderRadius: '8px', border: '1px solid var(--border)', overflow: 'hidden' }}>
+                  <summary style={{ padding: '0.75rem 1rem', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer', outline: 'none', userSelect: 'none', color: 'var(--primary)', background: 'var(--bg)' }}>
                     {src.title}
                   </summary>
-                  <div style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-main)', background: 'white', whiteSpace: 'pre-wrap', maxHeight: '350px', overflowY: 'auto' }}>
+                  <div style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-main)', background: 'var(--card-bg)', whiteSpace: 'pre-wrap', maxHeight: '350px', overflowY: 'auto' }}>
                     {src.text}
                   </div>
                 </details>
@@ -275,14 +275,14 @@ function ChatDashboard({ user, onLogout }) {
             </h1>
             {/* View Tabs */}
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
-              <button onClick={() => setActiveTab('chat')} style={{ flex: 1, padding: '0.5rem', borderRadius: '8px', border: 'none', background: activeTab === 'chat' ? 'var(--primary)' : '#f1f5f9', color: activeTab === 'chat' ? 'white' : 'var(--text-muted)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
+              <button onClick={() => setActiveTab('chat')} style={{ flex: 1, padding: '0.5rem', borderRadius: '8px', border: 'none', background: activeTab === 'chat' ? 'var(--primary)' : 'var(--bg)', color: activeTab === 'chat' ? 'white' : 'var(--text-muted)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
                 <MessageSquare size={14} /> Sohbet
               </button>
-              <button onClick={() => setActiveTab('graph')} style={{ flex: 1, padding: '0.5rem', borderRadius: '8px', border: 'none', background: activeTab === 'graph' ? '#10b981' : '#f1f5f9', color: activeTab === 'graph' ? 'white' : 'var(--text-muted)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
+              <button onClick={() => setActiveTab('graph')} style={{ flex: 1, padding: '0.5rem', borderRadius: '8px', border: 'none', background: activeTab === 'graph' ? '#10b981' : 'var(--bg)', color: activeTab === 'graph' ? 'white' : 'var(--text-muted)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
                 <Network size={14} /> Bilgi Grafiği
               </button>
             </div>
-            <button onClick={handleNewChat} style={{ width: '100%', padding: '0.6rem', background: '#e2e8f0', color: 'var(--text-main)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} onMouseOver={e => e.currentTarget.style.background = '#cbd5e1'} onMouseOut={e => e.currentTarget.style.background = '#e2e8f0'}>
+            <button onClick={handleNewChat} style={{ width: '100%', padding: '0.6rem', background: 'var(--bg)', color: 'var(--text-main)', border: '1px solid var(--border)', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
               + Yeni Sohbet
             </button>
           </div>
@@ -300,7 +300,7 @@ function ChatDashboard({ user, onLogout }) {
             {user?.role === 'admin' && (
               <div style={{ marginBottom: '1rem' }}>
                 <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', paddingLeft: '0.5rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem' }}>Yönetici</p>
-                <Link to="/admin" style={{ textDecoration: 'none', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.75rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600 }} onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                <Link to="/admin" style={{ textDecoration: 'none', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.75rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600 }}>
                   <Shield size={14} /> Admin Paneli
                 </Link>
               </div>
@@ -319,9 +319,7 @@ function ChatDashboard({ user, onLogout }) {
                       <button
                         key={conv.conversation_id || i}
                         onClick={() => loadConversation(conv.conversation_id)}
-                        style={{ width: '100%', textAlign: 'left', padding: '0.6rem 0.75rem', borderRadius: '8px', border: 'none', background: activeConversationId === conv.conversation_id ? '#e2e8f0' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                        onMouseOver={e => e.currentTarget.style.background = activeConversationId === conv.conversation_id ? '#e2e8f0' : '#f1f5f9'}
-                        onMouseOut={e => e.currentTarget.style.background = activeConversationId === conv.conversation_id ? '#e2e8f0' : 'transparent'}
+                        style={{ width: '100%', textAlign: 'left', padding: '0.6rem 0.75rem', borderRadius: '8px', border: 'none', background: activeConversationId === conv.conversation_id ? 'var(--bg)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                       >
                         <Clock size={12} color="var(--text-muted)" style={{ flexShrink: 0 }} />
                         <span style={{ fontSize: '0.82rem', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -341,7 +339,7 @@ function ChatDashboard({ user, onLogout }) {
             <div style={{ marginBottom: '1rem' }}>
               <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', paddingLeft: '0.5rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem' }}>Hızlı Sorgular</p>
               {["Kanser ilacı ödeme şartları", "Sürrenal yetmezlik raporu", "Fizik tedavi seans limitleri"].map(q => (
-                <button key={q} onClick={() => setInput(q)} style={{ width: '100%', textAlign: 'left', padding: '0.6rem 0.75rem', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', color: 'var(--text-main)' }} onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                <button key={q} onClick={() => setInput(q)} style={{ width: '100%', textAlign: 'left', padding: '0.6rem 0.75rem', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', color: 'var(--text-main)' }}>
                   <HelpCircle size={12} color="var(--text-muted)" /> {q}
                 </button>
               ))}
@@ -353,12 +351,15 @@ function ChatDashboard({ user, onLogout }) {
           {/* User Footer */}
           <div style={{ padding: '1rem', borderTop: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', marginBottom: '0.75rem' }}>
-              <Link to="/profile" style={{ textDecoration: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.5rem', borderRadius: '8px', fontSize: '0.85rem' }} onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+              <Link to="/profile" style={{ textDecoration: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.5rem', borderRadius: '8px', fontSize: '0.85rem' }}>
                 <User size={14} /> Profilim
               </Link>
-              <Link to="/settings" style={{ textDecoration: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.5rem', borderRadius: '8px', fontSize: '0.85rem' }} onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+              <Link to="/settings" style={{ textDecoration: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.5rem', borderRadius: '8px', fontSize: '0.85rem' }}>
                 <Settings size={14} /> Ayarlar
               </Link>
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <ThemeToggle />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0 }}>
@@ -394,7 +395,7 @@ function ChatDashboard({ user, onLogout }) {
               <div style={{ flex: 1, overflowY: 'auto', padding: '2rem 12%' }}>
                 {messages.length === 0 && !currentAnalysis && (
                   <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-                    <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', marginBottom: '1.5rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+                    <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: 'var(--card-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', marginBottom: '1.5rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
                       <Bot size={48} />
                     </div>
                     <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Merhaba, {user.username}</h2>
@@ -415,7 +416,7 @@ function ChatDashboard({ user, onLogout }) {
                           {renderMessageContent(msg.content)}
                         </div>
                         {msg.analysis && (
-                          <div style={{ marginTop: '0.75rem', padding: '0.75rem 1rem', background: '#f1f5f9', borderRadius: '12px', fontSize: '0.85rem', color: 'var(--text-muted)', borderLeft: '3px solid #cbd5e1' }}>
+                          <div style={{ marginTop: '0.75rem', padding: '0.75rem 1rem', background: 'var(--card-bg)', borderRadius: '12px', fontSize: '0.85rem', color: 'var(--text-muted)', borderLeft: '3px solid #cbd5e1' }}>
                             <p style={{ fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.25rem', fontSize: '0.8rem' }}>Analiz:</p>
                             {msg.analysis}
                           </div>
@@ -452,7 +453,7 @@ function ChatDashboard({ user, onLogout }) {
                         )}
                       </div>
                       {msg.role === 'user' && (
-                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'white', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', flexShrink: 0 }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--card-bg)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', flexShrink: 0 }}>
                           <User size={18} />
                         </div>
                       )}
@@ -467,7 +468,7 @@ function ChatDashboard({ user, onLogout }) {
                     </div>
                     <div style={{ flex: 1 }}>
                       {currentAnalysis && (
-                        <div style={{ padding: '1rem', background: '#f1f5f9', borderRadius: '12px', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                        <div style={{ padding: '1rem', background: 'var(--card-bg)', borderRadius: '12px', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
                           <p style={{ fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.5rem' }}>Analiz Ediliyor...</p>
                           {currentAnalysis}
                         </div>
@@ -479,7 +480,7 @@ function ChatDashboard({ user, onLogout }) {
                 <div ref={chatEndRef} />
               </div>
 
-              <div style={{ padding: '1.5rem 12%', background: 'white', borderTop: '1px solid var(--border)', flexShrink: 0 }}>
+              <div style={{ padding: '1.5rem 12%', background: 'var(--card-bg)', borderTop: '1px solid var(--border)', flexShrink: 0 }}>
                 <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '1rem', position: 'relative' }}>
                   <input
                     type="text"
