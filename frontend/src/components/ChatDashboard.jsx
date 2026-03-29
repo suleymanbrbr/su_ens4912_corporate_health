@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { LogOut, Send, User, Bot, HelpCircle, Clock, Book, Shield, Network, MessageSquare, Settings, Bookmark, X, Megaphone, ThumbsUp, ThumbsDown, BookOpen } from 'lucide-react'
 import KnowledgeGraph from './KnowledgeGraph'
+import ThemeToggle from './ThemeToggle'
+import ResponseFeedback from './ResponseFeedback'
 
 const AUTH_HEADER = () => ({ 'Authorization': `Bearer ${localStorage.getItem('token')}` })
 
