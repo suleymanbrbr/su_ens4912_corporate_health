@@ -93,7 +93,8 @@ CONTEXT:
 {context_str}
 
 KURALLAR:
-1. Yalnızca yukarıdaki bağlamı(context) kullanarak cevap ver.
+1. Öncelikle yukarıdaki bağlamı (SUT metinlerini) kullanarak cevap ver.
+2. Eğer sorulan soru bağlamda yer almıyorsa, kendi tıbbi ve mevzuat bilgini kullanarak cevaplayabilirsin ancak cümlenin başında "SUT metninde doğrudan yer almamakla birlikte..." veya "Mevcut SUT bağlamında bulunmamasına rağmen genel uygulamada..." gibi bir uyarı EKLEMEK ZORUNDASIN.
 2. Metin içinde bilgi aldığın kaynaklara atıf yap (örn: [Kaynak 1]).
 3. Cevabının EN SONUNA, SADECE kullandığın kaynakların başlık ve içeriklerini aşağıdaki formatta ekle:
 <KAYNAKLAR>
