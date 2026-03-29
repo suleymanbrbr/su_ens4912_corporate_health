@@ -1,11 +1,9 @@
 # sut_rag_core.py
-# Description: Pure SUT RAG Engine (Retrieval & Agentic Loop only)
+# Description: Pure SUT RAG Engine (Retrieval & Agentic Loop only), PostgreSQL Edition
 
 import os
 import json
-import sqlite3
-import numpy as np
-import faiss
+import psycopg2
 from typing import List, Dict, Generator
 from sentence_transformers import CrossEncoder 
 
@@ -15,8 +13,6 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
-from rag_storage import DB_PATH, FAISS_INDEX_PATH, FAISS_MAPPING_PATH
-
 class SUT_RAG_Engine:
     def __init__(self, llm_provider: str = "google", model_name: str = "gemini-2.0-flash"):
         self.embeddings_model = self._initialize_embeddings()
@@ -24,8 +20,6 @@ class SUT_RAG_Engine:
         self.reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2', device='cpu')
         self.conn = None
         self.cursor = None
-        self.faiss_index = None
-        self.id_mapping = None
         self.llm = None
         self.provider = llm_provider
 
@@ -55,13 +49,13 @@ class SUT_RAG_Engine:
         return HuggingFaceEmbeddings(model_name="paraphrase-multilingual-MiniLM-L12-v2", model_kwargs={'device': 'cpu'})
 
     def load_database(self) -> bool:
-        if not os.path.exists(FAISS_INDEX_PATH): return False
-        self.conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-        self.cursor = self.conn.cursor()
-        self.faiss_index = faiss.read_index(FAISS_INDEX_PATH)
-        with open(FAISS_MAPPING_PATH, "r", encoding="utf-8") as f:
-            self.id_mapping = json.load(f)
-        return True
+        try:
+            self.conn = psycopg2.connect(os.getenv("DATABASE_URL"))
+            self.cursor = self.conn.cursor()
+            return True
+        except Exception as e:
+            print(f"[WARN] Postgres database connection failed: {e}")
+            return False
 
     def query_agentic_rag_stream(self, user_query: str, chat_history: List[Dict] = None, k: int = 5) -> Generator[Dict, None, None]:
         if chat_history is None:
@@ -82,7 +76,7 @@ class SUT_RAG_Engine:
 
         context_str = ""
         for i, c in enumerate(chunks):
-            headers = [v for k, v in c['metadata'].items() if k.startswith("Header")]
+            headers = [v for key, v in c['metadata'].items() if key.startswith("Header")]
             breadcrumb = " > ".join(headers) if headers else "Bölüm"
             chunk_text = c['text']
             formatted = f"\n--- KAYNAK {i+1} ---\nBAŞLIK: {breadcrumb}\nİÇERİK:\n{chunk_text}\n"
@@ -124,21 +118,22 @@ Eğer hiçbir kaynak kullanmadıysan bu bölümü ekleme.
             yield {"error": f"LLM Generation Error: {str(e)}"}
 
     def _retrieve_chunks(self, query: str, k: int) -> List[Dict]:
-        if not self.faiss_index: return []
+        if not self.conn: return []
         initial_k = k * 3
-        q_vec = np.array([self.embeddings_model.embed_query(query)]).astype('float32')
-        _, indices = self.faiss_index.search(q_vec, initial_k)
+        q_vec = self.embeddings_model.embed_query(query)
+        q_vec_str = "[" + ",".join(map(str, q_vec)) + "]"
         
-        combined_ids = []
-        for idx in indices[0]:
-            if idx != -1: combined_ids.append(self.id_mapping[idx])
-
+        self.cursor.execute("""
+            SELECT chunk_id, text_content, metadata_json 
+            FROM chunks 
+            ORDER BY embedding <=> %s 
+            LIMIT %s
+        """, (q_vec_str, initial_k))
+        
         candidates = []
-        for cid in combined_ids:
-            self.cursor.execute("SELECT chunk_id, text_content, metadata_json FROM chunks WHERE chunk_id=?", (cid,))
-            row = self.cursor.fetchone()
-            if row:
-                candidates.append({"id": row[0], "text": row[1], "metadata": json.loads(row[2])})
+        for row in self.cursor.fetchall():
+            meta = row[2] if isinstance(row[2], dict) else json.loads(row[2])
+            candidates.append({"id": row[0], "text": row[1], "metadata": meta})
 
         if candidates:
             pairs = [[query, doc['text']] for doc in candidates]
