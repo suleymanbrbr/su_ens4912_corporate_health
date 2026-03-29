@@ -28,7 +28,7 @@ function TabButton({ active, onClick, icon, label }) {
 
 function MetricCard({ icon, iconBg, iconColor, value, label }) {
   return (
-    <div className="premium-card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+    <div className="premium-card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--card-bg)' }}>
       <div style={{ width: '50px', height: '50px', background: iconBg, color: iconColor, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         {icon}
       </div>
@@ -212,6 +212,14 @@ function AdminPanel({ user, onLogout }) {
           <Link to="/policies" style={{ textDecoration: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', borderRadius: '8px', fontSize: '0.9rem' }} onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
             <BookOpen size={16} /> SUT Mevzuat Tarayıcısı
           </Link>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', marginBottom: '0.75rem' }}>
+            <Link to="/settings" style={{ textDecoration: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.5rem', borderRadius: '8px', fontSize: '0.85rem' }} onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+              <Settings size={14} /> Ayarlar
+            </Link>
+          </div>
+          <div style={{ marginBottom: '1rem' }}>
+            <ThemeToggle />
+          </div>
         </nav>
         <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'transparent', color: '#ef4444', border: 'none', cursor: 'pointer', padding: '0.75rem', borderRadius: '8px', fontWeight: 600 }}>
           <LogOut size={16} /> Çıkış Yap
@@ -221,7 +229,7 @@ function AdminPanel({ user, onLogout }) {
       {/* Main */}
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--bg)', overflow: 'hidden' }}>
         {/* Tab Bar */}
-        <div style={{ padding: '1.5rem 2rem 0', borderBottom: '1px solid var(--border)', background: 'white', display: 'flex', gap: '0.5rem' }}>
+        <div style={{ padding: '1.5rem 2rem 0', borderBottom: '1px solid var(--border)', background: 'var(--card-bg)', display: 'flex', gap: '0.5rem' }}>
           <TabButton active={tab === 'overview'} onClick={() => setTab('overview')} icon={<LayoutDashboard size={16} />} label="Genel Bakış" />
           <TabButton active={tab === 'activity'} onClick={() => setTab('activity')} icon={<Activity size={16} />} label="Canlı Aktivite" />
           <TabButton active={tab === 'analytics'} onClick={() => setTab('analytics')} icon={<TrendingUp size={16} />} label="Analitik" />
