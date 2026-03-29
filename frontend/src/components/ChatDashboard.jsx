@@ -412,45 +412,54 @@ function ChatDashboard({ user, onLogout }) {
                         </div>
                       )}
                       <div style={{ maxWidth: '80%' }}>
-                        <div className={msg.role === 'user' ? 'btn-primary' : 'premium-card'} style={{ padding: '1rem 1.25rem', borderRadius: msg.role === 'user' ? '20px 20px 4px 20px' : '4px 20px 20px 20px', fontSize: '0.95rem', whiteSpace: 'pre-wrap' }}>
-                          {renderMessageContent(msg.content)}
+                        <div className={msg.role === 'user' ? 'btn-primary' : 'premium-card'} style={{ padding: '1rem 1.25rem', borderRadius: msg.role === 'user' ? '20px 20px 4px 20px' : '4px 20px 20px 20px', fontSize: '0.95rem' }}>
+                          <div style={{ whiteSpace: 'pre-wrap' }}>
+                            {renderMessageContent(msg.content)}
+                          </div>
+                          
+                          {msg.role === 'assistant' && (msg.analysis || (!loading && msg.content)) && (
+                            <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                              
+                              {msg.analysis && (
+                                <div style={{ padding: '0.75rem 1rem', background: '#f8fafc', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-muted)', borderLeft: '3px solid #cbd5e1' }}>
+                                  <p style={{ fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.25rem', fontSize: '0.8rem' }}>Analiz:</p>
+                                  {msg.analysis}
+                                </div>
+                              )}
+                              
+                              {!loading && msg.content && (
+                                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                  <button
+                                    onClick={() => {
+                                      let queryStr = 'Sorgu bulunamadı'
+                                      for (let j = i - 1; j >= 0; j--) {
+                                        if (messages[j].role === 'user') { queryStr = messages[j].content; break }
+                                      }
+                                      handleSaveResponse(queryStr, msg.content)
+                                    }}
+                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: 'var(--primary)', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+                                  >
+                                    <Bookmark size={14} /> Yanıtı Kaydet
+                                  </button>
+                                  
+                                  {msg.id && !msg.feedbackSubmitted && (
+                                    <div style={{ display: 'flex', gap: '0.5rem', borderLeft: '1px solid var(--border)', paddingLeft: '0.75rem' }}>
+                                      <button onClick={() => handleFeedback(msg.id, 5, true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: '#10b981', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+                                        <ThumbsUp size={14} /> Doğru
+                                      </button>
+                                      <button onClick={() => handleFeedback(msg.id, 1, false)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+                                        <ThumbsDown size={14} /> Yanlış
+                                      </button>
+                                    </div>
+                                  )}
+                                  {msg.feedbackSubmitted && (
+                                    <span style={{ fontSize: '0.7rem', color: '#10b981', borderLeft: '1px solid var(--border)', paddingLeft: '0.75rem' }}>✓ Geri bildirim alındı</span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        {msg.analysis && (
-                          <div style={{ marginTop: '0.75rem', padding: '0.75rem 1rem', background: 'var(--card-bg)', borderRadius: '12px', fontSize: '0.85rem', color: 'var(--text-muted)', borderLeft: '3px solid #cbd5e1' }}>
-                            <p style={{ fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.25rem', fontSize: '0.8rem' }}>Analiz:</p>
-                            {msg.analysis}
-                          </div>
-                        )}
-                        {msg.role === 'assistant' && msg.content && !loading && (
-                          <div style={{ marginTop: '0.5rem', marginLeft: '0.5rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                            <button
-                              onClick={() => {
-                                let queryStr = 'Sorgu bulunamadı'
-                                for (let j = i - 1; j >= 0; j--) {
-                                  if (messages[j].role === 'user') { queryStr = messages[j].content; break }
-                                }
-                                handleSaveResponse(queryStr, msg.content)
-                              }}
-                              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: 'var(--primary)', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 600 }}
-                            >
-                              <Bookmark size={14} /> Yanıtı Kaydet
-                            </button>
-                            
-                            {msg.id && !msg.feedbackSubmitted && (
-                              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                <button onClick={() => handleFeedback(msg.id, 5, true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: '#10b981', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
-                                  <ThumbsUp size={14} /> Doğru
-                                </button>
-                                <button onClick={() => handleFeedback(msg.id, 1, false)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
-                                  <ThumbsDown size={14} /> Yanlış
-                                </button>
-                              </div>
-                            )}
-                            {msg.feedbackSubmitted && (
-                              <span style={{ fontSize: '0.7rem', color: '#10b981' }}>✓ Geri bildirim alındı</span>
-                            )}
-                          </div>
-                        )}
                       </div>
                       {msg.role === 'user' && (
                         <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--card-bg)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', flexShrink: 0 }}>
