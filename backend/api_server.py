@@ -60,6 +60,8 @@ def init_system_tables():
             FOREIGN KEY(user_id) REFERENCES users(id)
         )
     """)
+    c.execute("CREATE INDEX IF NOT EXISTS idx_query_history_user_conv ON query_history(user_id, conversation_id)")
+    c.execute("CREATE INDEX IF NOT EXISTS idx_query_history_created ON query_history(created_at DESC)")
     # Migrate: add response and conversation_id columns if they don't exist yet
     try:
         c.execute("ALTER TABLE query_history ADD COLUMN response TEXT")
@@ -88,6 +90,31 @@ def init_system_tables():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             active INTEGER DEFAULT 1,
             FOREIGN KEY(created_by) REFERENCES users(id)
+        )
+    """)
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS user_feedback (
+            feedback_id TEXT PRIMARY KEY,
+            message_id TEXT,
+            rating INTEGER,
+            feedback_text TEXT,
+            is_accurate INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(message_id) REFERENCES query_history(id)
+        )
+    """)
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS agent_runs (
+            run_id TEXT PRIMARY KEY,
+            trigger_message_id TEXT,
+            agent_name TEXT,
+            input_data TEXT,
+            output_data TEXT,
+            status TEXT,
+            duration_ms INTEGER,
+            started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            ended_at TIMESTAMP,
+            FOREIGN KEY(trigger_message_id) REFERENCES query_history(id)
         )
     """)
     conn.commit()
@@ -238,6 +265,12 @@ class AnnouncementCreate(BaseModel):
 class HistoryResponseUpdate(BaseModel):
     response: str
 
+class FeedbackCreate(BaseModel):
+    message_id: str
+    rating: int  # 1-5 or -1, 1
+    feedback_text: str = ""
+    is_accurate: bool = True
+
 # --- Chat ---
 @app.post("/api/chat")
 async def chat(request: ChatRequest, current_user: dict = Depends(get_current_user)):
@@ -272,25 +305,51 @@ async def chat(request: ChatRequest, current_user: dict = Depends(get_current_us
         conn.close()
 
     async def event_generator():
+        start_time = asyncio.get_event_loop().time()
         # First event: send the query_id and conversation_id
         yield f"data: {json.dumps({'query_id': query_id, 'conversation_id': conversation_id}, ensure_ascii=False)}\n\n"
         await asyncio.sleep(0.01)
+        
+        full_response_text = ""
         for step in engine.query_agentic_rag_stream(request.message, chat_history=chat_history, k=request.k):
+            if "final_answer" in step:
+                full_response_text = step["final_answer"]
             yield f"data: {json.dumps(step, ensure_ascii=False)}\n\n"
             await asyncio.sleep(0.01)
+            
+        duration_ms = int((asyncio.get_event_loop().time() - start_time) * 1000)
+        
+        # Save response to DB when stream finishes
+        save_conn = get_db_conn()
+        try:
+            if full_response_text:
+                save_conn.execute(
+                    "UPDATE query_history SET response = ? WHERE id = ?",
+                    (full_response_text, query_id)
+                )
+            
+            save_conn.execute(
+                "INSERT INTO agent_runs (run_id, trigger_message_id, agent_name, input_data, output_data, status, duration_ms, ended_at) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)",
+                (str(uuid.uuid4()), query_id, "SUT_RAG_Engine", request.message, full_response_text, "success" if full_response_text else "failure", duration_ms)
+            )
+            save_conn.commit()
+        except Exception as e:
+            print(f"[WARN] Failed to update query response or telemetry: {e}")
+        finally:
+            save_conn.close()
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
-@app.put("/api/history/{query_id}/response")
-async def update_history_response(query_id: str, data: HistoryResponseUpdate, current_user: dict = Depends(get_current_user)):
+@app.post("/api/feedback")
+async def submit_feedback(data: FeedbackCreate, current_user: dict = Depends(get_current_user)):
     conn = get_db_conn()
     conn.execute(
-        "UPDATE query_history SET response = ? WHERE id = ? AND user_id = ?",
-        (data.response, query_id, current_user["id"])
+        "INSERT INTO user_feedback (feedback_id, message_id, rating, feedback_text, is_accurate) VALUES (?, ?, ?, ?, ?)",
+        (str(uuid.uuid4()), data.message_id, data.rating, data.feedback_text, 1 if data.is_accurate else 0)
     )
     conn.commit()
     conn.close()
-    return {"message": "Yanıt güncellendi."}
+    return {"message": "Geri bildiriminiz kaydedildi. Teşekkürler!"}
 
 @app.put("/api/auth/password")
 async def change_password(data: PasswordChange, current_user: dict = Depends(get_current_user)):

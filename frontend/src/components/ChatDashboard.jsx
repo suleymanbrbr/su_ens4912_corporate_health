@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { LogOut, Send, User, Bot, HelpCircle, Clock, Book, Shield, Network, MessageSquare, Settings, Bookmark, X, Megaphone } from 'lucide-react'
+import { LogOut, Send, User, Bot, HelpCircle, Clock, Book, Shield, Network, MessageSquare, Settings, Bookmark, X, Megaphone, ThumbsUp, ThumbsDown } from 'lucide-react'
 import KnowledgeGraph from './KnowledgeGraph'
 
 const AUTH_HEADER = () => ({ 'Authorization': `Bearer ${localStorage.getItem('token')}` })
@@ -65,6 +65,52 @@ function ChatDashboard({ user, onLogout }) {
     onLogout()
   }
 
+  const renderMessageContent = (content) => {
+    if (!content.includes('<KAYNAKLAR>')) {
+      return content;
+    }
+
+    const mainText = content.split('<KAYNAKLAR>')[0];
+    const sourcesMatch = content.match(/<KAYNAKLAR>([\s\S]*?)<\/KAYNAKLAR>/);
+    
+    let parsedSources = [];
+    if (sourcesMatch && sourcesMatch[1]) {
+      const sourceBlocks = sourcesMatch[1].split('</KAYNAK>').filter(s => s.trim().startsWith('<KAYNAK'));
+      parsedSources = sourceBlocks.map(block => {
+        const titleMatch = block.match(/baslik="(.*?)"/);
+        const title = titleMatch ? titleMatch[1] : 'Kaynak';
+        const textStart = block.indexOf('>') + 1;
+        const text = block.substring(textStart).trim();
+        return { title, text };
+      });
+    }
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div>{mainText.trim()}</div>
+        {parsedSources.length > 0 && (
+          <div style={{ marginTop: '0.5rem' }}>
+            <p style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.75rem', color: 'var(--text-main)', borderTop: '1px solid rgba(0,0,0,0.1)', paddingTop: '1rem' }}>
+              📚 Kullanılan Kaynaklar (Tam Metin):
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {parsedSources.map((src, i) => (
+                <details key={i} style={{ background: '#f8fafc', borderRadius: '8px', border: '1px solid var(--border)', overflow: 'hidden' }}>
+                  <summary style={{ padding: '0.75rem 1rem', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer', outline: 'none', userSelect: 'none', color: 'var(--primary)', background: '#f1f5f9' }}>
+                    {src.title}
+                  </summary>
+                  <div style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-main)', background: 'white', whiteSpace: 'pre-wrap', maxHeight: '350px', overflowY: 'auto' }}>
+                    {src.text}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   const handleSaveResponse = async (query, responseText) => {
     try {
       const res = await fetch('/api/history/save', {
@@ -77,12 +123,26 @@ function ChatDashboard({ user, onLogout }) {
     } catch { alert('Sunucu hatası.') }
   }
 
+  const handleFeedback = async (msgId, rating, isAccurate) => {
+    if (!msgId) return
+    try {
+      const res = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...AUTH_HEADER() },
+        body: JSON.stringify({ message_id: msgId, rating, is_accurate: isAccurate })
+      })
+      if (res.ok) {
+        setMessages(prev => prev.map(m => m.id === msgId && m.role === 'assistant' ? { ...m, feedbackSubmitted: true } : m))
+      }
+    } catch (e) { console.error(e) }
+  }
+
   const loadConversation = (convId) => {
     const msgs = conversations.filter(c => c.conversation_id === convId).reverse()
     const newMessages = []
     msgs.forEach(m => {
-      newMessages.push({ role: 'user', content: m.query })
-      if (m.response) newMessages.push({ role: 'assistant', content: m.response })
+      newMessages.push({ role: 'user', content: m.query, id: m.id })
+      if (m.response) newMessages.push({ role: 'assistant', content: m.response, id: m.id })
     })
     setMessages(newMessages)
     setActiveConversationId(convId)
@@ -155,25 +215,18 @@ function ChatDashboard({ user, onLogout }) {
                 if (last?.role === 'assistant') {
                   last.content = assistantMessage
                   last.analysis = currentAnalysis
+                  last.id = queryId
                   return history
                 }
-                return [...history, { role: 'assistant', content: assistantMessage, analysis: currentAnalysis }]
+                return [...history, { role: 'assistant', content: assistantMessage, analysis: currentAnalysis, id: queryId }]
               })
-            } else if (data.source) {
-              setSources(prev => [...prev, data.source])
             }
           } catch { /* ignore malformed SSE lines */ }
         }
       }
 
-      // Save the final response back to query_history
+      // Refresh conversation list to get latest DB changes
       if (queryId && assistantMessage) {
-        await fetch(`/api/history/${queryId}/response`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', ...AUTH_HEADER() },
-          body: JSON.stringify({ response: assistantMessage })
-        })
-        // Refresh conversation list
         fetchHistory()
       }
     } catch (err) {
@@ -286,20 +339,7 @@ function ChatDashboard({ user, onLogout }) {
               ))}
             </div>
 
-            {/* Sources */}
-            {sources.length > 0 && (
-              <div style={{ marginBottom: '1rem' }}>
-                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', paddingLeft: '0.5rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem' }}>Kaynaklar</p>
-                <div style={{ maxHeight: '180px', overflowY: 'auto' }}>
-                  {sources.map((s, i) => (
-                    <div key={i} style={{ padding: '0.6rem 0.75rem', fontSize: '0.8rem', borderLeft: '2px solid var(--accent)', marginBottom: '0.4rem', background: '#f8fafc', borderRadius: '0 6px 6px 0' }}>
-                      <Book size={12} style={{ marginBottom: '2px' }} />
-                      <div style={{ fontWeight: 600, lineHeight: 1.3 }}>{s.title}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+
           </nav>
 
           {/* User Footer */}
@@ -364,7 +404,7 @@ function ChatDashboard({ user, onLogout }) {
                       )}
                       <div style={{ maxWidth: '80%' }}>
                         <div className={msg.role === 'user' ? 'btn-primary' : 'premium-card'} style={{ padding: '1rem 1.25rem', borderRadius: msg.role === 'user' ? '20px 20px 4px 20px' : '4px 20px 20px 20px', fontSize: '0.95rem', whiteSpace: 'pre-wrap' }}>
-                          {msg.content}
+                          {renderMessageContent(msg.content)}
                         </div>
                         {msg.analysis && (
                           <div style={{ marginTop: '0.75rem', padding: '0.75rem 1rem', background: '#f1f5f9', borderRadius: '12px', fontSize: '0.85rem', color: 'var(--text-muted)', borderLeft: '3px solid #cbd5e1' }}>
@@ -373,18 +413,34 @@ function ChatDashboard({ user, onLogout }) {
                           </div>
                         )}
                         {msg.role === 'assistant' && msg.content && !loading && (
-                          <button
-                            onClick={() => {
-                              let queryStr = 'Sorgu bulunamadı'
-                              for (let j = i - 1; j >= 0; j--) {
-                                if (messages[j].role === 'user') { queryStr = messages[j].content; break }
-                              }
-                              handleSaveResponse(queryStr, msg.content)
-                            }}
-                            style={{ marginTop: '0.5rem', marginLeft: '0.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: 'var(--primary)', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 600 }}
-                          >
-                            <Bookmark size={14} /> Yanıtı Profilime Kaydet
-                          </button>
+                          <div style={{ marginTop: '0.5rem', marginLeft: '0.5rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                            <button
+                              onClick={() => {
+                                let queryStr = 'Sorgu bulunamadı'
+                                for (let j = i - 1; j >= 0; j--) {
+                                  if (messages[j].role === 'user') { queryStr = messages[j].content; break }
+                                }
+                                handleSaveResponse(queryStr, msg.content)
+                              }}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: 'var(--primary)', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+                            >
+                              <Bookmark size={14} /> Yanıtı Kaydet
+                            </button>
+                            
+                            {msg.id && !msg.feedbackSubmitted && (
+                              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button onClick={() => handleFeedback(msg.id, 5, true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: '#10b981', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+                                  <ThumbsUp size={14} /> Doğru
+                                </button>
+                                <button onClick={() => handleFeedback(msg.id, 1, false)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+                                  <ThumbsDown size={14} /> Yanlış
+                                </button>
+                              </div>
+                            )}
+                            {msg.feedbackSubmitted && (
+                              <span style={{ fontSize: '0.7rem', color: '#10b981' }}>✓ Geri bildirim alındı</span>
+                            )}
+                          </div>
                         )}
                       </div>
                       {msg.role === 'user' && (
