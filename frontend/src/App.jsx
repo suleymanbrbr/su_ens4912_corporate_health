@@ -6,6 +6,7 @@ import ChatDashboard from './components/ChatDashboard'
 import AdminPanel from './components/AdminPanel'
 import Profile from './components/Profile'
 import Settings from './components/Settings'
+import PolicyBrowser from './components/PolicyBrowser'
 
 function App() {
   const [user, setUser] = useState(null)
@@ -41,6 +42,7 @@ function App() {
         <Route path="/profile" element={user ? <Profile user={user} onLogout={() => setUser(null)} /> : <Navigate to="/login" />} />
         <Route path="/settings" element={user ? <Settings user={user} onLogout={() => setUser(null)} /> : <Navigate to="/login" />} />
         <Route path="/admin" element={user?.role === 'admin' ? <AdminPanel user={user} onLogout={() => setUser(null)} /> : <Navigate to="/" />} />
+        <Route path="/policies" element={user?.role === 'admin' ? <PolicyBrowser user={user} /> : <Navigate to="/" />} />
       </Routes>
     </Router>
   )

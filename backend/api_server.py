@@ -6,8 +6,10 @@ import uuid
 import json
 import sqlite3
 import asyncio
+import re
 from typing import List, Optional
 from contextlib import asynccontextmanager
+from collections import Counter
 
 from fastapi import FastAPI, Depends, HTTPException, status, Body
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -44,10 +46,17 @@ def init_system_tables():
             id TEXT PRIMARY KEY,
             user_id TEXT,
             query TEXT,
+            response TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(user_id) REFERENCES users(id)
         )
     """)
+    # Migrate: add response column if it doesn't exist yet
+    try:
+        c.execute("ALTER TABLE query_history ADD COLUMN response TEXT")
+    except Exception:
+        pass  # Column already exists
+
     c.execute("""
         CREATE TABLE IF NOT EXISTS saved_responses (
             id TEXT PRIMARY KEY,
@@ -56,6 +65,16 @@ def init_system_tables():
             response TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(user_id) REFERENCES users(id)
+        )
+    """)
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS announcements (
+            id TEXT PRIMARY KEY,
+            message TEXT NOT NULL,
+            created_by TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            active INTEGER DEFAULT 1,
+            FOREIGN KEY(created_by) REFERENCES users(id)
         )
     """)
     conn.commit()
@@ -175,6 +194,7 @@ async def list_users(admin: dict = Depends(get_current_admin)):
     conn.close()
     return [dict(u) for u in users]
 
+# --- Pydantic Models ---
 class ChatRequest(BaseModel):
     message: str
     k: int = 5
@@ -190,15 +210,25 @@ class SaveResponse(BaseModel):
 class RoleUpdate(BaseModel):
     role: str
 
+class AnnouncementCreate(BaseModel):
+    message: str
+
+class HistoryResponseUpdate(BaseModel):
+    response: str
+
+# --- Chat ---
 @app.post("/api/chat")
 async def chat(request: ChatRequest, current_user: dict = Depends(get_current_user)):
     if not engine.faiss_index:
         raise HTTPException(status_code=500, detail="Database not loaded")
 
+    query_id = str(uuid.uuid4())
     conn = get_db_conn()
     try:
-        conn.execute("INSERT INTO query_history (id, user_id, query) VALUES (?, ?, ?)", 
-                     (str(uuid.uuid4()), current_user["id"], request.message))
+        conn.execute(
+            "INSERT INTO query_history (id, user_id, query) VALUES (?, ?, ?)",
+            (query_id, current_user["id"], request.message)
+        )
         conn.commit()
     except Exception as e:
         print(f"[WARN] Failed to log query history: {e}")
@@ -206,11 +236,26 @@ async def chat(request: ChatRequest, current_user: dict = Depends(get_current_us
         conn.close()
 
     async def event_generator():
+        # First event: send the query_id so the frontend can save the response later
+        yield f"data: {json.dumps({'query_id': query_id}, ensure_ascii=False)}\n\n"
+        await asyncio.sleep(0.01)
         for step in engine.query_agentic_rag_stream(request.message, k=request.k):
             yield f"data: {json.dumps(step, ensure_ascii=False)}\n\n"
             await asyncio.sleep(0.01)
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+@app.put("/api/history/{query_id}/response")
+async def update_history_response(query_id: str, data: HistoryResponseUpdate, current_user: dict = Depends(get_current_user)):
+    conn = get_db_conn()
+    conn.execute(
+        "UPDATE query_history SET response = ? WHERE id = ? AND user_id = ?",
+        (data.response, query_id, current_user["id"])
+    )
+    conn.commit()
+    conn.close()
+    return {"message": "Yanıt güncellendi."}
+
 @app.put("/api/auth/password")
 async def change_password(data: PasswordChange, current_user: dict = Depends(get_current_user)):
     conn = get_db_conn()
@@ -228,19 +273,29 @@ async def change_password(data: PasswordChange, current_user: dict = Depends(get
 @app.get("/api/history")
 async def get_history(current_user: dict = Depends(get_current_user)):
     conn = get_db_conn()
-    history = conn.execute("SELECT query, created_at FROM query_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 50", (current_user["id"],)).fetchall()
-    saved = conn.execute("SELECT query, response, created_at FROM saved_responses WHERE user_id = ? ORDER BY created_at DESC", (current_user["id"],)).fetchall()
+    history = conn.execute(
+        "SELECT id, query, response, created_at FROM query_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 50",
+        (current_user["id"],)
+    ).fetchall()
+    saved = conn.execute(
+        "SELECT query, response, created_at FROM saved_responses WHERE user_id = ? ORDER BY created_at DESC",
+        (current_user["id"],)
+    ).fetchall()
     conn.close()
     return {"history": [dict(h) for h in history], "saved": [dict(s) for s in saved]}
 
 @app.post("/api/history/save")
 async def save_response(data: SaveResponse, current_user: dict = Depends(get_current_user)):
     conn = get_db_conn()
-    conn.execute("INSERT INTO saved_responses (id, user_id, query, response) VALUES (?, ?, ?, ?)", 
-                 (str(uuid.uuid4()), current_user["id"], data.query, data.response))
+    conn.execute(
+        "INSERT INTO saved_responses (id, user_id, query, response) VALUES (?, ?, ?, ?)",
+        (str(uuid.uuid4()), current_user["id"], data.query, data.response)
+    )
     conn.commit()
     conn.close()
     return {"message": "Yanıt kaydedildi."}
+
+# --- Admin Endpoints ---
 
 @app.get("/api/admin/system")
 async def get_system_metrics(admin: dict = Depends(get_current_admin)):
@@ -252,12 +307,122 @@ async def get_system_metrics(admin: dict = Depends(get_current_admin)):
         chunks_count = conn.execute("SELECT COUNT(*) FROM chunks").fetchone()[0]
     except:
         pass
+    active_announcement = conn.execute(
+        "SELECT message FROM announcements WHERE active = 1 ORDER BY created_at DESC LIMIT 1"
+    ).fetchone()
     conn.close()
     return {
         "users_count": users_count,
         "queries_count": queries_count,
-        "chunks_count": chunks_count
+        "chunks_count": chunks_count,
+        "active_announcement": dict(active_announcement) if active_announcement else None
     }
+
+@app.get("/api/admin/activity")
+async def get_admin_activity(admin: dict = Depends(get_current_admin)):
+    conn = get_db_conn()
+    rows = conn.execute("""
+        SELECT qh.query, qh.created_at, u.username, u.role
+        FROM query_history qh
+        JOIN users u ON qh.user_id = u.id
+        ORDER BY qh.created_at DESC
+        LIMIT 20
+    """).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+@app.get("/api/admin/analytics")
+async def get_admin_analytics(admin: dict = Depends(get_current_admin)):
+    conn = get_db_conn()
+
+    # All queries for keyword counting
+    all_queries = conn.execute("SELECT query FROM query_history").fetchall()
+    stopwords = {
+        "ve", "bir", "ile", "bu", "için", "da", "de", "mi", "ne", "ben", "sen",
+        "biz", "siz", "o", "bu", "şu", "ki", "gibi", "ama", "veya", "ya", "daha",
+        "olan", "olan", "nasıl", "nedir", "hakkında", "bilgi", "ver", "söyle",
+        "the", "is", "a", "of", "in", "to", "what", "how", "about"
+    }
+    word_counter = Counter()
+    for row in all_queries:
+        words = re.findall(r'\b[a-zA-ZğüşıöçĞÜŞİÖÇ]{4,}\b', row["query"].lower())
+        for w in words:
+            if w not in stopwords:
+                word_counter[w] += 1
+    top_keywords = [{"keyword": k, "count": v} for k, v in word_counter.most_common(10)]
+
+    # Daily volume — last 7 days
+    daily_rows = conn.execute("""
+        SELECT DATE(created_at) as day, COUNT(*) as count
+        FROM query_history
+        WHERE created_at >= DATE('now', '-7 days')
+        GROUP BY DATE(created_at)
+        ORDER BY day ASC
+    """).fetchall()
+    daily_volume = [dict(r) for r in daily_rows]
+
+    # Engagement rate
+    total_users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+    active_users = conn.execute("SELECT COUNT(DISTINCT user_id) FROM query_history").fetchone()[0]
+    engagement_rate = round((active_users / total_users * 100) if total_users > 0 else 0, 1)
+
+    conn.close()
+    return {
+        "top_keywords": top_keywords,
+        "daily_volume": daily_volume,
+        "engagement_rate": engagement_rate,
+        "active_users": active_users,
+        "total_users": total_users
+    }
+
+@app.get("/api/policies")
+async def search_policies(q: str = "", section: str = "", limit: int = 20, offset: int = 0, admin: dict = Depends(get_current_admin)):
+    conn = get_db_conn()
+    try:
+        if q:
+            # Use FTS5 search
+            rows = conn.execute(
+                "SELECT chunk_id, header_text FROM title_search WHERE header_text MATCH ? LIMIT ? OFFSET ?",
+                (q + "*", limit, offset)
+            ).fetchall()
+            chunk_ids = [r["chunk_id"] for r in rows]
+            if chunk_ids:
+                placeholders = ",".join("?" * len(chunk_ids))
+                chunks = conn.execute(
+                    f"SELECT chunk_id, text_content, metadata_json FROM chunks WHERE chunk_id IN ({placeholders})",
+                    chunk_ids
+                ).fetchall()
+            else:
+                # Fallback: LIKE search on chunk text
+                chunks = conn.execute(
+                    "SELECT chunk_id, text_content, metadata_json FROM chunks WHERE text_content LIKE ? LIMIT ? OFFSET ?",
+                    (f"%{q}%", limit, offset)
+                ).fetchall()
+        else:
+            chunks = conn.execute(
+                "SELECT chunk_id, text_content, metadata_json FROM chunks LIMIT ? OFFSET ?",
+                (limit, offset)
+            ).fetchall()
+
+        results = []
+        for c in chunks:
+            meta = json.loads(c["metadata_json"]) if c["metadata_json"] else {}
+            title = " > ".join([v for k, v in meta.items() if k.startswith("Header")])
+            if section and section.upper() not in title.upper():
+                continue
+            results.append({
+                "id": c["chunk_id"],
+                "title": title or "Başlıksız Bölüm",
+                "excerpt": c["text_content"][:300],
+                "full_text": c["text_content"],
+                "metadata": meta
+            })
+        total = conn.execute("SELECT COUNT(*) FROM chunks").fetchone()[0]
+    except Exception as e:
+        conn.close()
+        raise HTTPException(status_code=500, detail=f"Arama hatası: {str(e)}")
+    conn.close()
+    return {"results": results, "total": total, "offset": offset, "limit": limit}
 
 @app.put("/api/admin/users/{user_id}/role")
 async def update_user_role(user_id: str, data: RoleUpdate, admin: dict = Depends(get_current_admin)):
@@ -281,6 +446,37 @@ async def delete_user(user_id: str, admin: dict = Depends(get_current_admin)):
     conn.close()
     return {"message": "Kullanıcı silindi."}
 
+# --- Announcements ---
+
+@app.post("/api/admin/announcements")
+async def create_announcement(data: AnnouncementCreate, admin: dict = Depends(get_current_admin)):
+    conn = get_db_conn()
+    # Deactivate all existing announcements
+    conn.execute("UPDATE announcements SET active = 0")
+    conn.execute(
+        "INSERT INTO announcements (id, message, created_by, active) VALUES (?, ?, ?, 1)",
+        (str(uuid.uuid4()), data.message, admin["id"])
+    )
+    conn.commit()
+    conn.close()
+    return {"message": "Duyuru yayınlandı."}
+
+@app.get("/api/announcements")
+async def get_active_announcement(current_user: dict = Depends(get_current_user)):
+    conn = get_db_conn()
+    row = conn.execute(
+        "SELECT id, message, created_at FROM announcements WHERE active = 1 ORDER BY created_at DESC LIMIT 1"
+    ).fetchone()
+    conn.close()
+    return dict(row) if row else {}
+
+@app.delete("/api/admin/announcements/{ann_id}")
+async def deactivate_announcement(ann_id: str, admin: dict = Depends(get_current_admin)):
+    conn = get_db_conn()
+    conn.execute("UPDATE announcements SET active = 0 WHERE id = ?", (ann_id,))
+    conn.commit()
+    conn.close()
+    return {"message": "Duyuru kaldırıldı."}
 
 @app.get("/api/kg")
 async def get_knowledge_graph(current_user: dict = Depends(get_current_user)):
