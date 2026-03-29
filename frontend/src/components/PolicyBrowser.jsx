@@ -50,7 +50,7 @@ function PolicyBrowser({ user }) {
     finally { setLoading(false) }
   }
 
-  const sectionOptions = ['EK-1', 'EK-2', 'EK-3', 'EK-4', 'EK-5', 'EK-6', 'EK-7', 'EK-8', 'EK-9']
+  const sectionOptions = ['Genel Hükümler', 'Tanı ve Tedavi', 'İlaç', 'Son Hükümler']
 
   return (
     <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)' }}>
@@ -71,7 +71,7 @@ function PolicyBrowser({ user }) {
         {/* Filter Panel */}
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Filter size={12} /> Ek Filtresi
+            <Filter size={12} /> Bölüm Filtresi
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
             <button
