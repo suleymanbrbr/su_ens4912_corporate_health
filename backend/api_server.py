@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 
 from auth_utils import get_password_hash, verify_password, create_access_token, decode_access_token
 from sut_rag_core import SUT_RAG_Engine
-from rag_storage import DB_PATH
+from rag_storage import DB_PATH, SUT_Storage_Manager
 
 load_dotenv()
 
@@ -326,12 +326,15 @@ async def get_system_metrics(admin: dict = Depends(get_current_admin)):
     active_announcement = conn.execute(
         "SELECT message FROM announcements WHERE active = 1 ORDER BY created_at DESC LIMIT 1"
     ).fetchone()
+    
+    pending_count = conn.execute("SELECT COUNT(*) FROM users WHERE is_approved = 0").fetchone()[0]
     conn.close()
+
     return {
         "users_count": users_count,
         "queries_count": queries_count,
         "chunks_count": chunks_count,
-        "pending_count": conn.execute("SELECT COUNT(*) FROM users WHERE is_approved = 0").fetchone()[0],
+        "pending_count": pending_count,
         "active_announcement": dict(active_announcement) if active_announcement else None
     }
 
@@ -470,6 +473,28 @@ async def approve_user(user_id: str, admin: dict = Depends(get_current_admin)):
     conn.commit()
     conn.close()
     return {"message": "Kullanıcı onaylandı."}
+
+@app.post("/api/admin/rebuild-index")
+async def rebuild_index(admin: dict = Depends(get_current_admin)):
+    global engine
+    try:
+        # 1. Instantiate Storage Manager with the engine's current model
+        storage = SUT_Storage_Manager(engine.embeddings)
+        # 2. Re-populate Knowledge Base (Safe purge of only chunks)
+        success = storage.populate_database()
+        if not success:
+            raise HTTPException(status_code=500, detail="İndeksleme işlemi sırasında hata oluştu.")
+        
+        # 3. Reload the global engine to pick up new FAISS index
+        new_engine = SUT_RAG_Engine()
+        if new_engine.load_database():
+            engine = new_engine
+            return {"message": "Sistem başarıyla yeniden indekslendi ve yüklendi."}
+        else:
+            return {"message": "İndeksleme tamamlandı ancak motor yüklenemedi.", "status": "partial"}
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Sistem hatası: {str(e)}")
 
 # --- Announcements ---
 
