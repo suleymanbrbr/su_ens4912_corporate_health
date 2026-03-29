@@ -13,7 +13,7 @@ from sentence_transformers import CrossEncoder
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
 from rag_storage import DB_PATH, FAISS_INDEX_PATH, FAISS_MAPPING_PATH
 
@@ -63,7 +63,9 @@ class SUT_RAG_Engine:
             self.id_mapping = json.load(f)
         return True
 
-    def query_agentic_rag_stream(self, user_query: str, k: int = 5) -> Generator[Dict, None, None]:
+    def query_agentic_rag_stream(self, user_query: str, chat_history: List[Dict] = None, k: int = 5) -> Generator[Dict, None, None]:
+        if chat_history is None:
+            chat_history = []
         if self.llm is None:
             yield {"error": "LLM not initialized."}
             return
@@ -90,7 +92,14 @@ class SUT_RAG_Engine:
         system_prompt = f"Role: SUT Expert. Answer using context only.\nContext:\n{context_str}\nRules: Turkish only. Cite articles."
         
         try:
-            messages = [SystemMessage(content=system_prompt), HumanMessage(content=user_query)]
+            messages = [SystemMessage(content=system_prompt)]
+            for msg in chat_history:
+                if msg.get("role") == "user":
+                    messages.append(HumanMessage(content=msg.get("content", "")))
+                elif msg.get("role") == "assistant":
+                    messages.append(AIMessage(content=msg.get("content", "")))
+            messages.append(HumanMessage(content=user_query))
+            
             full_response = ""
             for chunk in self.llm.stream(messages):
                 content = chunk.content if hasattr(chunk, 'content') else ""

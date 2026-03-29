@@ -53,17 +53,22 @@ def init_system_tables():
         CREATE TABLE IF NOT EXISTS query_history (
             id TEXT PRIMARY KEY,
             user_id TEXT,
+            conversation_id TEXT,
             query TEXT,
             response TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(user_id) REFERENCES users(id)
         )
     """)
-    # Migrate: add response column if it doesn't exist yet
+    # Migrate: add response and conversation_id columns if they don't exist yet
     try:
         c.execute("ALTER TABLE query_history ADD COLUMN response TEXT")
     except Exception:
-        pass  # Column already exists
+        pass
+    try:
+        c.execute("ALTER TABLE query_history ADD COLUMN conversation_id TEXT")
+    except Exception:
+        pass
 
     c.execute("""
         CREATE TABLE IF NOT EXISTS saved_responses (
@@ -214,6 +219,7 @@ async def list_users(admin: dict = Depends(get_current_admin)):
 class ChatRequest(BaseModel):
     message: str
     k: int = 5
+    conversation_id: Optional[str] = None
 
 class PasswordChange(BaseModel):
     old_password: str
@@ -239,11 +245,25 @@ async def chat(request: ChatRequest, current_user: dict = Depends(get_current_us
         raise HTTPException(status_code=500, detail="Database not loaded")
 
     query_id = str(uuid.uuid4())
+    conversation_id = request.conversation_id or str(uuid.uuid4())
     conn = get_db_conn()
+    
+    # Fetch chat history
+    history_rows = conn.execute(
+        "SELECT query, response FROM query_history WHERE conversation_id = ? ORDER BY created_at ASC",
+        (conversation_id,)
+    ).fetchall()
+    
+    chat_history = []
+    for row in history_rows:
+        chat_history.append({"role": "user", "content": row["query"]})
+        if row["response"]:
+            chat_history.append({"role": "assistant", "content": row["response"]})
+
     try:
         conn.execute(
-            "INSERT INTO query_history (id, user_id, query) VALUES (?, ?, ?)",
-            (query_id, current_user["id"], request.message)
+            "INSERT INTO query_history (id, user_id, conversation_id, query) VALUES (?, ?, ?, ?)",
+            (query_id, current_user["id"], conversation_id, request.message)
         )
         conn.commit()
     except Exception as e:
@@ -252,10 +272,10 @@ async def chat(request: ChatRequest, current_user: dict = Depends(get_current_us
         conn.close()
 
     async def event_generator():
-        # First event: send the query_id so the frontend can save the response later
-        yield f"data: {json.dumps({'query_id': query_id}, ensure_ascii=False)}\n\n"
+        # First event: send the query_id and conversation_id
+        yield f"data: {json.dumps({'query_id': query_id, 'conversation_id': conversation_id}, ensure_ascii=False)}\n\n"
         await asyncio.sleep(0.01)
-        for step in engine.query_agentic_rag_stream(request.message, k=request.k):
+        for step in engine.query_agentic_rag_stream(request.message, chat_history=chat_history, k=request.k):
             yield f"data: {json.dumps(step, ensure_ascii=False)}\n\n"
             await asyncio.sleep(0.01)
 
@@ -290,7 +310,7 @@ async def change_password(data: PasswordChange, current_user: dict = Depends(get
 async def get_history(current_user: dict = Depends(get_current_user)):
     conn = get_db_conn()
     history = conn.execute(
-        "SELECT id, query, response, created_at FROM query_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 50",
+        "SELECT id, conversation_id, query, response, created_at FROM query_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 200",
         (current_user["id"],)
     ).fetchall()
     saved = conn.execute(
@@ -383,15 +403,21 @@ async def get_admin_analytics(admin: dict = Depends(get_current_admin)):
 
     # Engagement rate
     total_users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
-    active_users = conn.execute("SELECT COUNT(DISTINCT user_id) FROM query_history").fetchone()[0]
-    engagement_rate = round((active_users / total_users * 100) if total_users > 0 else 0, 1)
+    
+    daily_active = conn.execute("SELECT COUNT(DISTINCT user_id) FROM query_history WHERE created_at >= datetime('now', '-1 day')").fetchone()[0]
+    daily_engagement_rate = round((daily_active / total_users * 100) if total_users > 0 else 0, 1)
+
+    monthly_active = conn.execute("SELECT COUNT(DISTINCT user_id) FROM query_history WHERE created_at >= datetime('now', '-30 days')").fetchone()[0]
+    monthly_engagement_rate = round((monthly_active / total_users * 100) if total_users > 0 else 0, 1)
 
     conn.close()
     return {
         "top_keywords": top_keywords,
         "daily_volume": daily_volume,
-        "engagement_rate": engagement_rate,
-        "active_users": active_users,
+        "daily_engagement_rate": daily_engagement_rate,
+        "monthly_engagement_rate": monthly_engagement_rate,
+        "daily_active_users": daily_active,
+        "monthly_active_users": monthly_active,
         "total_users": total_users
     }
 
