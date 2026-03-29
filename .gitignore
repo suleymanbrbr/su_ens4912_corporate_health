@@ -210,3 +210,10 @@ to_do.txt
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# SUT Assistant Custom Ignores
+node_modules/
+dist/
+build/
+model_cache/
+sut_converted_temp.md

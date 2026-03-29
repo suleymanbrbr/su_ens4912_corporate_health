@@ -19,27 +19,15 @@ MODEL_NAME = "gemini-2.5-flash"
 class KeyManager:
     def __init__(self):
         load_dotenv()
-        keys_str = os.getenv("GEMINI_API_KEYS", "[]")
-        try:
-            self.keys = json.loads(keys_str)
-        except json.JSONDecodeError:
-            print("❌ Error: GEMINI_API_KEYS in .env is not a valid JSON list.")
-            self.keys = []
+        self.api_key = os.getenv("GEMINI_API_KEY")
         
-        if not self.keys:
-            raise ValueError("No API Keys found in .env file!")
+        if not self.api_key:
+            raise ValueError("No GEMINI_API_KEY found in .env file!")
         
-        self.current_index = 0
-        print(f"🔑 Loaded {len(self.keys)} API Keys.")
+        print("🔑 Loaded Gemini API Key.")
 
     def get_current_key(self):
-        return self.keys[self.current_index]
-
-    def rotate_key(self):
-        self.current_index = (self.current_index + 1) % len(self.keys)
-        new_key = self.keys[self.current_index]
-        print(f"🔄 Rotating to API Key #{self.current_index + 1}...")
-        return new_key
+        return self.api_key
 
 # --- CLASS: SUT CHUNKER ---
 class SUTChunker:
@@ -211,10 +199,8 @@ class GraphBuilder:
             except Exception as e:
                 error_msg = str(e)
                 if "429" in error_msg or "quota" in error_msg.lower():
-                    print(f"⚠️ Quota exceeded on Key #{self.key_manager.current_index + 1}. Rotating...")
-                    self.key_manager.rotate_key()
-                    self._configure_model()
-                    time.sleep(2)
+                    print(f"⚠️ Quota exceeded on API Key. Retrying in 10s... ({attempt+1}/{retries})")
+                    time.sleep(10)
                     continue 
                 else:
                     print(f"❌ Non-Quota Error processing {chunk['id']}: {e}")
