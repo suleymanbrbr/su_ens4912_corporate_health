@@ -87,9 +87,22 @@ class SUT_RAG_Engine:
             chunk_text = c['text']
             formatted = f"\n--- KAYNAK {i+1} ---\nBAŞLIK: {breadcrumb}\nİÇERİK:\n{chunk_text}\n"
             context_str += formatted
-            yield {"source": {"title": breadcrumb, "content": chunk_text}}
 
-        system_prompt = f"Role: SUT Expert. Answer using context only.\nContext:\n{context_str}\nRules: Turkish only. Cite articles."
+        system_prompt = f"""Role: SUT Uzmanı (Sağlık Uygulama Tebliği).
+CONTEXT:
+{context_str}
+
+KURALLAR:
+1. Yalnızca yukarıdaki bağlamı(context) kullanarak cevap ver.
+2. Metin içinde bilgi aldığın kaynaklara atıf yap (örn: [Kaynak 1]).
+3. Cevabının EN SONUNA, SADECE kullandığın kaynakların başlık ve içeriklerini aşağıdaki formatta ekle:
+<KAYNAKLAR>
+<KAYNAK baslik="Kaynak 1: [BAŞLIK BURAYA]">
+[KAYNAĞIN TAM İÇERİĞİ BURAYA]
+</KAYNAK>
+</KAYNAKLAR>
+Eğer hiçbir kaynak kullanmadıysan bu bölümü ekleme.
+"""
         
         try:
             messages = [SystemMessage(content=system_prompt)]
