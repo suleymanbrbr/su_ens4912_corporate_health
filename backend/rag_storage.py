@@ -1,15 +1,14 @@
 # rag_storage.py
-# Description: Handles SUT Data Extraction, Chunking, and SQLite/FAISS Storage.
+# Description: Handles SUT Data Extraction, Chunking, and Postgres Storage.
 
 import os
 import re as regex
 import json
 import uuid
-import sqlite3
-import numpy as np
-import faiss
 import pypandoc
 from typing import List, Dict
+import psycopg2
+from psycopg2.extras import Json
 
 try:
     from docx import Document
@@ -19,9 +18,6 @@ except ImportError:
 # --- Configuration ---
 DOCX_FILE_PATH = "data/08.03.2025-Değişiklik Tebliği İşlenmiş Güncel 2013 SUT.docx"
 MARKDOWN_FILE_PATH = "data/sut_converted_temp.md"
-DB_PATH = "data/sut_knowledge_base.db"
-FAISS_INDEX_PATH = "data/sut_faiss.index"
-FAISS_MAPPING_PATH = "data/sut_faiss.index.mapping"
 
 class SUT_Storage_Manager:
     def __init__(self, embeddings_model):
@@ -51,34 +47,23 @@ class SUT_Storage_Manager:
 
         self._setup_database()
 
-        print("[DB] Inserting data into SQLite (Standard + FTS) and FAISS...")
-        texts_to_embed, string_ids = [], []
+        print("[DB] Inserting data into PostgreSQL (pgvector)...")
 
         for chunk in chunks:
             chunk_id = str(uuid.uuid4())
-            metadata_json = json.dumps(chunk.metadata, ensure_ascii=False)
+            metadata_json = chunk.metadata
             page_content = chunk.page_content
             header_text = " ".join([v for k, v in chunk.metadata.items() if k.startswith("Header")])
 
+            full_text_for_embed = f"{header_text}\n\n{page_content}"
+            vector = self.embeddings_model.embed_query(full_text_for_embed)
+
             self.cursor.execute(
-                "INSERT INTO chunks (chunk_id, text_content, metadata_json) VALUES (?, ?, ?)",
-                (chunk_id, page_content, metadata_json)
+                "INSERT INTO chunks (chunk_id, text_content, metadata_json, header_text, embedding) VALUES (%s, %s, %s, %s, %s)",
+                (chunk_id, page_content, Json(metadata_json), header_text, vector)
             )
 
-            try:
-                self.cursor.execute(
-                    "INSERT INTO title_search (chunk_id, header_text) VALUES (?, ?)",
-                    (chunk_id, header_text)
-                )
-            except:
-                pass
-
-            full_text_for_embed = f"{header_text}\n\n{page_content}"
-            texts_to_embed.append(full_text_for_embed)
-            string_ids.append(chunk_id)
-
         self.conn.commit()
-        self._create_and_save_faiss_index(texts_to_embed, string_ids)
         
         if os.path.exists(cleaned_path): os.remove(cleaned_path)
         if os.path.exists(MARKDOWN_FILE_PATH): os.remove(MARKDOWN_FILE_PATH)
@@ -126,46 +111,27 @@ class SUT_Storage_Manager:
             return []
 
     def _setup_database(self):
-        # DO NOT remove DB_PATH - it contains users and history
-        self.conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+        self.conn = psycopg2.connect(os.getenv("DATABASE_URL"))
         self.cursor = self.conn.cursor()
         
         # Purge Knowledge Base Chunks ONLY
-        self.cursor.execute("DROP TABLE IF EXISTS chunks")
-        self.cursor.execute("DROP TABLE IF EXISTS title_search")
+        self.cursor.execute("DROP TABLE IF EXISTS chunks CASCADE")
+        
+        # Enable pgvector if not enabled
+        self.cursor.execute("CREATE EXTENSION IF NOT EXISTS vector")
 
         # RAG Chunks Table
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS chunks (
                 chunk_id TEXT PRIMARY KEY,
                 text_content TEXT NOT NULL,
-                metadata_json TEXT
+                metadata_json JSONB,
+                header_text TEXT,
+                embedding vector(384)
             )
         """)
         
-        # User Accounts Table (Should already exist, but for safety)
-        self.cursor.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id TEXT PRIMARY KEY,
-                username TEXT UNIQUE,
-                email TEXT UNIQUE,
-                hashed_password TEXT,
-                role TEXT DEFAULT 'user',
-                is_approved INTEGER DEFAULT 0,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
+        # Create FTS Index on header_text and text_content
+        self.cursor.execute("CREATE INDEX IF NOT EXISTS chunks_fts_idx ON chunks USING GIN (to_tsvector('turkish', header_text || ' ' || text_content));")
 
-        try:
-            self.cursor.execute("CREATE VIRTUAL TABLE IF NOT EXISTS title_search USING fts5(chunk_id, header_text)")
-        except:
-            pass
         self.conn.commit()
-
-    def _create_and_save_faiss_index(self, texts, ids):
-        vectors = self.embeddings_model.embed_documents(texts)
-        index = faiss.IndexFlatL2(len(vectors[0]))
-        index.add(np.array(vectors).astype('float32'))
-        faiss.write_index(index, FAISS_INDEX_PATH)
-        with open(FAISS_MAPPING_PATH, "w", encoding="utf-8") as f:
-            json.dump(ids, f)

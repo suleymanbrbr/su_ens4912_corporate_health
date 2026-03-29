@@ -1,4 +1,17 @@
 services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: sut_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secretpassword
+      POSTGRES_DB: sut_knowledge_base
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/pgdata:/var/lib/postgresql/data
+    restart: always
+
   backend:
     build:
       context: ./backend
@@ -10,6 +23,8 @@ services:
       - ./data:/app/data
     env_file:
       - ./backend/.env
+    depends_on:
+      - db
     restart: always
 
   frontend:

@@ -4,7 +4,10 @@
 import os
 import uuid
 import json
-import sqlite3
+import psycopg2
+import psycopg2.extras
+from psycopg2.extras import Json
+import os
 import asyncio
 import re
 from typing import List, Optional
@@ -29,7 +32,7 @@ engine = None
 
 # --- DB Init Helper ---
 def init_system_tables():
-    conn = sqlite3.connect(DB_PATH)
+    conn = psycopg2.connect(dsn=os.getenv("DATABASE_URL"), cursor_factory=psycopg2.extras.DictCursor)
     c = conn.cursor()
     c.execute("""
         CREATE TABLE IF NOT EXISTS users (
@@ -38,13 +41,13 @@ def init_system_tables():
             email TEXT UNIQUE,
             hashed_password TEXT,
             role TEXT DEFAULT 'user',
-            is_approved INTEGER DEFAULT 0,
+            is_approved SMALLINT DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
     # Migrate: add is_approved column if it doesn't exist yet
     try:
-        c.execute("ALTER TABLE users ADD COLUMN is_approved INTEGER DEFAULT 0")
+        c.execute("ALTER TABLE users ADD COLUMN is_approved SMALLINT DEFAULT 0")
         # For legacy users (like the admin), set them as approved
         c.execute("UPDATE users SET is_approved = 1")
     except Exception:
@@ -88,7 +91,7 @@ def init_system_tables():
             message TEXT NOT NULL,
             created_by TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            active INTEGER DEFAULT 1,
+            active SMALLINT DEFAULT 1,
             FOREIGN KEY(created_by) REFERENCES users(id)
         )
     """)
@@ -169,8 +172,8 @@ app.add_middleware(
 
 # --- DB Helper ---
 def get_db_conn():
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-    conn.row_factory = sqlite3.Row
+    conn = psycopg2.connect(dsn=os.getenv("DATABASE_URL"), cursor_factory=psycopg2.extras.DictCursor)
+    # conn.row_factory is defined by cursor_factory
     return conn
 
 # --- Auth Models ---
@@ -200,7 +203,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     
     username: str = payload.get("sub")
     conn = get_db_conn()
-    user = conn.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+    user = conn.execute("SELECT * FROM users WHERE username = %s", (username,)).fetchone()
     conn.close()
     
     if not user:
@@ -218,7 +221,7 @@ async def get_current_admin(current_user: dict = Depends(get_current_user)):
 async def register(user: UserRegister):
     conn = get_db_conn()
     try:
-        existing = conn.execute("SELECT id FROM users WHERE username = ? OR email = ?", (user.username, user.email)).fetchone()
+        existing = conn.execute("SELECT id FROM users WHERE username = %s OR email = %s", (user.username, user.email)).fetchone()
         if existing:
             raise HTTPException(status_code=400, detail="User already exists")
         
@@ -242,7 +245,7 @@ async def register(user: UserRegister):
 @app.post("/api/auth/login", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     conn = get_db_conn()
-    user = conn.execute("SELECT * FROM users WHERE username = ?", (form_data.username,)).fetchone()
+    user = conn.execute("SELECT * FROM users WHERE username = %s", (form_data.username,)).fetchone()
     conn.close()
     
     if not user or not verify_password(form_data.password, user["hashed_password"]):
@@ -354,8 +357,7 @@ async def chat(request: ChatRequest, current_user: dict = Depends(get_current_us
         try:
             if full_response_text:
                 save_conn.execute(
-                    "UPDATE query_history SET response = ? WHERE id = ?",
-                    (full_response_text, query_id)
+                    "UPDATE query_history SET response = %s WHERE id = %s", (full_response_text, query_id)
                 )
             
             save_conn.execute(
@@ -384,13 +386,13 @@ async def submit_feedback(data: FeedbackCreate, current_user: dict = Depends(get
 @app.put("/api/auth/password")
 async def change_password(data: PasswordChange, current_user: dict = Depends(get_current_user)):
     conn = get_db_conn()
-    user = conn.execute("SELECT hashed_password FROM users WHERE id = ?", (current_user["id"],)).fetchone()
+    user = conn.execute("SELECT hashed_password FROM users WHERE id = %s", (current_user["id"],)).fetchone()
     if not user or not verify_password(data.old_password, user["hashed_password"]):
         conn.close()
         raise HTTPException(status_code=400, detail="Mevcut şifre yanlış")
     
     new_hashed = get_password_hash(data.new_password)
-    conn.execute("UPDATE users SET hashed_password = ? WHERE id = ?", (new_hashed, current_user["id"]))
+    conn.execute("UPDATE users SET hashed_password = %s WHERE id = %s", (new_hashed, current_user["id"]))
     log_audit(conn, "password_change", user_id=current_user["id"])
     conn.commit()
     conn.close()
@@ -565,7 +567,7 @@ async def update_user_role(user_id: str, data: RoleUpdate, admin: dict = Depends
     if data.role not in ["user", "admin"]:
         raise HTTPException(status_code=400, detail="Geçersiz rol.")
     conn = get_db_conn()
-    conn.execute("UPDATE users SET role = ? WHERE id = ?", (data.role, user_id))
+    conn.execute("UPDATE users SET role = %s WHERE id = %s", (data.role, user_id))
     log_audit(conn, "role_updated", user_id=admin["id"], entity_type="user", entity_id=user_id, details={"new_role": data.role})
     conn.commit()
     conn.close()
@@ -576,9 +578,9 @@ async def delete_user(user_id: str, admin: dict = Depends(get_current_admin)):
     if user_id == admin["id"]:
         raise HTTPException(status_code=400, detail="Kendi hesabınızı silemezsiniz.")
     conn = get_db_conn()
-    conn.execute("DELETE FROM query_history WHERE user_id = ?", (user_id,))
-    conn.execute("DELETE FROM saved_responses WHERE user_id = ?", (user_id,))
-    conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+    conn.execute("DELETE FROM query_history WHERE user_id = %s", (user_id,))
+    conn.execute("DELETE FROM saved_responses WHERE user_id = %s", (user_id,))
+    conn.execute("DELETE FROM users WHERE id = %s", (user_id,))
     log_audit(conn, "user_deleted", user_id=admin["id"], entity_type="user", entity_id=user_id)
     conn.commit()
     conn.close()
@@ -587,7 +589,7 @@ async def delete_user(user_id: str, admin: dict = Depends(get_current_admin)):
 @app.put("/api/admin/users/{user_id}/approve")
 async def approve_user(user_id: str, admin: dict = Depends(get_current_admin)):
     conn = get_db_conn()
-    conn.execute("UPDATE users SET is_approved = 1 WHERE id = ?", (user_id,))
+    conn.execute("UPDATE users SET is_approved = 1 WHERE id = %s", (user_id,))
     log_audit(conn, "user_approved", user_id=admin["id"], entity_type="user", entity_id=user_id)
     conn.commit()
     conn.close()
@@ -648,7 +650,7 @@ async def get_active_announcement(current_user: dict = Depends(get_current_user)
 @app.delete("/api/admin/announcements/{ann_id}")
 async def deactivate_announcement(ann_id: str, admin: dict = Depends(get_current_admin)):
     conn = get_db_conn()
-    conn.execute("UPDATE announcements SET active = 0 WHERE id = ?", (ann_id,))
+    conn.execute("UPDATE announcements SET active = 0 WHERE id = %s", (ann_id,))
     log_audit(conn, "announcement_deactivated", user_id=admin["id"], entity_type="announcement", entity_id=ann_id)
     conn.commit()
     conn.close()
