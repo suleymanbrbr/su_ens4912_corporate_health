@@ -1,0 +1,24 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sut_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/sut_knowledge_base.db:/app/sut_knowledge_base.db
+    env_file:
+      - ./backend/.env
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sut_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    restart: always
