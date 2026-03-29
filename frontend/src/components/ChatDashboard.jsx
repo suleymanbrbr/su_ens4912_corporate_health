@@ -21,6 +21,7 @@ function groupByDate(items) {
 function ChatDashboard({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('chat')
   const [messages, setMessages] = useState([])
+  const [activeConversationId, setActiveConversationId] = useState(null)
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [currentAnalysis, setCurrentAnalysis] = useState('')
@@ -76,11 +77,23 @@ function ChatDashboard({ user, onLogout }) {
     } catch { alert('Sunucu hatası.') }
   }
 
-  const loadConversation = (conv) => {
-    setMessages([
-      { role: 'user', content: conv.query },
-      { role: 'assistant', content: conv.response }
-    ])
+  const loadConversation = (convId) => {
+    const msgs = conversations.filter(c => c.conversation_id === convId).reverse()
+    const newMessages = []
+    msgs.forEach(m => {
+      newMessages.push({ role: 'user', content: m.query })
+      if (m.response) newMessages.push({ role: 'assistant', content: m.response })
+    })
+    setMessages(newMessages)
+    setActiveConversationId(convId)
+    setSources([])
+    setCurrentAnalysis('')
+    setActiveTab('chat')
+  }
+
+  const handleNewChat = () => {
+    setMessages([])
+    setActiveConversationId(null)
     setSources([])
     setCurrentAnalysis('')
     setActiveTab('chat')
@@ -105,7 +118,7 @@ function ChatDashboard({ user, onLogout }) {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...AUTH_HEADER() },
-        body: JSON.stringify({ message: userMessage, k: kDepth }),
+        body: JSON.stringify({ message: userMessage, k: kDepth, conversation_id: activeConversationId }),
       })
 
       if (!response.ok) throw new Error('Sunucu hatası.')
@@ -127,6 +140,9 @@ function ChatDashboard({ user, onLogout }) {
 
             if (data.query_id) {
               queryId = data.query_id
+              if (data.conversation_id) {
+                setActiveConversationId(data.conversation_id)
+              }
             } else if (data.status) {
               // Status updates — no-op
             } else if (data.analysis_content) {
@@ -167,7 +183,19 @@ function ChatDashboard({ user, onLogout }) {
     }
   }
 
-  const conversationGroups = groupByDate(conversations)
+  const groupedConvs = {}
+  conversations.forEach(c => {
+    if (!groupedConvs[c.conversation_id]) groupedConvs[c.conversation_id] = []
+    groupedConvs[c.conversation_id].push(c)
+  })
+  const uniqueConvs = Object.values(groupedConvs).map(group => {
+    const lastMsg = group[0]
+    const firstMsg = group[group.length - 1]
+    return { ...firstMsg, latest_date: lastMsg.created_at }
+  }).sort((a,b) => new Date(b.latest_date) - new Date(a.latest_date))
+
+  const mappedConvs = uniqueConvs.map(c => ({...c, created_at: c.latest_date}))
+  const conversationGroups = groupByDate(mappedConvs)
 
   return (
     <div className="dashboard-layout" style={{ display: 'flex', height: '100vh', overflow: 'hidden', flexDirection: 'column' }}>
@@ -193,7 +221,7 @@ function ChatDashboard({ user, onLogout }) {
               <Bot size={24} /> SUT Asistanı
             </h1>
             {/* View Tabs */}
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
               <button onClick={() => setActiveTab('chat')} style={{ flex: 1, padding: '0.5rem', borderRadius: '8px', border: 'none', background: activeTab === 'chat' ? 'var(--primary)' : '#f1f5f9', color: activeTab === 'chat' ? 'white' : 'var(--text-muted)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
                 <MessageSquare size={14} /> Sohbet
               </button>
@@ -201,6 +229,9 @@ function ChatDashboard({ user, onLogout }) {
                 <Network size={14} /> Bilgi Grafiği
               </button>
             </div>
+            <button onClick={handleNewChat} style={{ width: '100%', padding: '0.6rem', background: '#e2e8f0', color: 'var(--text-main)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} onMouseOver={e => e.currentTarget.style.background = '#cbd5e1'} onMouseOut={e => e.currentTarget.style.background = '#e2e8f0'}>
+              + Yeni Sohbet
+            </button>
           </div>
 
           <nav style={{ flex: 1, overflowY: 'auto', padding: '0 0.75rem' }}>
@@ -225,11 +256,11 @@ function ChatDashboard({ user, onLogout }) {
                     <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', padding: '0.25rem 0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '0.5rem' }}>{group}</p>
                     {items.slice(0, 5).map((conv, i) => (
                       <button
-                        key={conv.id || i}
-                        onClick={() => loadConversation(conv)}
-                        style={{ width: '100%', textAlign: 'left', padding: '0.6rem 0.75rem', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                        onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'}
-                        onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                        key={conv.conversation_id || i}
+                        onClick={() => loadConversation(conv.conversation_id)}
+                        style={{ width: '100%', textAlign: 'left', padding: '0.6rem 0.75rem', borderRadius: '8px', border: 'none', background: activeConversationId === conv.conversation_id ? '#e2e8f0' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                        onMouseOver={e => e.currentTarget.style.background = activeConversationId === conv.conversation_id ? '#e2e8f0' : '#f1f5f9'}
+                        onMouseOut={e => e.currentTarget.style.background = activeConversationId === conv.conversation_id ? '#e2e8f0' : 'transparent'}
                       >
                         <Clock size={12} color="var(--text-muted)" style={{ flexShrink: 0 }} />
                         <span style={{ fontSize: '0.82rem', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

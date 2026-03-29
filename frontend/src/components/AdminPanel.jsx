@@ -45,7 +45,7 @@ function AdminPanel({ user, onLogout }) {
   const [users, setUsers] = useState([])
   const [metrics, setMetrics] = useState({ users_count: 0, queries_count: 0, chunks_count: 0, pending_count: 0, active_announcement: null })
   const [activity, setActivity] = useState([])
-  const [analytics, setAnalytics] = useState({ top_keywords: [], daily_volume: [], engagement_rate: 0, active_users: 0, total_users: 0 })
+  const [analytics, setAnalytics] = useState({ top_keywords: [], daily_volume: [], daily_engagement_rate: 0, monthly_engagement_rate: 0, daily_active_users: 0, monthly_active_users: 0, total_users: 0 })
   const [announcement, setAnnouncement] = useState('')
   const [loading, setLoading] = useState(true)
   const [annMsg, setAnnMsg] = useState('')
@@ -382,9 +382,11 @@ function AdminPanel({ user, onLogout }) {
               {tab === 'analytics' && (
                 <>
                   <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>Analitik Özeti</h1>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                    <MetricCard icon={<Users size={24} />} iconBg="#f3e8ff" iconColor="#7c3aed" value={`${analytics.engagement_rate}%`} label="Kullanıcı Katılım Oranı" />
-                    <MetricCard icon={<Activity size={24} />} iconBg="#fce7f3" iconColor="#db2777" value={`${analytics.active_users} / ${analytics.total_users}`} label="Aktif / Toplam Kullanıcı" />
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                    <MetricCard icon={<Users size={24} />} iconBg="#f3e8ff" iconColor="#7c3aed" value={`${analytics.daily_engagement_rate}%`} label="Günlük Katılım Oranı" />
+                    <MetricCard icon={<Activity size={24} />} iconBg="#fce7f3" iconColor="#db2777" value={`${analytics.daily_active_users} / ${analytics.total_users}`} label="Günlük Aktif / Toplam" />
+                    <MetricCard icon={<Users size={24} />} iconBg="#e0e7ff" iconColor="#4f46e5" value={`${analytics.monthly_engagement_rate}%`} label="Aylık Katılım Oranı" />
+                    <MetricCard icon={<Activity size={24} />} iconBg="#ffedd5" iconColor="#ea580c" value={`${analytics.monthly_active_users} / ${analytics.total_users}`} label="Aylık Aktif / Toplam" />
                   </div>
 
                   {/* Keyword Bar Chart */}
