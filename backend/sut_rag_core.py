@@ -51,8 +51,14 @@ class SUT_RAG_Engine:
     def load_database(self) -> bool:
         try:
             self.conn = psycopg2.connect(os.getenv("DATABASE_URL"))
-            self.cursor = self.conn.cursor()
-            return True
+            # Check if chunks table exists (only created after first re-index)
+            cur = self.conn.cursor()
+            cur.execute("SELECT EXISTS (SELECT FROM pg_tables WHERE schemaname='public' AND tablename='chunks')")
+            exists = cur.fetchone()[0]
+            cur.close()
+            if not exists:
+                print("[WARN] 'chunks' table not found. Re-index required from Admin Panel.")
+            return True  # Connection is good even if not indexed yet
         except Exception as e:
             print(f"[WARN] Postgres database connection failed: {e}")
             return False
@@ -71,7 +77,7 @@ class SUT_RAG_Engine:
         chunks = self._retrieve_chunks(expanded_query, k)
         
         if not chunks:
-            yield {"final_answer": "SUT içinde ilgili bilgi bulunamadı."}
+            yield {"final_answer": "⚠️ SUT veritabanı henüz indekslenmemiş. Lütfen Admin Paneli'nden 'Sistemi Yeniden İndeksle' butonuna tıklayın."}
             return
 
         context_str = ""
@@ -120,28 +126,39 @@ Eğer hiçbir kaynak kullanmadıysan bu bölümü ekleme.
     def _retrieve_chunks(self, query: str, k: int) -> List[Dict]:
         if not self.conn: return []
         initial_k = k * 3
-        q_vec = self.embeddings_model.embed_query(query)
-        q_vec_str = "[" + ",".join(map(str, q_vec)) + "]"
-        
-        self.cursor.execute("""
-            SELECT chunk_id, text_content, metadata_json 
-            FROM chunks 
-            ORDER BY embedding <=> %s 
-            LIMIT %s
-        """, (q_vec_str, initial_k))
-        
-        candidates = []
-        for row in self.cursor.fetchall():
-            meta = row[2] if isinstance(row[2], dict) else json.loads(row[2])
-            candidates.append({"id": row[0], "text": row[1], "metadata": meta})
+        try:
+            q_vec = self.embeddings_model.embed_query(query)
+            q_vec_str = "[" + ",".join(map(str, q_vec)) + "]"
+            
+            cur = self.conn.cursor()
+            cur.execute("""
+                SELECT chunk_id, text_content, metadata_json 
+                FROM chunks 
+                ORDER BY embedding <=> %s 
+                LIMIT %s
+            """, (q_vec_str, initial_k))
+            
+            candidates = []
+            for row in cur.fetchall():
+                meta = row[2] if isinstance(row[2], dict) else json.loads(row[2])
+                candidates.append({"id": row[0], "text": row[1], "metadata": meta})
+            cur.close()
 
-        if candidates:
-            pairs = [[query, doc['text']] for doc in candidates]
-            scores = self.reranker.predict(pairs)
-            for doc, score in zip(candidates, scores): doc['score'] = score
-            candidates.sort(key=lambda x: x['score'], reverse=True)
-        
-        return candidates[:k]
+            if candidates:
+                pairs = [[query, doc['text']] for doc in candidates]
+                scores = self.reranker.predict(pairs)
+                for doc, score in zip(candidates, scores): doc['score'] = score
+                candidates.sort(key=lambda x: x['score'], reverse=True)
+            
+            return candidates[:k]
+
+        except Exception as e:
+            print(f"[ERROR] Chunk retrieval failed: {e}")
+            try:
+                self.conn.rollback()  # Reset the aborted transaction
+            except Exception:
+                pass
+            return []
 
     def _expand_query(self, user_query: str) -> str:
         # Simple expansion to avoid logic bloat

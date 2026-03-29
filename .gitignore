@@ -221,3 +221,4 @@ dist/
 build/
 model_cache/
 sut_converted_temp.md
+data/

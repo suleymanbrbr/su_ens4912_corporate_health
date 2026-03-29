@@ -3,10 +3,12 @@ import { useNavigate, Link } from 'react-router-dom'
 import {
   Users, LayoutDashboard, LogOut, ArrowLeft, Shield, Database,
   Activity, UserMinus, UserPlus, Megaphone, Clock, TrendingUp,
-  BarChart2, BookOpen, Trash2, CheckCircle, List
+  BarChart2, BookOpen, Trash2, CheckCircle, List, Settings
 } from 'lucide-react'
+import ThemeToggle from './ThemeToggle'
 
 const API_HEADERS = () => ({ 'Authorization': `Bearer ${localStorage.getItem('token')}` })
+
 
 function TabButton({ active, onClick, icon, label }) {
   return (

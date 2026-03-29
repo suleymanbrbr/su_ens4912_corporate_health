@@ -44,17 +44,29 @@ def db_execute(conn, query, params=None):
 def init_system_tables():
     conn = get_db_conn()
     cur = conn.cursor()
+    # Ensure pgvector extension
+    cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
+    # Base tables
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id TEXT PRIMARY KEY,
-            username TEXT UNIQUE,
-            email TEXT UNIQUE,
-            hashed_password TEXT,
+            username TEXT UNIQUE NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            hashed_password TEXT NOT NULL,
             role TEXT DEFAULT 'user',
-            is_approved SMALLINT DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            is_approved INTEGER DEFAULT 0
         )
     """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS chunks (
+            chunk_id TEXT PRIMARY KEY,
+            text_content TEXT NOT NULL,
+            metadata_json JSONB,
+            header_text TEXT,
+            embedding vector(384)
+        )
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS chunks_fts_idx ON chunks USING GIN (to_tsvector('turkish', COALESCE(header_text, '') || ' ' || text_content));")
     cur.execute("""
         CREATE TABLE IF NOT EXISTS query_history (
             id TEXT PRIMARY KEY,
