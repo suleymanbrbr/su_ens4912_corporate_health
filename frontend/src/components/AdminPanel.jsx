@@ -213,7 +213,10 @@ function AdminPanel({ user, onLogout }) {
                         {users.filter(u => u.is_approved === 0).map(u => (
                           <div key={u.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: '#fff5f5', borderRadius: '8px', border: '1px solid #fee2e2' }}>
                             <div>
-                              <div style={{ fontWeight: 600 }}>{u.username}</div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontWeight: 600 }}>{u.username}</span>
+                                <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.5rem', borderRadius: '10px', background: u.role === 'admin' ? '#fee2e2' : '#e0f2fe', color: u.role === 'admin' ? '#ef4444' : '#0284c7', fontWeight: 700 }}>{u.role.toUpperCase()}</span>
+                              </div>
                               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{u.email}</div>
                             </div>
                             <div style={{ display: 'flex', gap: '0.5rem' }}>

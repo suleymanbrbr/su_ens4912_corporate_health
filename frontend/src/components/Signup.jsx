@@ -5,6 +5,7 @@ function Signup() {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [role, setRole] = useState('user')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
@@ -18,7 +19,7 @@ function Signup() {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify({ username, email, password, role }),
       })
 
       if (response.ok) {
@@ -68,11 +69,19 @@ function Signup() {
             <input 
               type="password" 
               required 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
               minLength={6}
             />
+          </div>
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Rolünüz</label>
+            <select 
+              value={role} 
+              onChange={(e) => setRole(e.target.value)}
+              style={{ width: '100%', padding: '0.8rem', borderRadius: '12px', border: '1px solid var(--border)', background: 'white', color: 'var(--text-main)', fontSize: '1rem', cursor: 'pointer' }}
+            >
+              <option value="user">Standart Kullanıcı (Doktor/Eczacı)</option>
+              <option value="admin">Yönetici (Sistem Admini)</option>
+            </select>
           </div>
           <button type="submit" disabled={loading} className="btn-primary" style={{ marginTop: '1rem' }}>
             {loading ? 'Kaydediliyor...' : 'Kayıt Ol'}
