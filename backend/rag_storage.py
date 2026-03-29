@@ -17,11 +17,11 @@ except ImportError:
     print("[WARN] 'python-docx' library not found.")
 
 # --- Configuration ---
-DOCX_FILE_PATH = "08.03.2025-Değişiklik Tebliği İşlenmiş Güncel 2013 SUT.docx"
-MARKDOWN_FILE_PATH = "sut_converted_temp.md"
-DB_PATH = "sut_knowledge_base.db"
-FAISS_INDEX_PATH = "sut_faiss.index"
-FAISS_MAPPING_PATH = "sut_faiss.index.mapping"
+DOCX_FILE_PATH = "data/08.03.2025-Değişiklik Tebliği İşlenmiş Güncel 2013 SUT.docx"
+MARKDOWN_FILE_PATH = "data/sut_converted_temp.md"
+DB_PATH = "data/sut_knowledge_base.db"
+FAISS_INDEX_PATH = "data/sut_faiss.index"
+FAISS_MAPPING_PATH = "data/sut_faiss.index.mapping"
 
 class SUT_Storage_Manager:
     def __init__(self, embeddings_model):
