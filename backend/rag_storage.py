@@ -47,9 +47,9 @@ class SUT_Storage_Manager:
 
         self._setup_database()
 
-        print("[DB] Inserting data into PostgreSQL (pgvector)...")
+        print(f"[DB] Inserting data into PostgreSQL (pgvector). Total chunks: {len(chunks)}")
 
-        for chunk in chunks:
+        for i, chunk in enumerate(chunks):
             chunk_id = str(uuid.uuid4())
             metadata_json = chunk.metadata
             page_content = chunk.page_content
@@ -62,6 +62,9 @@ class SUT_Storage_Manager:
                 "INSERT INTO chunks (chunk_id, text_content, metadata_json, header_text, embedding) VALUES (%s, %s, %s, %s, %s)",
                 (chunk_id, page_content, Json(metadata_json), header_text, vector)
             )
+            
+            if (i + 1) % 10 == 0:
+                print(f"[DB] Progress: {i + 1}/{len(chunks)} chunks processed.")
 
         self.conn.commit()
         

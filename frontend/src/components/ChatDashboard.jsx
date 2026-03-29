@@ -20,6 +20,71 @@ function groupByDate(items) {
   return groups
 }
 
+// ─── Agent Step Trace Component ────────────────────────────────────────────
+const TOOL_COLORS = {
+  search_sut_chunks:     { bg: '#eff6ff', border: '#3b82f6', text: '#1e40af' },
+  search_sut_fulltext:   { bg: '#f0fdf4', border: '#22c55e', text: '#166534' },
+  lookup_knowledge_graph:{ bg: '#fdf4ff', border: '#a855f7', text: '#7e22ce' },
+  calculate:             { bg: '#fff7ed', border: '#f97316', text: '#9a3412' },
+  finish:                { bg: '#f0fdf4', border: '#10b981', text: '#065f46' },
+  error:                 { bg: '#fef2f2', border: '#ef4444', text: '#991b1b' },
+}
+
+function AgentTrace({ steps, live = false }) {
+  const [open, setOpen] = useState(false)
+  if (!steps || steps.length === 0) return null
+
+  const colors = (tool) => TOOL_COLORS[tool] || { bg: '#f9fafb', border: '#9ca3af', text: '#374151' }
+
+  return (
+    <div style={{ marginTop: '0.75rem', borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: '0.5rem' }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '0.4rem',
+          fontSize: '0.75rem', fontWeight: 600, color: '#6366f1',
+          background: 'transparent', border: 'none', cursor: 'pointer', padding: '0.2rem 0',
+        }}
+      >
+        {open ? '▾' : '▸'} Düşünce Süreci ({steps.length} adım){live ? ' ⏳' : ''}
+      </button>
+
+      {open && (
+        <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          {steps.map((step, i) => {
+            const c = colors(step.tool)
+            const argsStr = step.args && Object.keys(step.args).length > 0
+              ? Object.entries(step.args).map(([k, v]) => `${k}: ${String(v).slice(0,80)}`).join(' | ')
+              : ''
+            return (
+              <div key={i} style={{
+                borderRadius: '8px', border: `1px solid ${c.border}`,
+                background: c.bg, padding: '0.6rem 0.75rem', fontSize: '0.78rem',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.35rem' }}>
+                  <span style={{ fontWeight: 700, color: c.text }}>{step.icon} {step.tool}</span>
+                  <span style={{ color: '#94a3b8', fontSize: '0.7rem' }}>Adım {step.iteration}</span>
+                </div>
+                {argsStr && <div style={{ color: '#64748b', marginBottom: '0.3rem', fontStyle: 'italic' }}>{argsStr}</div>}
+                {step.result && step.tool !== 'finish' && (
+                  <details style={{ marginTop: '0.25rem' }}>
+                    <summary style={{ cursor: 'pointer', color: c.text, fontWeight: 600, listStyle: 'none', outline: 'none' }}>Sonucu görüntüle ▸</summary>
+                    <div style={{
+                      marginTop: '0.35rem', padding: '0.5rem', background: 'rgba(0,0,0,0.04)',
+                      borderRadius: '6px', whiteSpace: 'pre-wrap', color: '#374151', maxHeight: '200px', overflowY: 'auto',
+                    }}>{step.result}</div>
+                  </details>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+// ────────────────────────────────────────────────────────────────────────────
+
 function ChatDashboard({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('chat')
   const [messages, setMessages] = useState([])
@@ -27,6 +92,7 @@ function ChatDashboard({ user, onLogout }) {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [currentAnalysis, setCurrentAnalysis] = useState('')
+  const [liveAgentSteps, setLiveAgentSteps] = useState([])
   const [sources, setSources] = useState([])
   const [conversations, setConversations] = useState([])
   const [announcement, setAnnouncement] = useState(null)
@@ -170,10 +236,12 @@ function ChatDashboard({ user, onLogout }) {
     setMessages(prev => [...prev, { role: 'user', content: userMessage }])
     setLoading(true)
     setCurrentAnalysis('')
+    setLiveAgentSteps([])
     setSources([])
 
     let queryId = null
     let assistantMessage = ''
+    let accumulatedSteps = []
 
     try {
       const kDepth = parseInt(localStorage.getItem('k_depth') || '5')
@@ -202,39 +270,51 @@ function ChatDashboard({ user, onLogout }) {
 
             if (data.query_id) {
               queryId = data.query_id
-              if (data.conversation_id) {
-                setActiveConversationId(data.conversation_id)
-              }
+              if (data.conversation_id) setActiveConversationId(data.conversation_id)
+
             } else if (data.status) {
-              // Status updates — no-op
-            } else if (data.analysis_content) {
-              setCurrentAnalysis(data.analysis_content)
+              setCurrentAnalysis(data.status)
+
+            } else if (data.agent_step) {
+              // Live streaming of each tool call step
+              accumulatedSteps = [...accumulatedSteps, data.agent_step]
+              setLiveAgentSteps([...accumulatedSteps])
+
+            } else if (data.agent_steps_complete) {
+              // All steps done — attach them to the upcoming assistant message
+              accumulatedSteps = data.agent_steps_complete
+
             } else if (data.final_answer) {
               assistantMessage = data.final_answer
+              const finalSteps = accumulatedSteps
               setMessages(prev => {
                 const history = [...prev]
                 const last = history[history.length - 1]
                 if (last?.role === 'assistant') {
                   last.content = assistantMessage
-                  last.analysis = currentAnalysis
                   last.id = queryId
-                  return history
+                  last.agentSteps = finalSteps
+                  return [...history]
                 }
-                return [...history, { role: 'assistant', content: assistantMessage, analysis: currentAnalysis, id: queryId }]
+                return [...history, {
+                  role: 'assistant',
+                  content: assistantMessage,
+                  id: queryId,
+                  agentSteps: finalSteps
+                }]
               })
             }
           } catch { /* ignore malformed SSE lines */ }
         }
       }
 
-      // Refresh conversation list to get latest DB changes
-      if (queryId && assistantMessage) {
-        fetchHistory()
-      }
+      if (queryId && assistantMessage) fetchHistory()
     } catch (err) {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Üzgünüm, bir hata oluştu: ' + err.message }])
     } finally {
       setLoading(false)
+      setLiveAgentSteps([])
+      setCurrentAnalysis('')
     }
   }
 
@@ -418,17 +498,14 @@ function ChatDashboard({ user, onLogout }) {
                           <div style={{ whiteSpace: 'pre-wrap' }}>
                             {renderMessageContent(msg.content)}
                           </div>
+
+                          {/* Agent Trace — expandable per message */}
+                          {msg.role === 'assistant' && msg.agentSteps && msg.agentSteps.length > 0 && (
+                            <AgentTrace steps={msg.agentSteps} />
+                          )}
                           
-                          {msg.role === 'assistant' && (msg.analysis || (!loading && msg.content)) && (
+                          {msg.role === 'assistant' && (!loading && msg.content) && (
                             <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                              
-                              {msg.analysis && (
-                                <div style={{ padding: '0.75rem 1rem', background: '#f8fafc', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-muted)', borderLeft: '3px solid #cbd5e1' }}>
-                                  <p style={{ fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.25rem', fontSize: '0.8rem' }}>Analiz:</p>
-                                  {msg.analysis}
-                                </div>
-                              )}
-                              
                               {!loading && msg.content && (
                                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                                   <button
@@ -479,12 +556,16 @@ function ChatDashboard({ user, onLogout }) {
                     </div>
                     <div style={{ flex: 1 }}>
                       {currentAnalysis && (
-                        <div style={{ padding: '1rem', background: 'var(--card-bg)', borderRadius: '12px', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                          <p style={{ fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.5rem' }}>Analiz Ediliyor...</p>
-                          {currentAnalysis}
+                        <div style={{ padding: '0.75rem 1rem', background: 'var(--card-bg)', borderRadius: '12px', fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ animation: 'spin 1.5s linear infinite', display: 'inline-block' }}>⚙️</span>
+                          <span style={{ fontWeight: 500 }}>{currentAnalysis}</span>
                         </div>
                       )}
-                      <div className="premium-card loading-skeleton" style={{ height: '60px', width: '200px' }} />
+                      {/* Live Agent Steps while loading */}
+                      {liveAgentSteps.length > 0 && (
+                        <AgentTrace steps={liveAgentSteps} live={true} />
+                      )}
+                      <div className="premium-card loading-skeleton" style={{ height: '50px', width: '160px', marginTop: '0.5rem' }} />
                     </div>
                   </div>
                 )}

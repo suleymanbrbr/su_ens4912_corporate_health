@@ -13,7 +13,7 @@ from collections import Counter
 import psycopg2
 import psycopg2.extras
 
-from fastapi import FastAPI, Depends, HTTPException, status, Body
+from fastapi import FastAPI, Depends, HTTPException, status, Body, BackgroundTasks
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -250,7 +250,7 @@ async def register(user: UserRegister):
 @app.post("/api/auth/login", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     conn = get_db_conn()
-    cur = db_execute(conn, "SELECT * FROM users WHERE username = %s", (form_data.username,))
+    cur = db_execute(conn, "SELECT * FROM users WHERE username = %s OR email = %s", (form_data.username, form_data.username))
     user = cur.fetchone()
     cur.close()
     
@@ -629,28 +629,36 @@ async def approve_user(user_id: str, admin: dict = Depends(get_current_admin)):
     return {"message": "Kullanıcı onaylandı."}
 
 @app.post("/api/admin/rebuild-index")
-async def rebuild_index(admin: dict = Depends(get_current_admin)):
+async def rebuild_index(background_tasks: BackgroundTasks, admin: dict = Depends(get_current_admin)):
     global engine
-    try:
-        storage = SUT_Storage_Manager(engine.embeddings_model)
-        success = storage.populate_database()
-        if not success:
-            raise HTTPException(status_code=500, detail="İndeksleme işlemi sırasında hata oluştu.")
-        
-        # Reload global engine connection
-        new_engine = SUT_RAG_Engine()
-        if new_engine.load_database():
-            engine = new_engine
-            dbconn = get_db_conn()
-            log_audit(dbconn, "index_rebuilt", user_id=admin["id"])
-            dbconn.commit()
-            dbconn.close()
-            return {"message": "Sistem başarıyla yeniden indekslendi ve yüklendi."}
-        else:
-            return {"message": "İndeksleme tamamlandı ancak motor yüklenemedi.", "status": "partial"}
-            
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Sistem hatası: {str(e)}")
+    
+    def run_indexing():
+        global engine
+        try:
+            print("[BACKGROUND] Starting indexing task...")
+            storage = SUT_Storage_Manager(engine.embeddings_model)
+            success = storage.populate_database()
+            if success:
+                # Reload global engine connection
+                new_engine = SUT_RAG_Engine()
+                if new_engine.load_database():
+                    engine = new_engine
+                    print("[BACKGROUND] Indexing and engine reload complete.")
+                else:
+                    print("[BACKGROUND] Indexing complete but engine reload failed.")
+            else:
+                print("[BACKGROUND] Indexing failed.")
+        except Exception as e:
+            print(f"[BACKGROUND] Indexing error: {str(e)}")
+
+    background_tasks.add_task(run_indexing)
+    
+    dbconn = get_db_conn()
+    log_audit(dbconn, "index_rebuild_started", user_id=admin["id"])
+    dbconn.commit()
+    dbconn.close()
+    
+    return {"message": "İndeksleme işlemi arka planda başlatıldı. İlerlemeyi sistem günlüklerinden takip edebilirsiniz."}
 
 # --- Announcements ---
 
