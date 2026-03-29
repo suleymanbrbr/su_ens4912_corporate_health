@@ -117,8 +117,30 @@ def init_system_tables():
             FOREIGN KEY(trigger_message_id) REFERENCES query_history(id)
         )
     """)
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS audit_logs (
+            log_id TEXT PRIMARY KEY,
+            user_id TEXT,
+            action_type TEXT NOT NULL,
+            entity_type TEXT,
+            entity_id TEXT,
+            details TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES users(id)
+        )
+    """)
     conn.commit()
     conn.close()
+
+def log_audit(conn, action_type, user_id=None, entity_type=None, entity_id=None, details=None):
+    try:
+        details_json = json.dumps(details, ensure_ascii=False) if details else None
+        conn.execute(
+            "INSERT INTO audit_logs (log_id, user_id, action_type, entity_type, entity_id, details) VALUES (?, ?, ?, ?, ?, ?)",
+            (str(uuid.uuid4()), user_id, action_type, entity_type, entity_id, details_json)
+        )
+    except Exception as e:
+        print(f"[WARN] Failed to log audit: {e}")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -211,6 +233,7 @@ async def register(user: UserRegister):
             "INSERT INTO users (id, username, email, hashed_password, role, is_approved) VALUES (?, ?, ?, ?, ?, ?)",
             (user_id, user.username, user.email, hashed_pwd, role, is_approved)
         )
+        log_audit(conn, "register", user_id=user_id, entity_type="user", entity_id=user_id, details={"username": user.username, "roles": role})
         conn.commit()
         return {"id": user_id, "username": user.username, "email": user.email, "role": role, "is_approved": is_approved}
     finally:
@@ -226,7 +249,13 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
         raise HTTPException(status_code=401, detail="Incorrect credentials")
     
     if user["is_approved"] == 0:
+        log_audit(conn, "login_failed_unapproved", user_id=user["id"])
+        conn.commit()
         raise HTTPException(status_code=403, detail="Hesabınız henüz onaylanmamıştır.")
+    
+    log_audit(conn, "login", user_id=user["id"])
+    conn.commit()
+    conn.close()
     
     access_token = create_access_token(data={"sub": user["username"], "role": user["role"]})
     return {"access_token": access_token, "token_type": "bearer"}
@@ -298,6 +327,7 @@ async def chat(request: ChatRequest, current_user: dict = Depends(get_current_us
             "INSERT INTO query_history (id, user_id, conversation_id, query) VALUES (?, ?, ?, ?)",
             (query_id, current_user["id"], conversation_id, request.message)
         )
+        log_audit(conn, "query_executed", user_id=current_user["id"], entity_type="query", entity_id=query_id)
         conn.commit()
     except Exception as e:
         print(f"[WARN] Failed to log query history: {e}")
@@ -361,6 +391,7 @@ async def change_password(data: PasswordChange, current_user: dict = Depends(get
     
     new_hashed = get_password_hash(data.new_password)
     conn.execute("UPDATE users SET hashed_password = ? WHERE id = ?", (new_hashed, current_user["id"]))
+    log_audit(conn, "password_change", user_id=current_user["id"])
     conn.commit()
     conn.close()
     return {"message": "Şifre başarıyla güncellendi."}
@@ -535,6 +566,7 @@ async def update_user_role(user_id: str, data: RoleUpdate, admin: dict = Depends
         raise HTTPException(status_code=400, detail="Geçersiz rol.")
     conn = get_db_conn()
     conn.execute("UPDATE users SET role = ? WHERE id = ?", (data.role, user_id))
+    log_audit(conn, "role_updated", user_id=admin["id"], entity_type="user", entity_id=user_id, details={"new_role": data.role})
     conn.commit()
     conn.close()
     return {"message": "Rol güncellendi."}
@@ -547,6 +579,7 @@ async def delete_user(user_id: str, admin: dict = Depends(get_current_admin)):
     conn.execute("DELETE FROM query_history WHERE user_id = ?", (user_id,))
     conn.execute("DELETE FROM saved_responses WHERE user_id = ?", (user_id,))
     conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+    log_audit(conn, "user_deleted", user_id=admin["id"], entity_type="user", entity_id=user_id)
     conn.commit()
     conn.close()
     return {"message": "Kullanıcı silindi."}
@@ -555,6 +588,7 @@ async def delete_user(user_id: str, admin: dict = Depends(get_current_admin)):
 async def approve_user(user_id: str, admin: dict = Depends(get_current_admin)):
     conn = get_db_conn()
     conn.execute("UPDATE users SET is_approved = 1 WHERE id = ?", (user_id,))
+    log_audit(conn, "user_approved", user_id=admin["id"], entity_type="user", entity_id=user_id)
     conn.commit()
     conn.close()
     return {"message": "Kullanıcı onaylandı."}
@@ -574,6 +608,10 @@ async def rebuild_index(admin: dict = Depends(get_current_admin)):
         new_engine = SUT_RAG_Engine()
         if new_engine.load_database():
             engine = new_engine
+            dbconn = get_db_conn()
+            log_audit(dbconn, "index_rebuilt", user_id=admin["id"])
+            dbconn.commit()
+            dbconn.close()
             return {"message": "Sistem başarıyla yeniden indekslendi ve yüklendi."}
         else:
             return {"message": "İndeksleme tamamlandı ancak motor yüklenemedi.", "status": "partial"}
@@ -588,10 +626,12 @@ async def create_announcement(data: AnnouncementCreate, admin: dict = Depends(ge
     conn = get_db_conn()
     # Deactivate all existing announcements
     conn.execute("UPDATE announcements SET active = 0")
+    ann_id = str(uuid.uuid4())
     conn.execute(
         "INSERT INTO announcements (id, message, created_by, active) VALUES (?, ?, ?, 1)",
-        (str(uuid.uuid4()), data.message, admin["id"])
+        (ann_id, data.message, admin["id"])
     )
+    log_audit(conn, "announcement_created", user_id=admin["id"], entity_type="announcement", entity_id=ann_id)
     conn.commit()
     conn.close()
     return {"message": "Duyuru yayınlandı."}
@@ -609,6 +649,7 @@ async def get_active_announcement(current_user: dict = Depends(get_current_user)
 async def deactivate_announcement(ann_id: str, admin: dict = Depends(get_current_admin)):
     conn = get_db_conn()
     conn.execute("UPDATE announcements SET active = 0 WHERE id = ?", (ann_id,))
+    log_audit(conn, "announcement_deactivated", user_id=admin["id"], entity_type="announcement", entity_id=ann_id)
     conn.commit()
     conn.close()
     return {"message": "Duyuru kaldırıldı."}
@@ -621,6 +662,33 @@ async def get_knowledge_graph(current_user: dict = Depends(get_current_user)):
     with open(kg_path, "r", encoding="utf-8") as f:
         kg_data = json.load(f)
     return kg_data
+
+@app.get("/api/admin/audit-logs")
+async def get_audit_logs(admin: dict = Depends(get_current_admin), limit: int = 50, offset: int = 0):
+    conn = get_db_conn()
+    logs = conn.execute("""
+        SELECT a.log_id, a.action_type, a.entity_type, a.entity_id, a.details, a.created_at, u.username as user_name
+        FROM audit_logs a
+        LEFT JOIN users u ON a.user_id = u.id
+        ORDER BY a.created_at DESC
+        LIMIT ? OFFSET ?
+    """, (limit, offset)).fetchall()
+    
+    total = conn.execute("SELECT COUNT(*) FROM audit_logs").fetchone()[0]
+    conn.close()
+    
+    # Parse JSON details correctly
+    parsed_logs = []
+    for log in logs:
+        d = dict(log)
+        if d["details"]:
+            try:
+                d["details"] = json.loads(d["details"])
+            except:
+                pass
+        parsed_logs.append(d)
+        
+    return {"logs": parsed_logs, "total": total}
 
 if __name__ == "__main__":
     import uvicorn

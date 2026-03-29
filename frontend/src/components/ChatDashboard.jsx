@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { LogOut, Send, User, Bot, HelpCircle, Clock, Book, Shield, Network, MessageSquare, Settings, Bookmark, X, Megaphone, ThumbsUp, ThumbsDown } from 'lucide-react'
+import { LogOut, Send, User, Bot, HelpCircle, Clock, Book, Shield, Network, MessageSquare, Settings, Bookmark, X, Megaphone, ThumbsUp, ThumbsDown, BookOpen } from 'lucide-react'
 import KnowledgeGraph from './KnowledgeGraph'
 
 const AUTH_HEADER = () => ({ 'Authorization': `Bearer ${localStorage.getItem('token')}` })
@@ -288,6 +288,14 @@ function ChatDashboard({ user, onLogout }) {
           </div>
 
           <nav style={{ flex: 1, overflowY: 'auto', padding: '0 0.75rem' }}>
+            {/* Tools */}
+            <div style={{ marginBottom: '1rem' }}>
+              <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', paddingLeft: '0.5rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem' }}>Araçlar</p>
+              <Link to="/policies" style={{ textDecoration: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.75rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600 }} onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                <BookOpen size={14} /> SUT Mevzuat Tarayıcısı
+              </Link>
+            </div>
+
             {/* Admin links */}
             {user?.role === 'admin' && (
               <div style={{ marginBottom: '1rem' }}>

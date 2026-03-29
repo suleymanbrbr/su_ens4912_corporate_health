@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import {
   Users, LayoutDashboard, LogOut, ArrowLeft, Shield, Database,
   Activity, UserMinus, UserPlus, Megaphone, Clock, TrendingUp,
-  BarChart2, BookOpen, Trash2, CheckCircle
+  BarChart2, BookOpen, Trash2, CheckCircle, List
 } from 'lucide-react'
 
 const API_HEADERS = () => ({ 'Authorization': `Bearer ${localStorage.getItem('token')}` })
@@ -46,6 +46,7 @@ function AdminPanel({ user, onLogout }) {
   const [metrics, setMetrics] = useState({ users_count: 0, queries_count: 0, chunks_count: 0, pending_count: 0, active_announcement: null })
   const [activity, setActivity] = useState([])
   const [analytics, setAnalytics] = useState({ top_keywords: [], daily_volume: [], daily_engagement_rate: 0, monthly_engagement_rate: 0, daily_active_users: 0, monthly_active_users: 0, total_users: 0 })
+  const [auditLogs, setAuditLogs] = useState([])
   const [announcement, setAnnouncement] = useState('')
   const [loading, setLoading] = useState(true)
   const [annMsg, setAnnMsg] = useState('')
@@ -65,6 +66,7 @@ function AdminPanel({ user, onLogout }) {
       clearInterval(activityTimer.current)
     }
     if (tab === 'analytics') fetchAnalytics()
+    if (tab === 'audit') fetchAuditLogs()
     return () => clearInterval(activityTimer.current)
   }, [tab])
 
@@ -108,6 +110,16 @@ function AdminPanel({ user, onLogout }) {
     try {
       const res = await fetch('/api/admin/analytics', { headers: API_HEADERS() })
       if (res.ok) setAnalytics(await res.json())
+    } catch (e) { console.error(e) }
+  }
+
+  const fetchAuditLogs = async () => {
+    try {
+      const res = await fetch('/api/admin/audit-logs?limit=100', { headers: API_HEADERS() })
+      if (res.ok) {
+        const data = await res.json()
+        setAuditLogs(data.logs)
+      }
     } catch (e) { console.error(e) }
   }
 
@@ -213,6 +225,7 @@ function AdminPanel({ user, onLogout }) {
           <TabButton active={tab === 'overview'} onClick={() => setTab('overview')} icon={<LayoutDashboard size={16} />} label="Genel Bakış" />
           <TabButton active={tab === 'activity'} onClick={() => setTab('activity')} icon={<Activity size={16} />} label="Canlı Aktivite" />
           <TabButton active={tab === 'analytics'} onClick={() => setTab('analytics')} icon={<TrendingUp size={16} />} label="Analitik" />
+          <TabButton active={tab === 'audit'} onClick={() => setTab('audit')} icon={<List size={16} />} label="Sistem Logları" />
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '2rem' }}>
@@ -429,6 +442,57 @@ function AdminPanel({ user, onLogout }) {
                           )
                         })}
                       </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* AUDIT LOGS TAB */}
+              {tab === 'audit' && (
+                <>
+                  <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>Denetim İzleri (Audit Logs)</h1>
+                  <div className="premium-card" style={{ padding: 0, overflow: 'hidden' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                      <thead style={{ background: '#f8fafc', borderBottom: '1px solid var(--border)' }}>
+                        <tr>
+                          <th style={{ padding: '1rem 1.5rem' }}>Tarih</th>
+                          <th style={{ padding: '1rem 1.5rem' }}>Kullanıcı</th>
+                          <th style={{ padding: '1rem 1.5rem' }}>Aksiyon</th>
+                          <th style={{ padding: '1rem 1.5rem' }}>Hedef / Detay</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {auditLogs.map((log) => (
+                          <tr key={log.log_id} style={{ borderBottom: '1px solid var(--border)' }}>
+                            <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                              {new Date(log.created_at + 'Z').toLocaleString('tr-TR')}
+                            </td>
+                            <td style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>
+                              {log.user_name || <span style={{ color: 'var(--text-muted)' }}>Sistem</span>}
+                            </td>
+                            <td style={{ padding: '1rem 1.5rem' }}>
+                              <span style={{ padding: '0.2rem 0.6rem', background: '#e0f2fe', color: '#0284c7', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700 }}>
+                                {log.action_type.toUpperCase()}
+                              </span>
+                            </td>
+                            <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem' }}>
+                              {log.entity_type && (
+                                <span style={{ fontWeight: 600, marginRight: '0.5rem', color: 'var(--primary)' }}>
+                                  [{log.entity_type}]
+                                </span>
+                              )}
+                              {log.details && (
+                                <pre style={{ display: 'inline', background: '#f1f5f9', padding: '0.2rem 0.4rem', borderRadius: '4px', fontSize: '0.75rem' }}>
+                                  {JSON.stringify(log.details)}
+                                </pre>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {auditLogs.length === 0 && (
+                      <p style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Kayıt bulunamadı.</p>
                     )}
                   </div>
                 </>
