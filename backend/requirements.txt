@@ -4,7 +4,7 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 pydantic[email]==2.7.4
 python-dotenv==1.0.1
-bcrypt==4.0.1
+bcrypt==3.2.2
 langchain==0.2.1
 langchain-community==0.2.1
 langchain-huggingface==0.0.3
