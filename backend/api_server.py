@@ -505,7 +505,7 @@ async def rebuild_index(admin: dict = Depends(get_current_admin)):
     global engine
     try:
         # 1. Instantiate Storage Manager with the engine's current model
-        storage = SUT_Storage_Manager(engine.embeddings)
+        storage = SUT_Storage_Manager(engine.embeddings_model)
         # 2. Re-populate Knowledge Base (Safe purge of only chunks)
         success = storage.populate_database()
         if not success:
