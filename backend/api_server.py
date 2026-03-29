@@ -38,9 +38,17 @@ def init_system_tables():
             email TEXT UNIQUE,
             hashed_password TEXT,
             role TEXT DEFAULT 'user',
+            is_approved INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    # Migrate: add is_approved column if it doesn't exist yet
+    try:
+        c.execute("ALTER TABLE users ADD COLUMN is_approved INTEGER DEFAULT 0")
+        # For legacy users (like the admin), set them as approved
+        c.execute("UPDATE users SET is_approved = 1")
+    except Exception:
+        pass  # Column already exists
     c.execute("""
         CREATE TABLE IF NOT EXISTS query_history (
             id TEXT PRIMARY KEY,
@@ -127,6 +135,7 @@ class UserResponse(BaseModel):
     username: str
     email: str
     role: str
+    is_approved: int
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
@@ -162,12 +171,16 @@ async def register(user: UserRegister):
         user_id = str(uuid.uuid4())
         hashed_pwd = get_password_hash(user.password)
         role = user.role if user.role in ["user", "admin"] else "user"
+        # First user is auto-approved
+        user_count = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+        is_approved = 1 if user_count == 0 else 0
+        
         conn.execute(
-            "INSERT INTO users (id, username, email, hashed_password, role) VALUES (?, ?, ?, ?, ?)",
-            (user_id, user.username, user.email, hashed_pwd, role)
+            "INSERT INTO users (id, username, email, hashed_password, role, is_approved) VALUES (?, ?, ?, ?, ?, ?)",
+            (user_id, user.username, user.email, hashed_pwd, role, is_approved)
         )
         conn.commit()
-        return {"id": user_id, "username": user.username, "email": user.email, "role": role}
+        return {"id": user_id, "username": user.username, "email": user.email, "role": role, "is_approved": is_approved}
     finally:
         conn.close()
 
@@ -180,6 +193,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     if not user or not verify_password(form_data.password, user["hashed_password"]):
         raise HTTPException(status_code=401, detail="Incorrect credentials")
     
+    if user["is_approved"] == 0:
+        raise HTTPException(status_code=403, detail="Hesabınız henüz onaylanmamıştır.")
+    
     access_token = create_access_token(data={"sub": user["username"], "role": user["role"]})
     return {"access_token": access_token, "token_type": "bearer"}
 
@@ -190,7 +206,7 @@ async def me(current_user: dict = Depends(get_current_user)):
 @app.get("/api/admin/users", response_model=List[UserResponse])
 async def list_users(admin: dict = Depends(get_current_admin)):
     conn = get_db_conn()
-    users = conn.execute("SELECT id, username, email, role FROM users").fetchall()
+    users = conn.execute("SELECT id, username, email, role, is_approved FROM users").fetchall()
     conn.close()
     return [dict(u) for u in users]
 
@@ -315,6 +331,7 @@ async def get_system_metrics(admin: dict = Depends(get_current_admin)):
         "users_count": users_count,
         "queries_count": queries_count,
         "chunks_count": chunks_count,
+        "pending_count": conn.execute("SELECT COUNT(*) FROM users WHERE is_approved = 0").fetchone()[0],
         "active_announcement": dict(active_announcement) if active_announcement else None
     }
 
@@ -445,6 +462,14 @@ async def delete_user(user_id: str, admin: dict = Depends(get_current_admin)):
     conn.commit()
     conn.close()
     return {"message": "Kullanıcı silindi."}
+
+@app.put("/api/admin/users/{user_id}/approve")
+async def approve_user(user_id: str, admin: dict = Depends(get_current_admin)):
+    conn = get_db_conn()
+    conn.execute("UPDATE users SET is_approved = 1 WHERE id = ?", (user_id,))
+    conn.commit()
+    conn.close()
+    return {"message": "Kullanıcı onaylandı."}
 
 # --- Announcements ---
 
