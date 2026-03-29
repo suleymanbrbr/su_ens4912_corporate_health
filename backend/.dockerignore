@@ -23,3 +23,7 @@ coverage.xml
 Dockerfile
 .dockerignore
 model_cache/
+*.index
+*.mapping
+*.docx
+data/

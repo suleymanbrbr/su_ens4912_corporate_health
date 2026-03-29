@@ -7,7 +7,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend/sut_knowledge_base.db:/app/sut_knowledge_base.db
+      - ./data:/app/data
     env_file:
       - ./backend/.env
     restart: always
