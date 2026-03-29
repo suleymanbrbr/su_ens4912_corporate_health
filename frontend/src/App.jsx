@@ -42,7 +42,7 @@ function App() {
         <Route path="/profile" element={user ? <Profile user={user} onLogout={() => setUser(null)} /> : <Navigate to="/login" />} />
         <Route path="/settings" element={user ? <Settings user={user} onLogout={() => setUser(null)} /> : <Navigate to="/login" />} />
         <Route path="/admin" element={user?.role === 'admin' ? <AdminPanel user={user} onLogout={() => setUser(null)} /> : <Navigate to="/" />} />
-        <Route path="/policies" element={user?.role === 'admin' ? <PolicyBrowser user={user} /> : <Navigate to="/" />} />
+        <Route path="/policies" element={user ? <PolicyBrowser user={user} /> : <Navigate to="/" />} />
       </Routes>
     </Router>
   )
