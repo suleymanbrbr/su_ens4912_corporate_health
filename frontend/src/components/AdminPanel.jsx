@@ -43,7 +43,7 @@ function MetricCard({ icon, iconBg, iconColor, value, label }) {
 function AdminPanel({ user, onLogout }) {
   const [tab, setTab] = useState('overview')
   const [users, setUsers] = useState([])
-  const [metrics, setMetrics] = useState({ users_count: 0, queries_count: 0, chunks_count: 0, active_announcement: null })
+  const [metrics, setMetrics] = useState({ users_count: 0, queries_count: 0, chunks_count: 0, pending_count: 0, active_announcement: null })
   const [activity, setActivity] = useState([])
   const [analytics, setAnalytics] = useState({ top_keywords: [], daily_volume: [], engagement_rate: 0, active_users: 0, total_users: 0 })
   const [announcement, setAnnouncement] = useState('')
@@ -78,6 +78,17 @@ function AdminPanel({ user, onLogout }) {
       setMetrics(await metricsRes.json())
     } catch (e) { console.error(e) }
     finally { setLoading(false) }
+  }
+
+  const handleApproveUser = async (targetId) => {
+    try {
+      const res = await fetch(`/api/admin/users/${targetId}/approve`, {
+        method: 'PUT',
+        headers: API_HEADERS()
+      })
+      if (res.ok) fetchOverview()
+      else alert('Onaylanamadı.')
+    } catch (err) { alert('Sunucu hatası.') }
   }
 
   const fetchActivity = async () => {
@@ -185,11 +196,35 @@ function AdminPanel({ user, onLogout }) {
               {tab === 'overview' && (
                 <>
                   <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>Sistem Genel Bakış</h1>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
                     <MetricCard icon={<Users size={24} />} iconBg="#dcfce7" iconColor="#16a34a" value={metrics.users_count} label="Kayıtlı Kullanıcı" />
                     <MetricCard icon={<Activity size={24} />} iconBg="#e0f2fe" iconColor="#0284c7" value={metrics.queries_count} label="Toplam Sorgu" />
                     <MetricCard icon={<Database size={24} />} iconBg="#fef3c7" iconColor="#d97706" value={metrics.chunks_count} label="Veritabanı Belgesi" />
+                    <MetricCard icon={<Shield size={24} />} iconBg="#fef2f2" iconColor="#ef4444" value={metrics.pending_count} label="Onay Bekleyen" />
                   </div>
+
+                  {/* Pending Approvals Section */}
+                  {users.filter(u => u.is_approved === 0).length > 0 && (
+                    <div className="premium-card" style={{ padding: '1.5rem', marginBottom: '2rem', borderLeft: '4px solid #ef4444' }}>
+                      <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 600, color: '#ef4444' }}>
+                        <Shield size={20} /> Onay Bekleyen Kayıtlar
+                      </h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {users.filter(u => u.is_approved === 0).map(u => (
+                          <div key={u.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: '#fff5f5', borderRadius: '8px', border: '1px solid #fee2e2' }}>
+                            <div>
+                              <div style={{ fontWeight: 600 }}>{u.username}</div>
+                              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{u.email}</div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <button onClick={() => handleApproveUser(u.id)} className="btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.85rem', background: '#16a34a' }}>Onayla</button>
+                              <button onClick={() => handleDeleteUser(u.id)} style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid #ef4444', color: '#ef4444', background: 'transparent', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Announcement Manager */}
                   <div className="premium-card" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
@@ -240,10 +275,18 @@ function AdminPanel({ user, onLogout }) {
                               <span style={{ padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, background: u.role === 'admin' ? '#dcfce7' : '#f1f5f9', color: u.role === 'admin' ? '#166534' : 'var(--text-muted)', textTransform: 'uppercase' }}>
                                 {u.role}
                               </span>
+                              {u.is_approved === 0 && (
+                                <span style={{ marginLeft: '0.5rem', padding: '0.2rem 0.6rem', background: '#fee2e2', color: '#ef4444', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase' }}>Onay Bekliyor</span>
+                              )}
                             </td>
                             <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
                               {u.id !== user.id && (
                                 <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                                  {u.is_approved === 0 && (
+                                    <button onClick={() => handleApproveUser(u.id)} style={{ background: '#dcfce7', color: '#166534', border: 'none', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }} title="Onayla">
+                                      <CheckCircle size={16} />
+                                    </button>
+                                  )}
                                   <button onClick={() => handleRoleChange(u.id, u.role)} style={{ background: '#f1f5f9', border: 'none', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }} title={u.role === 'admin' ? 'Kullanıcı Yap' : 'Admin Yap'}>
                                     {u.role === 'admin' ? <UserMinus size={16} /> : <UserPlus size={16} />}
                                   </button>
