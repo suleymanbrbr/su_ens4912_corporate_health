@@ -36,18 +36,18 @@ class SUT_Storage_Manager:
         cleaned_path = self._remove_strikethrough_and_save_temp(DOCX_FILE_PATH)
         if not cleaned_path:
             print("[ERROR] Failed to clean DOCX. Aborting.")
-            return
+            return False
 
         print("[PREP] Converting to Markdown (Pandoc)...")
         try:
             pypandoc.convert_file(cleaned_path, 'md', outputfile=MARKDOWN_FILE_PATH)
         except Exception as e:
             print(f"[ERROR] Pandoc conversion failed: {e}")
-            return
+            return False
 
         print("[PREP] Splitting text into semantic chunks...")
         chunks = self._get_markdown_chunks(MARKDOWN_FILE_PATH)
-        if not chunks: return
+        if not chunks: return False
 
         self._setup_database()
 
@@ -83,6 +83,7 @@ class SUT_Storage_Manager:
         if os.path.exists(cleaned_path): os.remove(cleaned_path)
         if os.path.exists(MARKDOWN_FILE_PATH): os.remove(MARKDOWN_FILE_PATH)
         print("[SUCCESS] Database population complete.")
+        return True
 
     def _remove_strikethrough_and_save_temp(self, input_path):
         if not os.path.exists(input_path): return None
@@ -125,10 +126,14 @@ class SUT_Storage_Manager:
             return []
 
     def _setup_database(self):
-        if os.path.exists(DB_PATH): os.remove(DB_PATH)
+        # DO NOT remove DB_PATH - it contains users and history
         self.conn = sqlite3.connect(DB_PATH, check_same_thread=False)
         self.cursor = self.conn.cursor()
         
+        # Purge Knowledge Base Chunks ONLY
+        self.cursor.execute("DROP TABLE IF EXISTS chunks")
+        self.cursor.execute("DROP TABLE IF EXISTS title_search")
+
         # RAG Chunks Table
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS chunks (
@@ -138,7 +143,7 @@ class SUT_Storage_Manager:
             )
         """)
         
-        # User Accounts Table
+        # User Accounts Table (Should already exist, but for safety)
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id TEXT PRIMARY KEY,
@@ -146,6 +151,7 @@ class SUT_Storage_Manager:
                 email TEXT UNIQUE,
                 hashed_password TEXT,
                 role TEXT DEFAULT 'user',
+                is_approved INTEGER DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)

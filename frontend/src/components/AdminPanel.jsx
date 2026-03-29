@@ -49,6 +49,7 @@ function AdminPanel({ user, onLogout }) {
   const [announcement, setAnnouncement] = useState('')
   const [loading, setLoading] = useState(true)
   const [annMsg, setAnnMsg] = useState('')
+  const [reindexing, setReindexing] = useState(false)
   const activityTimer = useRef(null)
   const navigate = useNavigate()
 
@@ -74,9 +75,14 @@ function AdminPanel({ user, onLogout }) {
         fetch('/api/admin/users', { headers: API_HEADERS() }),
         fetch('/api/admin/system', { headers: API_HEADERS() })
       ])
-      setUsers(await usersRes.json())
-      setMetrics(await metricsRes.json())
-    } catch (e) { console.error(e) }
+      
+      if (usersRes.ok) setUsers(await usersRes.json())
+      else console.error('Failed to fetch users:', await usersRes.text())
+      
+      if (metricsRes.ok) setMetrics(await metricsRes.json())
+      else console.error('Failed to fetch metrics:', await metricsRes.text())
+      
+    } catch (e) { console.error('Overview fetch error:', e) }
     finally { setLoading(false) }
   }
 
@@ -133,6 +139,28 @@ function AdminPanel({ user, onLogout }) {
       setAnnMsg('Duyuru başarıyla yayınlandı.')
       setAnnouncement('')
       fetchOverview()
+    }
+  }
+
+  const handleRebuildIndex = async () => {
+    if (!window.confirm('Tüm SUT belgeleri yeni model ile yeniden indekslenecektir. Bu işlem yaklaşık 1 dakika sürebilir. Devam edilsin mi?')) return
+    setReindexing(true)
+    try {
+      const res = await fetch('/api/admin/rebuild-index', {
+        method: 'POST',
+        headers: API_HEADERS()
+      })
+      const data = await res.json()
+      if (res.ok) {
+        alert(data.message)
+        fetchOverview()
+      } else {
+        alert('Hata: ' + data.detail)
+      }
+    } catch (e) {
+      alert('Sistem hatası oluştu.')
+    } finally {
+      setReindexing(false)
     }
   }
 
@@ -195,7 +223,17 @@ function AdminPanel({ user, onLogout }) {
               {/* OVERVIEW TAB */}
               {tab === 'overview' && (
                 <>
-                  <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>Sistem Genel Bakış</h1>
+                  <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    Sistem Genel Bakış
+                    <button 
+                      onClick={handleRebuildIndex} 
+                      disabled={reindexing}
+                      className="btn-secondary" 
+                      style={{ fontSize: '0.8rem', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                    >
+                      <Database size={14} /> {reindexing ? 'İndeksleniyor...' : 'Sistemi Yeniden İndeksle'}
+                    </button>
+                  </h1>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
                     <MetricCard icon={<Users size={24} />} iconBg="#dcfce7" iconColor="#16a34a" value={metrics.users_count} label="Kayıtlı Kullanıcı" />
                     <MetricCard icon={<Activity size={24} />} iconBg="#e0f2fe" iconColor="#0284c7" value={metrics.queries_count} label="Toplam Sorgu" />
