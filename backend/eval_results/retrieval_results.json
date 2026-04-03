@@ -1,0 +1,76 @@
+{
+  "evaluation_date": "2026-03-29T22:19:15",
+  "num_questions": 200,
+  "k_values": [
+    1,
+    3,
+    5,
+    10
+  ],
+  "new_system": {
+    "name": "pgvector + PostgreSQL + Cross-Encoder Reranker + gemini-2.0-flash",
+    "metrics": {
+      "hit_rate@1": 0.29,
+      "mrr@1": 0.29,
+      "ndcg@1": 0.29,
+      "precision@1": 0.29,
+      "hit_rate@3": 0.405,
+      "mrr@3": 0.34,
+      "ndcg@3": 0.3912,
+      "precision@3": 0.155,
+      "hit_rate@5": 0.42,
+      "mrr@5": 0.3433,
+      "ndcg@5": 0.4194,
+      "precision@5": 0.107,
+      "hit_rate@10": 0.475,
+      "mrr@10": 0.3507,
+      "ndcg@10": 0.473,
+      "precision@10": 0.07,
+      "avg_latency_sec": 1.823,
+      "p95_latency_sec": 2.039
+    }
+  },
+  "old_system": {
+    "name": "FAISS IndexFlatL2 + SQLite (no reranker) — REAL empirical measurement",
+    "git_commit": "2b38285",
+    "note": "Same DOCX, same embedding model. Rebuilt from git history and evaluated on identical 200 questions.",
+    "metrics": {
+      "hit_rate@1": 0.195,
+      "mrr@1": 0.195,
+      "ndcg@1": 0.195,
+      "precision@1": 0.195,
+      "hit_rate@3": 0.36,
+      "mrr@3": 0.2683,
+      "ndcg@3": 0.3365,
+      "precision@3": 0.1467,
+      "hit_rate@5": 0.41,
+      "mrr@5": 0.2791,
+      "ndcg@5": 0.3995,
+      "precision@5": 0.119,
+      "hit_rate@10": 0.5,
+      "mrr@10": 0.2915,
+      "ndcg@10": 0.5006,
+      "precision@10": 0.0905,
+      "avg_latency_sec": 0.016,
+      "p95_latency_sec": 0.024
+    }
+  },
+  "improvements": {
+    "hit_rate@1_improvement_%": 48.7,
+    "mrr@1_improvement_%": 48.7,
+    "ndcg@1_improvement_%": 48.7,
+    "precision@1_improvement_%": 48.7,
+    "hit_rate@3_improvement_%": 12.5,
+    "mrr@3_improvement_%": 26.7,
+    "ndcg@3_improvement_%": 16.3,
+    "precision@3_improvement_%": 5.7,
+    "hit_rate@5_improvement_%": 2.4,
+    "mrr@5_improvement_%": 23.0,
+    "ndcg@5_improvement_%": 5.0,
+    "precision@5_improvement_%": -10.1,
+    "hit_rate@10_improvement_%": -5.0,
+    "mrr@10_improvement_%": 20.3,
+    "ndcg@10_improvement_%": -5.5,
+    "precision@10_improvement_%": -22.7
+  }
+}

@@ -1,0 +1,320 @@
+{
+  "evaluation_date": "2026-03-29T22:39:31",
+  "num_questions_retrieval": 200,
+  "num_questions_llm": 30,
+  "description": "Ablation study: effect of Cross-Encoder reranker. Everything else is identical (same pgvector DB, same embedding model, same k).",
+  "config_A_no_reranker": {
+    "name": "pgvector cosine — NO reranker",
+    "metrics": {
+      "hit_rate@1": 0.23,
+      "mrr@1": 0.23,
+      "ndcg@1": 0.23,
+      "precision@1": 0.23,
+      "hit_rate@3": 0.345,
+      "mrr@3": 0.2792,
+      "ndcg@3": 0.3349,
+      "precision@3": 0.1383,
+      "hit_rate@5": 0.42,
+      "mrr@5": 0.2969,
+      "ndcg@5": 0.4036,
+      "precision@5": 0.116,
+      "hit_rate@10": 0.505,
+      "mrr@10": 0.3083,
+      "ndcg@10": 0.4749,
+      "precision@10": 0.08,
+      "avg_latency_sec": 0.02,
+      "p95_latency_sec": 0.028
+    }
+  },
+  "config_B_with_reranker": {
+    "name": "pgvector cosine + Cross-Encoder Reranker (ms-marco-MiniLM-L-6-v2)",
+    "metrics": {
+      "hit_rate@1": 0.29,
+      "mrr@1": 0.29,
+      "ndcg@1": 0.29,
+      "precision@1": 0.29,
+      "hit_rate@3": 0.405,
+      "mrr@3": 0.34,
+      "ndcg@3": 0.3912,
+      "precision@3": 0.155,
+      "hit_rate@5": 0.42,
+      "mrr@5": 0.3433,
+      "ndcg@5": 0.4194,
+      "precision@5": 0.107,
+      "hit_rate@10": 0.475,
+      "mrr@10": 0.3507,
+      "ndcg@10": 0.473,
+      "precision@10": 0.07,
+      "avg_latency_sec": 1.775,
+      "p95_latency_sec": 2.004
+    }
+  },
+  "reranker_retrieval_gain": {
+    "hit_rate@1_reranker_gain_%": 26.1,
+    "mrr@1_reranker_gain_%": 26.1,
+    "ndcg@1_reranker_gain_%": 26.1,
+    "precision@1_reranker_gain_%": 26.1,
+    "hit_rate@3_reranker_gain_%": 17.4,
+    "mrr@3_reranker_gain_%": 21.8,
+    "ndcg@3_reranker_gain_%": 16.8,
+    "precision@3_reranker_gain_%": 12.1,
+    "hit_rate@5_reranker_gain_%": 0.0,
+    "mrr@5_reranker_gain_%": 15.6,
+    "ndcg@5_reranker_gain_%": 3.9,
+    "precision@5_reranker_gain_%": -7.8,
+    "hit_rate@10_reranker_gain_%": -5.9,
+    "mrr@10_reranker_gain_%": 13.8,
+    "ndcg@10_reranker_gain_%": -0.4,
+    "precision@10_reranker_gain_%": -12.5
+  },
+  "llm_context_quality": {
+    "num_questions": 30,
+    "avg_rouge_l_no_rerank": 0.056,
+    "avg_rouge_l_rerank": 0.1099,
+    "rouge_l_gain_%": 96.3,
+    "avg_faithfulness_no_rerank": 0.7533,
+    "avg_faithfulness_rerank": 0.87
+  },
+  "llm_per_question": [
+    {
+      "question": "İkinci basamak özel sağlık hizmeti sunucularında yapılan hekim ve diş hekimi muayenesinden katılım payı ne kadardır?",
+      "reference": "50 TL.",
+      "answer_no_rerank": "İkinci ve üçüncü basamak özel sağlık hizmeti sunucularında 50 TL katılım payı alınır.\n",
+      "answer_rerank": "f) İkinci ve üçüncü basamak özel sağlık hizmeti sunucularında 50 TL katılım payı alınır.",
+      "rouge_l_no_rerank": 0.1333,
+      "rouge_l_rerank": 0.125
+    },
+    {
+      "question": "Organ, doku ve kök hücre nakli tedavilerinde katılım payı alınır mı?",
+      "reference": "Hayır, bu tedavilerden katılım payı alınmaz.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.\n",
+      "answer_rerank": "Bu bilgi bu bağlamda yer almamaktadır.\n",
+      "rouge_l_no_rerank": 0.1667,
+      "rouge_l_rerank": 0.1667
+    },
+    {
+      "question": "Yoğun bakım hizmetleri için ilave ücret talep edilebilir mi?",
+      "reference": "Hayır, yoğun bakım hizmetlerinden ilave ücret alınamaz.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.",
+      "answer_rerank": "Bağlamda yoğun bakım hizmetleri için ilave ücret alınıp alınamayacağına dair bir bilgi bulunmamaktadır.",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.4
+    },
+    {
+      "question": "Yeşil alan muayenesi işlem kodu nedir?",
+      "reference": "520.021.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.\n",
+      "answer_rerank": "Bu bilgi bu bağlamda yer almamaktadır.\n",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.0
+    },
+    {
+      "question": "Organ nakli durumunda vericinin (donör) yol giderleri karşılanır mı?",
+      "reference": "Evet, vericinin yol ve gündelik giderleri Kurumca karşılanır.",
+      "answer_no_rerank": "Evet, donör (verici) durumundaki kişilerin sağlık giderlerinin Kurum tarafından karşılanması durumunda, mevzuata uygun sevk edilmeleri halinde yol giderleri Kurumca karşılanır.\n",
+      "answer_rerank": "Evet, donör (verici) durumundaki kişilerin sağlık giderlerinin Kurum tarafından karşılanması durumunda, mevzuata uygun sevk edilmeleri halinde yol giderleri Kurumca karşılanır (6).\n",
+      "rouge_l_no_rerank": 0.3571,
+      "rouge_l_rerank": 0.2759
+    },
+    {
+      "question": "3713 sayılı Kanun kapsamındaki harp malulleri katılım payından muaf mıdır?",
+      "reference": "Evet, kendileri ve bakmakla yükümlü oldukları kişiler muaftır.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.\n",
+      "answer_rerank": "Bu bilgi bu bağlamda yer almamaktadır.",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.0
+    },
+    {
+      "question": "Acil servislerde yapılan 'Yeşil Alan' muayeneleri için katılım payı ödenir mi?",
+      "reference": "Evet, yeşil alan muayeneleri için katılım payı alınır.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.",
+      "answer_rerank": "Evet, acil servislerde verilen ve SUT eki \"Hizmet Başı İşlem Puan Listesi\" nde (EK-2/B) yer alan 520.021 kodlu \"Yeşil alan muayenesi\" adı altında Kuruma fatura edilebilen sağlık hizmetleri için katılım payı ödenir.",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.25
+    },
+    {
+      "question": "Kardiyovasküler cerrahi işlemleri için ilave ücret alınabilir mi?",
+      "reference": "Hayır, istisnai sağlık hizmetleri hariç olmak üzere alınamaz.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.\n",
+      "answer_rerank": "Bu bilgi bu bağlamda yer almamaktadır.\n",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.0
+    },
+    {
+      "question": "Yardımcı üreme yöntemi (Tüp Bebek) tedavilerinde birinci deneme için katılım payı oranı nedir?",
+      "reference": "%30.",
+      "answer_no_rerank": "Yardımcı üreme yöntemi tedavilerinde birinci denemede %30 oranında katılım payı alınır.\n",
+      "answer_rerank": "Yardımcı üreme yöntemi tedavilerinde birinci denemede %30 oranında katılım payı alınır.\n",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.0
+    },
+    {
+      "question": "Kaplıca tedavileri için yol gideri ödenir mi?",
+      "reference": "Evet, tedavinin sağlanabildiği en yakın kaplıca tesisine göre ödenir.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.",
+      "answer_rerank": "Bu bilgi bu bağlamda yer almamaktadır.",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.0
+    },
+    {
+      "question": "Diyaliz tedavisi için hastanın servis kullanması durumunda ayrıca yol parası ödenir mi?",
+      "reference": "Hayır, servis hizmetinden faydalananlara ayrıca yol gideri ödenmez.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.",
+      "answer_rerank": "Bu bilgi bu bağlamda yer almamaktadır.\n",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.0
+    },
+    {
+      "question": "Acil haller nedeniyle sözleşmesiz bir hastaneye gidildiğinde tedavi ücreti ödenir mi?",
+      "reference": "Evet, acil halin Kurumca kabul edilmesi şartıyla SUT bedelleri üzerinden ödenir.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.\n",
+      "answer_rerank": "Evet, sözleşmesiz sağlık hizmeti sunucularından acil hallerde alınan sağlık hizmetlerinin bedelleri Kurumca karşılanır.\n",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.25
+    },
+    {
+      "question": "Gazi ve harp malullerinden otelcilik hizmeti için ilave ücret alınır mı?",
+      "reference": "Hayır, bu kişilerden otelcilik hizmeti farkı alınmaz.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.\n",
+      "answer_rerank": "Bu bilgi bu bağlamda yer almamaktadır.\n",
+      "rouge_l_no_rerank": 0.1538,
+      "rouge_l_rerank": 0.1538
+    },
+    {
+      "question": "Yurtdışına tedaviye gönderilen hastanın refakatçisinin yol gideri karşılanır mı?",
+      "reference": "Evet, raporda öngörülmesi halinde bir kişiyle sınırlı olmak üzere karşılanır.",
+      "answer_no_rerank": "Evet, yurt dışına gönderilen hasta ile raporda öngörülmesi halinde bir kişiyle sınırlı olmak üzere refakatçisinin (18 yaşını doldurmamış kişiler için refakatçi öngörülme şartı aranmaz) yol gideri, ulaşım aracına ilişkin fatura/bilet tutarı üzerinden Kurumca ödenir.\n",
+      "answer_rerank": "Evet, yurt dışına gönderilen hasta ile raporda öngörülmesi halinde bir kişiyle sınırlı olmak üzere refakatçisinin (18 yaşını doldurmamış kişiler için refakatçi öngörülme şartı aranmaz) yol gideri, ulaşım aracına ilişkin fatura/bilet tutarı üzerinden Kurumca ödenir.\n",
+      "rouge_l_no_rerank": 0.4091,
+      "rouge_l_rerank": 0.4091
+    },
+    {
+      "question": "Aile hekimliği muayenelerinden katılım payı alınır mı?",
+      "reference": "Hayır, aile hekimi muayenelerinden katılım payı alınmaz.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.",
+      "answer_rerank": "Sağlık Bakanlığı tarafından sözleşme imzalanmış, görevlendirilmiş veya yetkilendirilmiş aile hekimleri hariç olmak üzere ayakta tedavide hekim ve diş hekimi muayenesi katılım payı alınır.\n",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.2667
+    },
+    {
+      "question": "SGK normal şartlarda diş implantı bedelini karşılar mı?",
+      "reference": "Hayır, sadece maksillofasiyal travma gibi istisnai durumlarda karşılar.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.",
+      "answer_rerank": "Kemik içi implantların bedelleri normal şartlarda ödenmez. Ancak bazı özel durumlarda (Maksillofasiyal travma, kist ve tümörler, tek taraflı serbest sonlu dişsizlik vakaları, konjenital diş eksikliği vakaları) ödenir.\n",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.0571
+    },
+    {
+      "question": "İstisnai durumlarda her bir çene için en fazla kaç implant ödenir?",
+      "reference": "Her çene için en fazla 4 implant.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.",
+      "answer_rerank": "Bu bilgi bu bağlamda yer almamaktadır.",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.0
+    },
+    {
+      "question": "18 yaşından büyükler için ortodontik tedavi bedeli ödenir mi?",
+      "reference": "Hayır, ödenmez.",
+      "answer_no_rerank": "18 yaşını doldurmuş kişilerin ortodontik diş tedavilerine ilişkin giderler Kurumca ödenmez. Ancak 18 yaşını doldurmuş kişinin ortodontik diş tedavisi 18 yaşından önce başlamış ve devam ediyor olması halinde Kurumumuzca karşılanır. Ayrıca 5510 sayılı Kanunun genel sağlık sigortasına ilişkin hükümlerinin yürürlük tarihi öncesinde başlamış ve devam ediyor ise söz konusu tedavi bedelleri karşılanır.\n",
+      "answer_rerank": "18 yaşını doldurmuş kişilerin ortodontik diş tedavilerine ilişkin giderler Kurumca ödenmez. Ancak 18 yaşını doldurmuş kişinin ortodontik diş tedavisi 18 yaşından önce başlamış ve devam ediyor olması halinde Kurumumuzca karşılanır. Ayrıca 5510 sayılı Kanunun genel sağlık sigortasına ilişkin hükümlerinin yürürlük tarihi öncesinde başlamış ve devam ediyor ise söz konusu tedavi bedelleri karşılanır.\n",
+      "rouge_l_no_rerank": 0.037,
+      "rouge_l_rerank": 0.037
+    },
+    {
+      "question": "Hareketli diş protezlerinin yenilenme süresi ne kadardır?",
+      "reference": "4 yıl.",
+      "answer_no_rerank": "Hareketli protezlerin yenilenme süresi 4 yıldır. Bu süreden önce yenilenen protez bedelleri Kurumca ödenmez. Ancak, trafik kazası veya iş kazası sonucu oluşan ağız ve çene travmalarında bu süre dikkate alınmaz. Ayrıca malign ve benign neoplazik değişiklikler nedeniyle çenesinin bir bölümünü veya tamamını kaybetmiş hastalarda veya kanser nedeniyle aşırı kilo kaybının olduğu vakalarda üç diş hekiminin oluşturduğu sağlık kurulu raporuna istinaden 4 yıllık süre aranmaz.\n",
+      "answer_rerank": "Hareketli protezlerin yenilenme süresi 4 yıldır. Bu süreden önce yenilenen protez bedelleri Kurumca ödenmez. Ancak, trafik kazası veya iş kazası sonucu oluşan ağız ve çene travmalarında bu süre dikkate alınmaz. Ayrıca malign ve benign neoplazik değişiklikler nedeniyle çenesinin bir bölümünü veya tamamını kaybetmiş hastalarda veya kanser nedeniyle aşırı kilo kaybının olduğu vakalarda üç diş hekiminin oluşturduğu sağlık kurulu raporuna istinaden 4 yıllık süre aranmaz.\n",
+      "rouge_l_no_rerank": 0.0303,
+      "rouge_l_rerank": 0.0303
+    },
+    {
+      "question": "Altın gibi kıymetli madenler kullanılarak yapılan diş tedavileri ödenir mi?",
+      "reference": "Hayır, kıymetli maden bedelleri ödenmez.",
+      "answer_no_rerank": "Diş tedavileri sırasında; altın, platin, paladyum+platin, irrudyum+platin, iropal gibi kıymetli madenler ile argenco 23, bego gold EWL ve polliag-M gibi bileşiminde kıymetli maden bulunan maddelerin bedelleri ödenmez.\n",
+      "answer_rerank": "Diş tedavileri sırasında; altın gibi kıymetli madenler ile yapılan tedavilerin bedelleri ödenmez.\n",
+      "rouge_l_no_rerank": 0.25,
+      "rouge_l_rerank": 0.3529
+    },
+    {
+      "question": "%40 ve üzeri engelli kişilerin özel diş merkezlerine sevki mümkün müdür?",
+      "reference": "Evet, resmi kurumda tedavi sağlanamazsa sevk edilebilirler.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.\n",
+      "answer_rerank": "Evet, %40 ve üzerinde engelli kişilerin özel sağlık hizmeti sunucularına (özel diş merkezleri) sevki mümkündür. Ancak, bu kişilerin veya hafif düzeyde ve üstü özel gereksinimi olan çocukların özel sağlık hizmeti sunucularında veya Kurumla sözleşmesi olmayan resmi sağlık hizmeti sunucularındaki diş ünitelerinde tedavi olabilmeleri için engellilik veya özel gereksinim durumlarının belgelendirilmesi gerekmektedir. Ayrıca, Sağlık Bakanlığına bağlı ağız ve diş sağlığı merkezleri (ADSM), ağız ve diş sağlığı hastaneleri, ağız ve diş sağlığı eğitim ve araştırma hastaneleri veya üniversitelerin diş hekimliği fakültelerince muayene yapan hekim tarafından sağlık raporu düzenlenmesi gerekmektedir. Sağlık raporunda yapılacak tedavilerin açıkça belirtilmesi ve raporun düzenlendiği tarihten itibaren 10 iş günü içinde tedaviye başlanması şarttır.\n",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.0536
+    },
+    {
+      "question": "Şehit yakınları ve gaziler için implant bedeli ne kadardır?",
+      "reference": "Her implant için en fazla 2500 TL (veya güncel SUT rakamı) ödenir.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.\n",
+      "answer_rerank": "Bu bilgi bu bağlamda yer almamaktadır.\n",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.0
+    },
+    {
+      "question": "Kanser tedavisi nedeniyle çenesini kaybedenlerde protez yenileme süresi aranır mı?",
+      "reference": "Hayır, bu hastalarda 4 yıllık süre şartı aranmaz.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.",
+      "answer_rerank": "Evet, kanser nedeniyle çenesinin bir bölümünü veya tamamını kaybetmiş hastalarda üç diş hekiminin oluşturduğu sağlık kurulu raporuna istinaden 4 yıllık protez yenileme süresi aranmaz. Ayrıca kanser nedeniyle aşırı kilo kaybının olduğu vakalarda da aynı durum geçerlidir.\n",
+      "rouge_l_no_rerank": 0.1429,
+      "rouge_l_rerank": 0.1818
+    },
+    {
+      "question": "Özel diş hekimliklerinde yapılan tedaviler için sevk gerekli midir?",
+      "reference": "Evet, istisnalar hariç olmak üzere sevk zorunludur.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.\n",
+      "answer_rerank": "Bu bilgi bu bağlamda yer almamaktadır.\n",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.0
+    },
+    {
+      "question": "Engellilerde genel anestezi altında diş tedavisi ödenebilir mi?",
+      "reference": "Evet, %40 ve üzeri engellilerde belgelendirilmek şartıyla ödenir.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.\n",
+      "answer_rerank": "Bu bilgi bu bağlamda yer almamaktadır.",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.0
+    },
+    {
+      "question": "Yetişkinler için gözlük çerçevesi yenileme süresi kaç yıldır?",
+      "reference": "3 yıl.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.",
+      "answer_rerank": "Gözlük cam ve çerçevelerinin miat süresi 14 (on dört) yaş üzeri hastalar için 2 (iki) yıldır.",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.0
+    },
+    {
+      "question": "14 yaş ve altı çocuklar için gözlük çerçevesi yenileme süresi kaç yıldır?",
+      "reference": "1 yıl.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.",
+      "answer_rerank": "14 yaş ve altı çocuklar için gözlük cam ve çerçevelerinin miat süresi 1 yıldır. Ancak, kırma kusurunun 0,5 diyoptrilik değişiklik göstermesi halinde gözlük camı süresinden önce yenilenebilir. 14 yaş ve altı çocuklarda ise silendirik değerin 0,25 diyoptri veya silendirik aksın 10 derecenin üzerinde değişiklik göstermesi halinde gözlük camı süresinden önce yenilenebilir.\n",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.0377
+    },
+    {
+      "question": "Gözlük camları süresi dolmadan hangi durumda yenilenebilir?",
+      "reference": "Diyoptride en az 0,5 değişiklik olması durumunda.",
+      "answer_no_rerank": "Bağlamda gözlük camlarının süresi dolmadan yenilenmesi ile ilgili bir bilgi bulunmamaktadır.",
+      "answer_rerank": "Bu bilgi bu bağlamda yer almamaktadır.\n",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.0
+    },
+    {
+      "question": "Teleskopik gözlükler kimler için ödenir?",
+      "reference": "İyi gören gözde düzeltilmiş görme keskinliği 3/10 ve altında olan hastalar için.",
+      "answer_no_rerank": "Bu bilgi bu bağlamda yer almamaktadır.\n",
+      "answer_rerank": "Konjenital nedenlere, kalıtsal hastalıklara, yaralanmalara, şeker hastalığına, glokoma, katarakta ve yaşlanmaya bağlı göz bozukluğu olan ve iyi gören gözde düzeltilmiş uzak görme keskinliği 3/10 ve altında olan hastalarda üçüncü basamak resmi sağlık hizmeti sunucularınca düzenlenen ve en az bir göz sağlığı ve hastalıkları uzmanının yer aldığı sağlık kurulu raporuna/e-rapora dayanılarak bedelleri Kurumca karşılanır. Ancak bu madde 24/03/2023 tarihinde yürürlükten kaldırılmıştır.",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.25
+    },
+    {
+      "question": "Kontakt lens solüsyon bedelleri ödenir mi?",
+      "reference": "Hayır, ödenmez.",
+      "answer_no_rerank": "Kontakt lens solüsyonlarının bedelleri Kurumca karşılanmaz.\n",
+      "answer_rerank": "Kontakt lens solüsyonlarının bedelleri Kurumca karşılanmaz.\n",
+      "rouge_l_no_rerank": 0.0,
+      "rouge_l_rerank": 0.0
+    }
+  ]
+}
