@@ -17,9 +17,16 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: sut_backend
+    environment:
+      - HF_HOME=/app/data/hf_cache
+      - SENTENCE_TRANSFORMERS_HOME=/app/data/hf_cache
     ports:
       - "8000:8000"
     volumes:
+      - ./backend/api_server.py:/app/api_server.py
+      - ./backend/kg_storage.py:/app/kg_storage.py
+      - ./backend/sut_rag_core.py:/app/sut_rag_core.py
+      - ./backend/kg_builder.py:/app/kg_builder.py
       - ./data:/app/data
     env_file:
       - ./backend/.env

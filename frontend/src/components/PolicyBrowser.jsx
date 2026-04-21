@@ -1,6 +1,54 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Search, BookOpen, ChevronRight, X, Filter } from 'lucide-react'
+import { ArrowLeft, Search, BookOpen, ChevronRight, X, Filter, Share2, Loader } from 'lucide-react'
+
+const NODE_COLORS = { RULE: '#3b82f6', DRUG: '#10b981', DIAGNOSIS: '#ef4444', SPECIALIST: '#f59e0b', CONDITION: '#8b5cf6', DOCUMENT: '#06b6d4', DEVICE: '#ec4899', DOSAGE: '#84cc16', AGE_LIMIT: '#f97316', EXCLUSION: '#6b7280' }
+const NODE_TYPE_TR = { RULE: 'SUT Kuralı', DRUG: 'İlaç', DIAGNOSIS: 'Teşhis', SPECIALIST: 'Uzman', CONDITION: 'Koşul', DOCUMENT: 'Belge', DEVICE: 'Cihaz', DOSAGE: 'Doz', AGE_LIMIT: 'Yaş Sınırı', EXCLUSION: 'Dışlama' }
+
+function KGPanel({ chunkTitle }) {
+  const [nodes, setNodes] = useState(null)
+  const [loading, setLoading] = useState(true)
+  useEffect(() => {
+    if (!chunkTitle) return
+    setLoading(true)
+    const q = chunkTitle.slice(0, 60)
+    fetch(`/api/kg/nodes?q=${encodeURIComponent(q)}&limit=8`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    }).then(r => r.ok ? r.json() : { nodes: [] }).then(d => {
+      setNodes(d.nodes || [])
+    }).catch(() => setNodes([])).finally(() => setLoading(false))
+  }, [chunkTitle])
+
+  if (loading) return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.75rem' }}>
+      <Loader size={12} /> Bilgi Grafiği aranıyor...
+    </div>
+  )
+  if (!nodes || nodes.length === 0) return null
+
+  return (
+    <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        <Share2 size={12} /> Bilgi Grafiği İlişkili Düğümler
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+        {nodes.map(n => (
+          <span key={n.node_id} title={n.text_content || ''} style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+            padding: '0.25rem 0.65rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600,
+            background: (NODE_COLORS[n.type] || '#94a3b8') + '18',
+            border: `1px solid ${(NODE_COLORS[n.type] || '#94a3b8')}44`,
+            color: NODE_COLORS[n.type] || '#94a3b8',
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: NODE_COLORS[n.type] || '#94a3b8', flexShrink: 0, display: 'inline-block' }} />
+            {n.label}
+            <span style={{ opacity: 0.6, fontSize: '0.65rem' }}>{NODE_TYPE_TR[n.type] || n.type}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 function PolicyBrowser({ user }) {
   const [query, setQuery] = useState('')
@@ -144,6 +192,7 @@ function PolicyBrowser({ user }) {
                           {expanded === r.id ? r.full_text : r.excerpt}
                           {!expanded && r.full_text.length > 300 ? '...' : ''}
                         </p>
+                         {expanded === r.id && <KGPanel chunkTitle={r.title} />}
                       </div>
                       <ChevronRight
                         size={18}

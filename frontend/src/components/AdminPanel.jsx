@@ -3,9 +3,10 @@ import { useNavigate, Link } from 'react-router-dom'
 import {
   Users, LayoutDashboard, LogOut, ArrowLeft, Shield, Database,
   Activity, UserMinus, UserPlus, Megaphone, Clock, TrendingUp,
-  BarChart2, BookOpen, Trash2, CheckCircle, List, Settings
+  BarChart2, BookOpen, Trash2, CheckCircle, List, Settings, Share2, RefreshCw
 } from 'lucide-react'
 import ThemeToggle from './ThemeToggle'
+import EvalDashboard from './EvalDashboard'
 
 const API_HEADERS = () => ({ 'Authorization': `Bearer ${localStorage.getItem('token')}` })
 
@@ -53,6 +54,9 @@ function AdminPanel({ user, onLogout }) {
   const [loading, setLoading] = useState(true)
   const [annMsg, setAnnMsg] = useState('')
   const [reindexing, setReindexing] = useState(false)
+  const [kgStats, setKgStats] = useState(null)
+  const [kgRebuilding, setKgRebuilding] = useState(false)
+  const [kgBuildLog, setKgBuildLog] = useState(null)
   const activityTimer = useRef(null)
   const navigate = useNavigate()
 
@@ -69,6 +73,7 @@ function AdminPanel({ user, onLogout }) {
     }
     if (tab === 'analytics') fetchAnalytics()
     if (tab === 'audit') fetchAuditLogs()
+    if (tab === 'kg') fetchKgStats()
     return () => clearInterval(activityTimer.current)
   }, [tab])
 
@@ -123,6 +128,25 @@ function AdminPanel({ user, onLogout }) {
         setAuditLogs(data.logs)
       }
     } catch (e) { console.error(e) }
+  }
+
+  const fetchKgStats = async () => {
+    try {
+      const r = await fetch('/api/admin/kg/stats', { headers: API_HEADERS() })
+      if (r.ok) setKgStats(await r.json())
+    } catch (e) { console.error(e) }
+  }
+
+  const handleRebuildKG = async () => {
+    if (!window.confirm('KG yeniden oluşturulacak. Bu işlem 5-10 dakika sürebilir. Arka planda çalışır. Devam et?')) return
+    setKgRebuilding(true)
+    try {
+      const r = await fetch('/api/admin/kg/rebuild', { method: 'POST', headers: API_HEADERS() })
+      const d = await r.json()
+      alert(d.message || 'Başlatıldı.')
+      setTimeout(fetchKgStats, 3000)
+    } catch { alert('Bir hata oluştu.') }
+    setKgRebuilding(false)
   }
 
   const handleRoleChange = async (targetId, currentRole) => {
@@ -235,6 +259,8 @@ function AdminPanel({ user, onLogout }) {
           <TabButton active={tab === 'overview'} onClick={() => setTab('overview')} icon={<LayoutDashboard size={16} />} label="Genel Bakış" />
           <TabButton active={tab === 'activity'} onClick={() => setTab('activity')} icon={<Activity size={16} />} label="Canlı Aktivite" />
           <TabButton active={tab === 'analytics'} onClick={() => setTab('analytics')} icon={<TrendingUp size={16} />} label="Analitik" />
+          <TabButton active={tab === 'kg'} onClick={() => setTab('kg')} icon={<Share2 size={16} />} label="Bilgi Grafiği" />
+          <TabButton active={tab === 'eval'} onClick={() => setTab('eval')} icon={<BarChart2 size={16} />} label="Değerlendirme" />
           <TabButton active={tab === 'audit'} onClick={() => setTab('audit')} icon={<List size={16} />} label="Sistem Logları" />
         </div>
 
@@ -401,6 +427,81 @@ function AdminPanel({ user, onLogout }) {
                 </>
               )}
 
+              {/* KG MANAGEMENT TAB */}
+              {tab === 'kg' && (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Share2 size={22} color="var(--primary)" /> Bilgi Grafiği Yönetimi
+                    </h1>
+                    <button onClick={handleRebuildKG} disabled={kgRebuilding}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.25rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem' }}>
+                      <RefreshCw size={15} /> {kgRebuilding ? 'Başlatılıyor...' : 'KG Yeniden Oluştur'}
+                    </button>
+                  </div>
+
+                  {/* KG Stats */}
+                  {kgStats ? (
+                    <>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+                        <MetricCard icon={<Share2 size={24} />} iconBg="#e0f2fe" iconColor="#0284c7" value={kgStats.node_count ?? 0} label="Toplam Düğüm" />
+                        <MetricCard icon={<Activity size={24} />} iconBg="#dcfce7" iconColor="#16a34a" value={kgStats.edge_count ?? 0} label="Toplam İlişki" />
+                        <MetricCard icon={<Database size={24} />} iconBg="#fef3c7" iconColor="#d97706" value={kgStats.chunks_covered ?? 0} label="İşlenen Bölüm" />
+                        <MetricCard icon={<CheckCircle size={24} />} iconBg="#f3e8ff" iconColor="#7c3aed" value={kgStats.last_build ? new Date(kgStats.last_build + 'Z').toLocaleDateString('tr-TR') : '—'} label="Son Güncelleme" />
+                      </div>
+
+                      {/* Node types breakdown */}
+                      {kgStats.node_types && (
+                        <div className="premium-card" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
+                          <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Düğüm Türleri Dağılımı</h3>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                            {Object.entries(kgStats.node_types).sort((a, b) => b[1] - a[1]).map(([type, count]) => {
+                              const TYPE_COLORS = { RULE: '#3b82f6', DRUG: '#10b981', DIAGNOSIS: '#ef4444', SPECIALIST: '#f59e0b', CONDITION: '#8b5cf6', DOCUMENT: '#06b6d4', DEVICE: '#ec4899', DOSAGE: '#84cc16', AGE_LIMIT: '#f97316', EXCLUSION: '#6b7280' }
+                              const TYPE_TR = { RULE: 'SUT Kuralı', DRUG: 'İlaç', DIAGNOSIS: 'Teşhis', SPECIALIST: 'Uzman', CONDITION: 'Koşul', DOCUMENT: 'Belge', DEVICE: 'Cihaz', DOSAGE: 'Doz', AGE_LIMIT: 'Yaş Sınırı', EXCLUSION: 'Dışlama' }
+                              const maxCount = Math.max(...Object.values(kgStats.node_types), 1)
+                              return (
+                                <div key={type}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', fontSize: '0.85rem' }}>
+                                    <span style={{ fontWeight: 600, color: TYPE_COLORS[type] }}>{TYPE_TR[type] || type}</span>
+                                    <span style={{ color: 'var(--text-muted)' }}>{count}</span>
+                                  </div>
+                                  <div style={{ background: '#f1f5f9', borderRadius: '100px', height: '6px', overflow: 'hidden' }}>
+                                    <div style={{ height: '100%', borderRadius: '100px', background: TYPE_COLORS[type], width: `${(count / maxCount) * 100}%`, transition: 'width 0.5s ease' }} />
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Relation types */}
+                      {kgStats.relation_types && (
+                        <div className="premium-card" style={{ padding: '1.5rem' }}>
+                          <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>İlişki Türleri Dağılımı</h3>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                            {Object.entries(kgStats.relation_types).sort((a, b) => b[1] - a[1]).map(([rel, count]) => {
+                              const REL_TR = { COVERS: 'Kapsar', TREATS: 'Tedavi Eder', ISSUED_BY: 'Düzenlenir', PRESCRIBED_BY: 'Reçete', REQUIRES_CONDITION: 'Koşul', MUST_FAIL_FIRST: 'Önce Başarısız', HAS_LIMIT: 'Sınırlama', NOT_COVERED_FOR: 'Kapsam Dışı', HAS_SUBRULE: 'Alt Kural', HAS_DOSAGE: 'Doz', CONTRAINDICATED_FOR: 'Kontrendike', HAS_AGE_LIMIT: 'Yaş Sınırı', APPROVED_BY: 'Onay', REQUIRES_REPORT: 'Rapor', FUNDED_BY: 'Finanse' }
+                              return (
+                                <div key={rel} style={{ padding: '0.3rem 0.8rem', background: '#e0f2fe', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 600, color: '#0284c7' }}>
+                                  {REL_TR[rel] || rel} <span style={{ opacity: 0.7 }}>({count})</span>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div style={{ color: 'var(--text-muted)', padding: '2rem', textAlign: 'center' }}>
+                      <Share2 size={40} style={{ opacity: 0.15, display: 'block', margin: '0 auto 1rem' }} />
+                      <p>KG henüz oluşturulmamış veya veri yok.</p>
+                      <button onClick={handleRebuildKG} style={{ marginTop: '0.5rem', padding: '0.6rem 1.25rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 700 }}>KG Oluştur</button>
+                    </div>
+                  )}
+                </>
+              )}
+
               {/* ANALYTICS TAB */}
               {tab === 'analytics' && (
                 <>
@@ -455,6 +556,11 @@ function AdminPanel({ user, onLogout }) {
                     )}
                   </div>
                 </>
+              )}
+
+              {/* EVAL DASHBOARD TAB */}
+              {tab === 'eval' && (
+                <EvalDashboard />
               )}
 
               {/* AUDIT LOGS TAB */}

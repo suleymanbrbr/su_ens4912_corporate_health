@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { LogOut, Send, User, Bot, HelpCircle, Clock, Book, Shield, Network, MessageSquare, Settings, Bookmark, X, Megaphone, ThumbsUp, ThumbsDown, BookOpen } from 'lucide-react'
+import { 
+  MessageSquare, Send, BookOpen, Clock, Settings, LogOut, User, Search, 
+  HelpCircle, Shield, Bot, Paperclip, Bookmark, ThumbsUp, ThumbsDown, 
+  Trash2, Plus, Network, Share2, Info, GitBranch, Loader, FileText, Book, X, Megaphone
+} from 'lucide-react';
 import KnowledgeGraph from './KnowledgeGraph'
 import ThemeToggle from './ThemeToggle'
 import ResponseFeedback from './ResponseFeedback'
@@ -90,7 +94,9 @@ function ChatDashboard({ user, onLogout }) {
   const [messages, setMessages] = useState([])
   const [activeConversationId, setActiveConversationId] = useState(null)
   const [input, setInput] = useState('')
+  const [selectedRole, setSelectedRole] = useState('PATIENT')
   const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [currentAnalysis, setCurrentAnalysis] = useState('')
   const [liveAgentSteps, setLiveAgentSteps] = useState([])
   const [sources, setSources] = useState([])
@@ -98,6 +104,7 @@ function ChatDashboard({ user, onLogout }) {
   const [announcement, setAnnouncement] = useState(null)
   const [annDismissed, setAnnDismissed] = useState(false)
   const chatEndRef = useRef(null)
+  const fileInputRef = useRef(null)
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -245,10 +252,14 @@ function ChatDashboard({ user, onLogout }) {
 
     try {
       const kDepth = parseInt(localStorage.getItem('k_depth') || '5')
-      const response = await fetch('/api/chat', {
+      const response = await fetch('/api/chat/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...AUTH_HEADER() },
-        body: JSON.stringify({ message: userMessage, k: kDepth, conversation_id: activeConversationId }),
+        body: JSON.stringify({ 
+          query: userMessage, 
+          conversation_id: activeConversationId,
+          role: selectedRole
+        }),
       })
 
       if (!response.ok) throw new Error('Sunucu hatası.')
@@ -315,6 +326,43 @@ function ChatDashboard({ user, onLogout }) {
       setLoading(false)
       setLiveAgentSteps([])
       setCurrentAnalysis('')
+    }
+  }
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    if (!file.filename && !file.name.toLowerCase().endsWith('.pdf')) {
+      alert('Sadece PDF dosyaları yüklenebilir.')
+      return
+    }
+
+    setUploading(true)
+    const formData = new FormData()
+    formData.append('file', file)
+    
+    // Auto-generate conversation ID if none active
+    const convId = activeConversationId || `conv_${Date.now()}`
+    if (!activeConversationId) setActiveConversationId(convId)
+
+    try {
+      const res = await fetch(`/api/chat/upload?conversation_id=${convId}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        body: formData
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setMessages(prev => [...prev, { role: 'assistant', content: `📄 **${file.name}** başarıyla yüklendi ve analiz edildi. Artık bu döküman hakkında soru sorabilirsiniz.` }])
+      } else {
+        const err = await res.json()
+        alert(`Yükleme hatası: ${err.detail || 'Bilinmeyen hata'}`)
+      }
+    } catch (err) {
+      alert('Sunucuya bağlanılamadı.')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
@@ -403,10 +451,15 @@ function ChatDashboard({ user, onLogout }) {
                         onClick={() => loadConversation(conv.conversation_id)}
                         style={{ width: '100%', textAlign: 'left', padding: '0.6rem 0.75rem', borderRadius: '8px', border: 'none', background: activeConversationId === conv.conversation_id ? 'var(--bg)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                       >
-                        <Clock size={12} color="var(--text-muted)" style={{ flexShrink: 0 }} />
-                        <span style={{ fontSize: '0.82rem', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {conv.query.slice(0, 38)}{conv.query.length > 38 ? '...' : ''}
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: 1, overflow: 'hidden' }}>
+                          <Clock size={12} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+                          {conv.file_metadata && (
+                            <FileText size={12} color="var(--primary)" style={{ flexShrink: 0 }} title={`Dosya: ${conv.file_metadata.filename || 'PDF'}`} />
+                          )}
+                          <span style={{ fontSize: '0.82rem', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {conv.query.slice(0, 38)}{conv.query.length > 38 ? '...' : ''}
+                          </span>
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -460,8 +513,26 @@ function ChatDashboard({ user, onLogout }) {
 
         {/* Main Chat Area */}
         <main style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--bg)', position: 'relative', overflow: 'hidden' }}>
-          <header className="glass" style={{ padding: '1rem 2rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10, flexShrink: 0 }}>
-            <span style={{ fontWeight: 600 }}>{activeTab === 'chat' ? 'SUT Mevzuat Sohbeti' : 'SUT Bilgi Grafiği'}</span>
+          <header className="glass" style={{ padding: '0.75rem 2rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10, flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+              <span style={{ fontWeight: 600 }}>{activeTab === 'chat' ? 'SUT Mevzuat Sohbeti' : 'SUT Bilgi Grafiği'}</span>
+              
+              {activeTab === 'chat' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg)', padding: '0.2rem 0.5rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Persona:</span>
+                  <select 
+                    value={selectedRole} 
+                    onChange={(e) => setSelectedRole(e.target.value)}
+                    style={{ background: 'transparent', border: 'none', fontSize: '0.8rem', fontWeight: 600, color: 'var(--primary)', cursor: 'pointer', outline: 'none' }}
+                  >
+                    <option value="PATIENT">Vatandaş (Sade)</option>
+                    <option value="DOCTOR">Doktor (Teknik)</option>
+                    <option value="ADMIN">SGK Yöneticisi</option>
+                  </select>
+                </div>
+              )}
+            </div>
+            
             <div style={{ fontSize: '0.8rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }} />
               Sistem Çevrimiçi
@@ -575,10 +646,26 @@ function ChatDashboard({ user, onLogout }) {
               <div style={{ padding: '1.5rem 12%', background: 'var(--card-bg)', borderTop: '1px solid var(--border)', flexShrink: 0 }}>
                 <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '1rem', position: 'relative' }}>
                   <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    style={{ display: 'none' }}
+                    accept=".pdf"
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={loading || uploading}
+                    title="Döküman Yükle (PDF)"
+                    style={{ width: '48px', height: '56px', borderRadius: '12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    {uploading ? <div className="spin">⌛</div> : <Book size={20} />}
+                  </button>
+                  <input
                     type="text"
                     value={input}
                     onChange={e => setInput(e.target.value)}
-                    placeholder="SUT mevzuatı hakkında soru sorun..."
+                    placeholder="SUT mevzuatı hakkında soru sorun veya rapor yükleyin..."
                     style={{ paddingRight: '4rem', height: '56px', fontSize: '1rem', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)' }}
                     disabled={loading}
                   />
