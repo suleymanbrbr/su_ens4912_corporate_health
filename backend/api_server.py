@@ -11,9 +11,9 @@ from contextlib import asynccontextmanager
 from collections import Counter
 
 import psycopg2
-import psycopg2.extras
+from psycopg2.extras import RealDictCursor
 
-from fastapi import FastAPI, Depends, HTTPException, status, Body, BackgroundTasks
+from fastapi import FastAPI, Depends, HTTPException, status, Body, BackgroundTasks, UploadFile, File
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -135,6 +135,63 @@ def init_system_tables():
             details TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(user_id) REFERENCES users(id)
+        )
+    """)
+    # --- Conversation Summary (Phase 1.1) ---
+    cur.execute("ALTER TABLE query_history ADD COLUMN IF NOT EXISTS summary TEXT")
+
+    # --- Knowledge Graph Tables (Phase 2) ---
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS user_documents (
+            id TEXT PRIMARY KEY,
+            user_id TEXT,
+            conversation_id TEXT,
+            filename TEXT,
+            content TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES users(id)
+        )
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_user_docs_user_conv ON user_documents(user_id, conversation_id)")
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS kg_nodes (
+            node_id      TEXT PRIMARY KEY,
+            label        TEXT NOT NULL,
+            type         TEXT NOT NULL,
+            text_content TEXT DEFAULT '',
+            atc_code     TEXT DEFAULT '',
+            icd_code     TEXT DEFAULT '',
+            embedding    vector(384),
+            created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS kg_nodes_type_idx ON kg_nodes(type)")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS kg_edges (
+            edge_id     TEXT PRIMARY KEY,
+            source_id   TEXT NOT NULL,
+            target_id   TEXT NOT NULL,
+            relation    TEXT NOT NULL,
+            confidence  REAL DEFAULT 1.0,
+            source_rule TEXT DEFAULT '',
+            created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS kg_edges_source_idx ON kg_edges(source_id)")
+    cur.execute("CREATE INDEX IF NOT EXISTS kg_edges_target_idx ON kg_edges(target_id)")
+    cur.execute("CREATE INDEX IF NOT EXISTS kg_edges_relation_idx ON kg_edges(relation)")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS kg_build_log (
+            log_id           TEXT PRIMARY KEY,
+            started_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            finished_at      TIMESTAMP,
+            status           TEXT DEFAULT 'running',
+            nodes_created    INTEGER DEFAULT 0,
+            edges_created    INTEGER DEFAULT 0,
+            chunks_processed INTEGER DEFAULT 0,
+            error_message    TEXT
         )
     """)
     conn.commit()
@@ -282,11 +339,79 @@ async def list_users(admin: dict = Depends(get_current_admin)):
     conn.close()
     return [dict(u) for u in users]
 
+# ─── Conversation Summarizer ──────────────────────────────────────────────────
+def _summarize_history(history: list) -> str:
+    """
+    Summarize older conversation turns using Gemini.
+    Called when chat history grows long (> 8 messages).
+    Returns a compact Turkish summary string.
+    """
+    try:
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        from langchain_core.messages import HumanMessage
+        summarizer = ChatGoogleGenerativeAI(
+            model="gemini-2.0-flash",
+            google_api_key=os.getenv("GEMINI_API_KEY"),
+            temperature=0
+        )
+        turns = ""
+        for msg in history:
+            role = "Kullanıcı" if msg["role"] == "user" else "Asistan"
+            turns += f"{role}: {msg['content'][:400]}\n"
+
+        prompt = (
+            "Aşağıdaki SUT asistanı konuşmasını 2-3 cümleyle özetle. "
+            "Konuşulan ana konular, sorulan sorular ve verilen önemli bilgileri kısaca belirt. "
+            "Türkçe yaz.\n\n"
+            f"KONUŞMA:\n{turns}"
+        )
+        resp = summarizer.invoke([HumanMessage(content=prompt)])
+        return resp.content.strip()
+    except Exception as e:
+        # Fallback: naive truncation summary
+        lines = [f"{m['role']}: {m['content'][:200]}" for m in history[-3:]]
+        return " | ".join(lines)
+
+
+def get_chat_history(user_id: str, conversation_id: str):
+    """Retrieve chat history for a session."""
+    conn = get_db_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute("""
+        SELECT query, response, file_metadata FROM query_history 
+        WHERE user_id = %s AND conversation_id = %s 
+        ORDER BY created_at ASC
+    """, (user_id, conversation_id))
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    
+    history = []
+    for row in rows:
+        history.append({"role": "user", "content": row["query"], "file_metadata": row["file_metadata"]})
+        if row["response"]:
+            history.append({"role": "assistant", "content": row["response"]})
+    return history
+
+def save_query_history(user_id: str, conversation_id: str, query: str, response: str, file_metadata: dict = None):
+    """Save a new query and response pair to the history."""
+    query_id = str(uuid.uuid4())
+    conn = get_db_conn()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO query_history (id, user_id, conversation_id, query, response, file_metadata)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """, (query_id, user_id, conversation_id, query, response, json.dumps(file_metadata) if file_metadata else None))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
 # --- Pydantic Models ---
-class ChatRequest(BaseModel):
-    message: str
-    k: int = 5
+class ChatQuery(BaseModel):
+    query: str
     conversation_id: Optional[str] = None
+    role: Optional[str] = "PATIENT"  # Default to PATIENT if not provided
 
 class PasswordChange(BaseModel):
     old_password: str
@@ -301,10 +426,6 @@ class RoleUpdate(BaseModel):
 
 class AnnouncementCreate(BaseModel):
     message: str
-
-class HistoryResponseUpdate(BaseModel):
-    response: str
-
 class FeedbackCreate(BaseModel):
     message_id: str
     rating: int  # 1-5 or -1, 1
@@ -312,72 +433,90 @@ class FeedbackCreate(BaseModel):
     is_accurate: bool = True
 
 # --- Chat ---
-@app.post("/api/chat")
-async def chat(request: ChatRequest, current_user: dict = Depends(get_current_user)):
-    if not engine or not engine.conn:
-        raise HTTPException(status_code=500, detail="Database not loaded. Please run Re-index from Admin Panel.")
-
-    query_id = str(uuid.uuid4())
-    conversation_id = request.conversation_id or str(uuid.uuid4())
-    conn = get_db_conn()
+@app.post("/api/chat/query")
+async def chat_query(q: ChatQuery, current_user: dict = Depends(get_current_user)):
+    """Main Agentic RAG chat endpoint (streaming)."""
     
-    # Fetch chat history
-    cur = db_execute(conn,
-        "SELECT query, response FROM query_history WHERE conversation_id = %s ORDER BY created_at ASC",
-        (conversation_id,)
-    )
-    history_rows = cur.fetchall()
-    cur.close()
-    
-    chat_history = []
-    for row in history_rows:
-        chat_history.append({"role": "user", "content": row["query"]})
-        if row["response"]:
-            chat_history.append({"role": "assistant", "content": row["response"]})
-
+    # 1. Fetch user documents for this conversation to provide context
+    user_docs_context = ""
+    active_file_metadata = None
     try:
-        db_execute(conn,
-            "INSERT INTO query_history (id, user_id, conversation_id, query) VALUES (%s, %s, %s, %s)",
-            (query_id, current_user["id"], conversation_id, request.message)
-        )
-        log_audit(conn, "query_executed", user_id=current_user["id"], entity_type="query", entity_id=query_id)
-        conn.commit()
-    except Exception as e:
-        print(f"[WARN] Failed to log query history: {e}")
-    finally:
+        conn = get_db_conn()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("SELECT filename, content FROM user_documents WHERE user_id = %s AND conversation_id = %s", (current_user["id"], q.conversation_id))
+        rows = cur.fetchall()
+        if rows:
+            user_docs_context = "\n\n--- KULLANICI DÖKÜMANLARI ---\n" + "\n".join([r["content"] for r in rows])
+            active_file_metadata = {"filename": rows[0]["filename"], "type": "pdf"}
+        cur.close()
         conn.close()
+    except Exception as e:
+        print(f"Error fetching user docs: {e}")
 
-    async def event_generator():
-        start_time = asyncio.get_event_loop().time()
-        yield f"data: {json.dumps({'query_id': query_id, 'conversation_id': conversation_id}, ensure_ascii=False)}\n\n"
-        await asyncio.sleep(0.01)
-        
-        full_response_text = ""
-        for step in engine.query_agentic_rag_stream(request.message, chat_history=chat_history, k=request.k):
-            if "final_answer" in step:
-                full_response_text = step["final_answer"]
-            yield f"data: {json.dumps(step, ensure_ascii=False)}\n\n"
-            await asyncio.sleep(0.01)
-            
-        duration_ms = int((asyncio.get_event_loop().time() - start_time) * 1000)
-        
-        save_conn = get_db_conn()
-        try:
-            if full_response_text:
-                db_execute(save_conn,
-                    "UPDATE query_history SET response = %s WHERE id = %s", (full_response_text, query_id)
-                )
-            db_execute(save_conn,
-                "INSERT INTO agent_runs (run_id, trigger_message_id, agent_name, input_data, output_data, status, duration_ms, ended_at) VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)",
-                (str(uuid.uuid4()), query_id, "SUT_RAG_Engine", request.message, full_response_text, "success" if full_response_text else "failure", duration_ms)
-            )
-            save_conn.commit()
-        except Exception as e:
-            print(f"[WARN] Failed to update query response or telemetry: {e}")
-        finally:
-            save_conn.close()
+    full_query = q.query
+    if user_docs_context:
+        full_query = f"{user_docs_context}\n\nKullanıcı Sorusu: {q.query}"
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    # 2. Get history
+    history = []
+    if q.conversation_id:
+        history = get_chat_history(current_user["id"], q.conversation_id)
+        # Summarize if too long
+        if len(history) > 10:
+            history = await _summarize_history(history)
+
+    async def generate():
+        # Pass the selected role to the engine for personalization
+        for chunk in engine.query_agentic_rag_stream(full_query, chat_history=history, role=q.role):
+            if "final_answer" in chunk:
+                # Save to DB when finished
+                save_query_history(current_user["id"], q.conversation_id, q.query, chunk["final_answer"], file_metadata=active_file_metadata)
+            yield f"data: {json.dumps(chunk, ensure_ascii=False)}\n\n"
+
+    return StreamingResponse(generate(), media_type="text/event-stream")
+
+@app.post("/api/chat/upload")
+async def upload_document(
+    conversation_id: str,
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload a medical report PDF and extract its text."""
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Sadece PDF dosyaları yüklenebilir.")
+    
+    try:
+        import io
+        from pypdf import PdfReader
+        
+        content = await file.read()
+        pdf = PdfReader(io.BytesIO(content))
+        text = ""
+        for page in pdf.pages:
+            text += page.extract_text() + "\n"
+        
+        if not text.strip():
+            raise HTTPException(status_code=400, detail="PDF'den metin çıkarılamadı.")
+        
+        doc_id = str(uuid.uuid4())
+        conn = get_db_conn()
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO user_documents (id, user_id, conversation_id, filename, content)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (doc_id, current_user["id"], conversation_id, file.filename, text))
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return {
+            "message": "Belge başarıyla yüklendi ve işlendi.",
+            "doc_id": doc_id,
+            "filename": file.filename,
+            "char_count": len(text)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Hata: {str(e)}")
 
 @app.post("/api/feedback")
 async def submit_feedback(data: FeedbackCreate, current_user: dict = Depends(get_current_user)):
@@ -410,13 +549,16 @@ async def change_password(data: PasswordChange, current_user: dict = Depends(get
 @app.get("/api/history")
 async def get_history(current_user: dict = Depends(get_current_user)):
     conn = get_db_conn()
-    cur = db_execute(conn,
-        "SELECT id, conversation_id, query, response, created_at FROM query_history WHERE user_id = %s ORDER BY created_at DESC LIMIT 200",
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute(
+        "SELECT id, conversation_id, query, response, file_metadata, created_at FROM query_history WHERE user_id = %s ORDER BY created_at DESC LIMIT 200",
         (current_user["id"],)
     )
     history = cur.fetchall()
     cur.close()
-    cur2 = db_execute(conn,
+    
+    cur2 = conn.cursor(cursor_factory=RealDictCursor)
+    cur2.execute(
         "SELECT query, response, created_at FROM saved_responses WHERE user_id = %s ORDER BY created_at DESC",
         (current_user["id"],)
     )
@@ -696,14 +838,154 @@ async def deactivate_announcement(ann_id: str, admin: dict = Depends(get_current
     conn.close()
     return {"message": "Duyuru kaldırıldı."}
 
-@app.get("/api/kg")
-async def get_knowledge_graph(current_user: dict = Depends(get_current_user)):
-    kg_path = "sut_knowledge_graph.json"
-    if not os.path.exists(kg_path):
-        raise HTTPException(status_code=404, detail="Knowledge Graph verisi bulunamadı.")
-    with open(kg_path, "r", encoding="utf-8") as f:
-        kg_data = json.load(f)
-    return kg_data
+# --- Knowledge Graph API (Postgres-backed) ---
+
+from kg_storage import KG_Storage_Manager
+_kg = KG_Storage_Manager()
+
+@app.get("/api/kg/stats")
+async def get_kg_stats(current_user: dict = Depends(get_current_user)):
+    """Return node/edge counts by type/relation."""
+    try:
+        return _kg.get_stats()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/kg/nodes")
+async def search_kg_nodes(
+    q: str = "",
+    type: str = "",
+    limit: int = 20,
+    current_user: dict = Depends(get_current_user)
+):
+    """Search KG nodes by label (string + semantic)."""
+    try:
+        type_filter = type.upper() if type else None
+        if q:
+            exact = _kg.find_nodes_by_label(q, k=limit, type_filter=type_filter)
+            semantic = _kg.find_nodes_semantic(q, k=limit, type_filter=type_filter)
+            seen = {r["node_id"] for r in exact}
+            merged = exact + [r for r in semantic if r["node_id"] not in seen]
+            return {"nodes": merged[:limit]}
+        else:
+            conn = get_db_conn()
+            q_str = f"SELECT node_id, label, type, text_content, atc_code, icd_code FROM kg_nodes"
+            if type_filter:
+                q_str += f" WHERE type = '{type_filter}'"
+            q_str += f" LIMIT {limit}"
+            cur = db_execute(conn, q_str)
+            rows = [dict(r) for r in cur.fetchall()]
+            cur.close()
+            conn.close()
+            return {"nodes": rows}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/kg/node/{node_id}")
+async def get_kg_node(node_id: str, current_user: dict = Depends(get_current_user)):
+    """Get a single node with all its neighbors."""
+    node = _kg.get_node(node_id)
+    if not node:
+        raise HTTPException(status_code=404, detail="Node not found")
+    neighbors = _kg.get_neighbors(node_id, limit=20)
+    return {"node": node, "neighbors": neighbors}
+
+@app.get("/api/kg/subgraph/{rule_id}")
+async def get_kg_subgraph(rule_id: str, current_user: dict = Depends(get_current_user)):
+    """Get the subgraph for a RULE node (all related nodes & edges)."""
+    return _kg.get_rule_subgraph(rule_id)
+
+@app.get("/api/kg/path")
+async def find_kg_path(
+    from_id: str,
+    to_id: str,
+    max_hops: int = 3,
+    current_user: dict = Depends(get_current_user)
+):
+    """Find shortest path between two nodes."""
+    path = _kg.find_path(from_id, to_id, max_hops=max_hops)
+    return {"path": path, "found": len(path) > 0}
+
+@app.post("/api/admin/kg/rebuild")
+async def rebuild_kg(background_tasks: BackgroundTasks, admin: dict = Depends(get_current_admin)):
+    """Trigger a full KG rebuild in the background."""
+    def run_kg_build():
+        try:
+            from kg_builder import KG_Builder, KG_Enricher
+            builder = KG_Builder()
+            builder.build(clear_existing=True)
+            enricher = KG_Enricher()
+            enricher.enrich()
+            print("[KG_REBUILD] Complete.")
+        except Exception as e:
+            print(f"[KG_REBUILD] Error: {e}")
+
+    background_tasks.add_task(run_kg_build)
+    dbconn = get_db_conn()
+    log_audit(dbconn, "kg_rebuild_started", user_id=admin["id"])
+    dbconn.commit()
+    dbconn.close()
+    return {"message": "KG yeniden oluşturma işlemi arka planda başlatıldı."}
+
+@app.get("/api/admin/kg/stats")
+async def get_admin_kg_stats(admin: dict = Depends(get_current_admin)):
+    try:
+        return _kg.get_stats()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/admin/eval/results")
+async def get_eval_results(admin: dict = Depends(get_current_admin)):
+    """Return the persisted retrieval evaluation results JSON."""
+    eval_path = os.path.join(os.path.dirname(__file__), "eval_results", "retrieval_results.json")
+    if not os.path.exists(eval_path):
+        raise HTTPException(status_code=404, detail="Eval results not found")
+    with open(eval_path) as f:
+        return json.load(f)
+
+
+@app.post("/api/admin/kg/benchmark")
+async def run_kg_benchmark(admin: dict = Depends(get_current_admin)):
+    """Run a mini KG benchmark: 10 multi-hop questions against KG tools."""
+    QUESTIONS = [
+        {"q": "Pnömokok aşısı hangi yaş grubuna ödenir?", "expected": ["AGE_LIMIT", "DRUG"]},
+        {"q": "Kanser tedavisinde hangi uzman raporu gereklidir?", "expected": ["SPECIALIST", "DOCUMENT"]},
+        {"q": "Diyabet ilacı için endikasyon şartı var mı?", "expected": ["DRUG", "CONDITION"]},
+        {"q": "Fizik tedavi seansları için seans limiti nedir?", "expected": ["RULE", "DOSAGE"]},
+        {"q": "Ortopedik protez temin şartları nelerdir?", "expected": ["RULE", "DEVICE"]},
+        {"q": "Kronik böbrek hastalarına hangi ilaçlar ödenir?", "expected": ["DIAGNOSIS", "DRUG"]},
+        {"q": "MS hastalığında biyolojik ilaç kullanma koşulları?", "expected": ["DIAGNOSIS", "CONDITION"]},
+        {"q": "İşitme cihazı için hangi uzman raporu gerekir?", "expected": ["SPECIALIST", "DEVICE"]},
+        {"q": "Çocuklarda büyüme hormonu tedavisi şartları?", "expected": ["AGE_LIMIT", "CONDITION"]},
+        {"q": "Psikolojik tedavi seans ücreti nasıl ödenir?", "expected": ["RULE", "SPECIALIST"]},
+    ]
+    results = []
+    hits = 0
+    for item in QUESTIONS:
+        try:
+            nodes = _kg.find_nodes_by_label(item["q"][:40], k=5)
+            if not nodes:
+                nodes = _kg.find_nodes_semantic(item["q"], k=5)
+            found_types = {n["type"] for n in nodes}
+            hit = bool(found_types & set(item["expected"]))
+            if hit:
+                hits += 1
+            results.append({
+                "question": item["q"],
+                "expected_types": item["expected"],
+                "found_types": list(found_types),
+                "found_nodes": [n["label"] for n in nodes[:3]],
+                "hit": hit,
+            })
+        except Exception as e:
+            results.append({"question": item["q"], "error": str(e), "hit": False})
+    return {
+        "total": len(QUESTIONS),
+        "hits": hits,
+        "hit_rate": round(hits / len(QUESTIONS), 3),
+        "results": results,
+    }
+
 
 @app.get("/api/admin/audit-logs")
 async def get_audit_logs(admin: dict = Depends(get_current_admin), limit: int = 50, offset: int = 0):

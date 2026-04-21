@@ -4,6 +4,7 @@
 import os
 import json
 import math
+import uuid
 import psycopg2
 from typing import List, Dict, Generator
 from sentence_transformers import CrossEncoder
@@ -14,34 +15,40 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
+# KG Storage
+from kg_storage import KG_Storage_Manager
+
 # ─── Tool Icon Map ───────────────────────────────────────────────────────────
 TOOL_ICONS = {
     "search_sut_chunks":    "🔍",
     "search_sut_fulltext":  "📄",
-    "lookup_knowledge_graph": "🕸️",
+    "lookup_kg_entity":     "🕸️",
+    "explore_kg_path":      "🗺️",
     "calculate":            "🔢",
     "finish":               "✅",
 }
 
-MAX_AGENT_ITERATIONS = 6   # safety hard-stop
+MAX_AGENT_ITERATIONS = 8   # safety hard-stop
+MIN_SEARCHES_BEFORE_FINISH = 1  # agent must call at least 1 search tool
 
 class SUT_RAG_Engine:
     def __init__(self, llm_provider: str = "google", model_name: str = "gemini-2.0-flash"):
         self.embeddings_model = self._initialize_embeddings()
         print("[INIT] Loading Reranker Model...")
         self.reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2', device='cpu')
+        
         self.conn = None
         self.cursor = None
         self.llm = None
         self.provider = llm_provider
-        self.knowledge_graph = self._load_knowledge_graph()
+        self.kg = KG_Storage_Manager()
 
         if llm_provider == "google":
             self._init_google_llm(model_name)
         elif llm_provider == "openrouter":
             self._init_openrouter_llm(model_name)
         else:
-            self._init_google_llm("gemini-1.5-flash")
+            self._init_google_llm("gemini-2.0-flash")
 
         print(f"[INIT] SUT Engine Initialized. Provider: '{llm_provider}', Model: '{model_name}'")
 
@@ -68,18 +75,6 @@ class SUT_RAG_Engine:
             model_kwargs={'device': 'cpu'}
         )
 
-    def _load_knowledge_graph(self) -> Dict:
-        kg_path = "sut_knowledge_graph.json"
-        if not os.path.exists(kg_path):
-            print("[WARN] Knowledge graph JSON not found.")
-            return {"nodes": [], "edges": []}
-        try:
-            with open(kg_path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception as e:
-            print(f"[WARN] Failed to load knowledge graph: {e}")
-            return {"nodes": [], "edges": []}
-
     def load_database(self) -> bool:
         try:
             self.conn = psycopg2.connect(os.getenv("DATABASE_URL"))
@@ -97,52 +92,82 @@ class SUT_RAG_Engine:
     # ─── Tool Definitions (schema injected into system prompt) ───────────────
 
     TOOL_SCHEMA = """
-You have access to the following tools. Call them by outputting ONLY a JSON object — no extra text, no markdown fences.
+Sen bir SUT Uzmanı yapay zeka asistanısın. Görevin: kullanıcının sorusunu Türkçe olarak eksiksiz, doğru ve kaynaklı biçimde yanıtlamak.
 
-AVAILABLE TOOLS:
-1. search_sut_chunks
-   Description: Semantic vector search in the SUT database. Use this for general, conceptual questions.
-   Input: {"tool": "search_sut_chunks", "query": "<natural language query>", "k": <number 3-8>}
+KULLANILABILECEK ARAÇLAR (Her turda yalnızca 1 araç çağır. Çıktının yalnızca JSON olması gerekiyor):
 
-2. search_sut_fulltext
-   Description: Full-text keyword search. Best for specific article IDs (e.g. "4.2.63") or exact drug/diagnosis names.
-   Input: {"tool": "search_sut_fulltext", "query": "<keywords or article id>", "k": <number 3-8>}
+1. search_sut_chunks — Semantik vektör arama. Genel, kavramsal sorular için kullan.
+   {"tool": "search_sut_chunks", "query": "<doğal dil sorgu>", "k": <3-8>}
 
-3. lookup_knowledge_graph
-   Description: Looks up a drug, diagnosis, condition, or rule in the SUT knowledge graph to discover structured relationships (e.g., what drugs treat a disease, what conditions a rule requires).
-   Input: {"tool": "lookup_knowledge_graph", "entity": "<entity name or ID>"}
+2. search_sut_fulltext — Tam metin arama. Belirli madde numaraları ("4.2.63"), ilaç adları veya ICD kodları için kullan.
+   {"tool": "search_sut_fulltext", "query": "<anahtar kelimeler>", "k": <3-8>}
 
-4. calculate
-   Description: Performs a safe numeric calculation. Useful for dosage, age limits, duration calculations.
-   Input: {"tool": "calculate", "expression": "<math expression e.g. 65*0.15>"}
+3. lookup_kg_entity — Bilgi Grafiği varlık araması. Bir ilaç, teşhis, uzman veya madde hakkında yapısal bilgi almak için kullan.
+   {"tool": "lookup_kg_entity", "entity": "<varlık adı>", "type_filter": "<opsiyonel: DRUG|DIAGNOSIS|RULE|SPECIALIST|CONDITION|DOCUMENT>"}
 
-5. finish
-   Description: Call this when you have gathered sufficient information to give a complete and accurate answer. Do NOT call finish before searching at least once. The argument becomes the final answer shown to the user.
-   Input: {"tool": "finish", "answer": "<your final comprehensive answer in Turkish>"}
+4. explore_kg_path — Bilgi Grafiği yolu keşfetme. "X ilacı Y teşhisi için ödeniyor mu?" gibi çok aşamalı sorular için kullan.
+   {"tool": "explore_kg_path", "from_entity": "<kaynak>", "to_entity": "<hedef>", "max_hops": <1-3>}
 
-RULES:
-- Respond with ONLY ONE tool call JSON per turn, nothing else.
-- Always search at least once before calling finish.
-- Cite sources in your final answer using [Kaynak N] notation.
-- Write the final answer in TURKISH.
-- If search results contain a <KAYNAKLAR> block, include it at the end of your finish answer.
+5. calculate — Güvenli matematiksel hesaplama. Doz, yaş sınırı, süre hesaplamalarında kullan.
+   {"tool": "calculate", "expression": "<mat. ifade>"}
+
+6. finish — Son yanıtı oluştur. En az 1 arama yaptıktan sonra çağır.
+   {"tool": "finish", "answer": "<Türkçe kapsamlı yanıt>"}
+
+STRATEJİ VE DERİNLİK KURALLARI:
+- ASLA finish çağırmadan önce en az 2 arama aracı kullan (örn: KG lookup + Vektör search).
+- TEŞHİS/İLAÇ/MADDE isimleri için ÖNCE mutlaka 'lookup_kg_entity' kullan (Knowledge Graph en kesin veridir).
+- Eğer ilk araman 'bulunamadı' veya yetersiz dönerse pes etme; farklı anahtar kelimelerle 'search_sut_chunks' dene.
+- "X yaş altı", "Y raporu", "Z uzmanı" gibi spesifik kısıtlamaları bulmak için explore_kg_path aracını zorla.
+- Bilgi Grafiği (KG) sonuçları SUT metninden daha önceliklidir, çelişki varsa KG'deki yapısal ilişkiyi baz al.
+- Her turda sadece 1 JSON tool call yaz, başka hiçbir metin çıktısı üretme.
+
+SONUÇ YAZMA SÜRECİ (finish çağırırken):
+1. Sorunun doğrudan yanıtıyla başla (evet/hayır + kısa açıklama).
+2. Elde edilen bilgileri madde madde açıkla.
+3. Her maddeyi [Madde X.X.X] veya [Kaynak N] ile kaynak göster.
+4. Yanıtın sonuna kaynakları aşağıdaki XML formatında bir blok olarak ekle:
+   <KAYNAKLAR>
+   <KAYNAK baslik="Madde X.X.X (veya Kısa Başlık)">Kaynak metni burada...</KAYNAK>
+   </KAYNAKLAR>
+5. Tüm yanıtı Türkçe yaz.
 """
 
     TOOL_REACTION_PROMPT = """
-You are SUT Uzmanı (Sağlık Uygulama Tebliği Expert), an expert AI assistant for Turkish Social Security health regulations.
+== SUT UZMAN ASİSTAN (ROL: {role}) ==
+Rol: {role_description}
 
 {tool_schema}
 
---- CONVERSATION HISTORY ---
+--- SON KONUŞMA GEÇMİŞİ ---
 {history}
 
---- TOOL RESULTS SO FAR ---
+--- YAPILAN ARAÇ ÇAĞRILARI VE SONUÇLARI ---
 {observations}
 
---- USER QUESTION ---
+--- KULLANICI SORUSU ---
 {user_query}
 
-Now decide your next action. Output ONLY a single JSON tool call.
+Şimdi tek bir JSON araç çağrısı üret. Başka hiçbir metin yazma.
+"""
+
+    CRITIC_PROMPT = """
+Sen bir SUT Denetçisisin (Critic). Aşağıdaki yanıtı, sağlanan literatür ve SUT kaynaklarıyla karşılaştırarak doğrula.
+
+SORU: {user_query}
+RETRIEVED CONTEXT / OBSERVATIONS:
+{observations}
+
+ADAY YANIT:
+{final_answer}
+
+GÖREVİN:
+1. Yanıtın içindeki hiçbir bilgi SUT kaynaklarıyla çelişmemeli.
+2. Yanıtın içindeki her kısıtlama (yaş, doz, rapor türü) kaynaklarda geçmeli.
+3. Yanıtın içindeki madde numaraları [Madde X.X.X] doğru olmalı.
+
+Eğer yanıt %100 doğruysa sadece "TAMAM" yaz.
+Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın düzeltmesini iste.
 """
 
     # ─── Main Agentic Stream ─────────────────────────────────────────────────
@@ -151,7 +176,8 @@ Now decide your next action. Output ONLY a single JSON tool call.
         self,
         user_query: str,
         chat_history: List[Dict] = None,
-        k: int = 5
+        k: int = 5,
+        role: str = "PATIENT"
     ) -> Generator[Dict, None, None]:
 
         if chat_history is None:
@@ -170,10 +196,27 @@ Now decide your next action. Output ONLY a single JSON tool call.
 
         yield {"status": "Sorgu analiz ediliyor..."}
 
+        role_meta = {
+            "DOCTOR": {
+                "name": "Uzman Doktor",
+                "desc": "Tıbbi terimlere, teknik ICD-10 ve ATC kodlarına hakim bir tıp doktoru. SUT annex tablolarını ve klinik detayları ön plana çıkar."
+            },
+            "ADMIN": {
+                "name": "SGK Denetçisi / Yönetici",
+                "desc": "Maliyet, bütçe, bürokratik onay süreçleri ve fatura kontrolü odaklı yönetici. Kurumsal dil kullan."
+            },
+            "PATIENT": {
+                "name": "Vatandaş / Hasta",
+                "desc": "Tıbbi ve hukuki terimleri anlamayabilecek bir vatandaş. Sade Türkçe kullan, 'Ödenir mi?', 'Ne kadar ödenir?' sorularına net odaklan."
+            }
+        }.get(role.upper(), {"name": "SUT Uzmanı", "desc": "Genel SUT uzmanı."})
+
         for iteration in range(MAX_AGENT_ITERATIONS):
             obs_str = self._format_observations(observations)
 
             prompt = self.TOOL_REACTION_PROMPT.format(
+                role=role_meta["name"],
+                role_description=role_meta["desc"],
                 tool_schema=self.TOOL_SCHEMA,
                 history=history_str or "(Yeni konuşma)",
                 observations=obs_str or "(Henüz araç kullanılmadı.)",
@@ -184,7 +227,6 @@ Now decide your next action. Output ONLY a single JSON tool call.
                 decision_msg = self.llm.invoke([HumanMessage(content=prompt)])
                 raw = decision_msg.content.strip()
 
-                # Strip markdown fences if the LLM wraps in ```json
                 if raw.startswith("```"):
                     raw = raw.split("```")[1]
                     if raw.startswith("json"):
@@ -204,25 +246,39 @@ Now decide your next action. Output ONLY a single JSON tool call.
             tool_name = tool_call.get("tool", "unknown")
             icon = TOOL_ICONS.get(tool_name, "🔧")
 
-            # ── finish tool ──────────────────────────────────────────────────
             if tool_name == "finish":
                 final_answer = tool_call.get("answer", "")
-                agent_steps.append({
-                    "iteration": iteration + 1,
-                    "tool": "finish",
-                    "icon": icon,
-                    "args": {},
-                    "result": "Yanıt tamamlandı."
-                })
-                yield {"agent_step": agent_steps[-1]}
-                yield {"agent_steps_complete": agent_steps}
-                # Stream the final answer token-by-token style
-                yield {"final_answer": final_answer}
-                return
+                yield {"status": "🕵️ Critic denetimi yapılıyor..."}
+                critic_feedback = self._verify_with_critic(user_query, final_answer, obs_str)
+                
+                if critic_feedback.strip().upper() == "TAMAM":
+                    agent_steps.append({
+                        "iteration": iteration + 1,
+                        "tool": "finish",
+                        "icon": icon,
+                        "args": {},
+                        "result": "Yanıt critic tarafından onaylandı."
+                    })
+                    yield {"agent_step": agent_steps[-1]}
+                    yield {"agent_steps_complete": agent_steps}
+                    yield {"final_answer": final_answer}
+                    return
+                else:
+                    observations.append({
+                        "tool": "critic_feedback",
+                        "args": {"feedback": critic_feedback},
+                        "result": f"DÜZELTME GEREKLİ: {critic_feedback}"
+                    })
+                    yield {"agent_step": {
+                        "iteration": iteration + 1,
+                        "tool": "critic",
+                        "icon": "🧐",
+                        "args": {},
+                        "result": f"Düzeltme isteniyor: {critic_feedback}"
+                    }}
+                    continue
 
-            # ── other tools: stream the thinking step ────────────────────────
             yield {"status": f"{icon} {tool_name} çalıştırılıyor..."}
-
             result = self._run_tool(tool_name, tool_call, k)
             observations.append({"tool": tool_name, "args": tool_call, "result": result})
 
@@ -236,13 +292,10 @@ Now decide your next action. Output ONLY a single JSON tool call.
             agent_steps.append(step)
             yield {"agent_step": step}
 
-        # ── Hard stop fallback ───────────────────────────────────────────────
         yield {"status": "Yanıt oluşturuluyor..."}
         fallback_answer = self._generate_fallback_answer(user_query, observations, chat_history)
         yield {"agent_steps_complete": agent_steps}
         yield {"final_answer": fallback_answer}
-
-    # ─── Tool Runner ─────────────────────────────────────────────────────────
 
     def _run_tool(self, tool_name: str, args: Dict, default_k: int) -> str:
         try:
@@ -251,36 +304,37 @@ Now decide your next action. Output ONLY a single JSON tool call.
                 k = int(args.get("k", default_k))
                 chunks = self._retrieve_chunks(query, k)
                 return self._format_chunks_result(chunks)
-
             elif tool_name == "search_sut_fulltext":
                 query = args.get("query", "")
                 k = int(args.get("k", default_k))
                 chunks = self._fulltext_search(query, k)
                 return self._format_chunks_result(chunks)
-
-            elif tool_name == "lookup_knowledge_graph":
+            elif tool_name == "lookup_kg_entity":
                 entity = args.get("entity", "")
-                return self._lookup_kg(entity)
-
+                type_filter = args.get("type_filter", None)
+                return self.kg.lookup_entity(entity, k=3, type_filter=type_filter)
+            elif tool_name == "explore_kg_path":
+                from_entity = args.get("from_entity", "")
+                to_entity   = args.get("to_entity", "")
+                max_hops    = int(args.get("max_hops", 3))
+                return self.kg.explore_path(from_entity, to_entity, max_hops=max_hops)
             elif tool_name == "calculate":
                 expression = args.get("expression", "")
                 return self._safe_calculate(expression)
-
+            elif tool_name == "lookup_knowledge_graph":
+                entity = args.get("entity", "")
+                return self.kg.lookup_entity(entity, k=3)
             else:
                 return f"Bilinmeyen araç: {tool_name}"
         except Exception as e:
             return f"[ARAÇ HATASI] {tool_name}: {str(e)}"
 
-    # ─── Tool Implementations ─────────────────────────────────────────────────
-
     def _retrieve_chunks(self, query: str, k: int) -> List[Dict]:
-        if not self.conn:
-            return []
+        if not self.conn: return []
         initial_k = k * 3
         try:
             q_vec = self.embeddings_model.embed_query(query)
             q_vec_str = "[" + ",".join(map(str, q_vec)) + "]"
-
             cur = self.conn.cursor()
             cur.execute("""
                 SELECT chunk_id, text_content, metadata_json
@@ -288,39 +342,31 @@ Now decide your next action. Output ONLY a single JSON tool call.
                 ORDER BY embedding <=> %s
                 LIMIT %s
             """, (q_vec_str, initial_k))
-
             candidates = []
             for row in cur.fetchall():
                 meta = row[2] if isinstance(row[2], dict) else json.loads(row[2])
                 candidates.append({"id": row[0], "text": row[1], "metadata": meta})
             cur.close()
-
             if candidates:
                 pairs = [[query, doc['text']] for doc in candidates]
                 scores = self.reranker.predict(pairs)
                 for doc, score in zip(candidates, scores):
                     doc['score'] = score
                 candidates.sort(key=lambda x: x['score'], reverse=True)
-
             return candidates[:k]
         except Exception as e:
             print(f"[ERROR] Chunk retrieval failed: {e}")
-            try:
-                self.conn.rollback()
-            except Exception:
-                pass
+            if self.conn: self.conn.rollback()
             return []
 
     def _fulltext_search(self, query: str, k: int) -> List[Dict]:
-        """PostgreSQL full-text search using Turkish dictionary."""
-        if not self.conn:
-            return []
+        if not self.conn: return []
         try:
             cur = self.conn.cursor()
             cur.execute("""
                 SELECT chunk_id, text_content, metadata_json,
                        ts_rank(to_tsvector('turkish', COALESCE(header_text,'') || ' ' || text_content),
-                               websearch_to_tsquery('turkish', %s)) AS rank
+                                websearch_to_tsquery('turkish', %s)) AS rank
                 FROM chunks
                 WHERE to_tsvector('turkish', COALESCE(header_text,'') || ' ' || text_content)
                       @@ websearch_to_tsquery('turkish', %s)
@@ -335,70 +381,20 @@ Now decide your next action. Output ONLY a single JSON tool call.
             return results
         except Exception as e:
             print(f"[ERROR] Full-text search failed: {e}")
-            try:
-                self.conn.rollback()
-            except Exception:
-                pass
+            if self.conn: self.conn.rollback()
             return []
 
-    def _lookup_kg(self, entity: str) -> str:
-        """Search the knowledge graph for an entity and return its relationships."""
-        entity_upper = entity.strip().upper()
-        nodes = self.knowledge_graph.get("nodes", [])
-        edges = self.knowledge_graph.get("edges", [])
-
-        # Find matching nodes (exact or partial)
-        matched_nodes = [
-            n for n in nodes
-            if entity_upper in n.get("id", "").upper() or
-               entity_upper in n.get("label", "").upper()
-        ]
-
-        if not matched_nodes:
-            return f"'{entity}' için bilgi grafiğinde eşleşme bulunamadı."
-
-        results = []
-        for node in matched_nodes[:3]:
-            nid = node["id"]
-            related_edges = [
-                e for e in edges
-                if e.get("source", "").upper() == nid.upper() or
-                   e.get("target", "").upper() == nid.upper()
-            ]
-
-            node_info = f"DÜĞÜM: {node['label']} (Tür: {node['type']})"
-            if node.get("text"):
-                node_info += f"\nMetin: {node['text'][:200]}"
-
-            edge_info = []
-            for e in related_edges[:8]:
-                src_label = next((n['label'] for n in nodes if n['id'].upper() == e['source'].upper()), e['source'])
-                tgt_label = next((n['label'] for n in nodes if n['id'].upper() == e['target'].upper()), e['target'])
-                edge_info.append(f"  [{e['relation']}]: {src_label} → {tgt_label}")
-
-            results.append(node_info + "\nİlişkiler:\n" + "\n".join(edge_info) if edge_info else node_info)
-
-        return "\n\n".join(results)
-
     def _safe_calculate(self, expression: str) -> str:
-        """Safely evaluate a numeric math expression."""
-        allowed_names = {
-            "abs": abs, "round": round, "min": min, "max": max,
-            "pow": pow, "sqrt": math.sqrt, "ceil": math.ceil, "floor": math.floor,
-        }
+        allowed_names = {"abs": abs, "round": round, "min": min, "max": max, "pow": pow, "sqrt": math.sqrt, "ceil": math.ceil, "floor": math.floor}
         try:
-            # Only allow safe characters
             safe_expr = "".join(c for c in expression if c in "0123456789+-*/.() ")
             result = eval(safe_expr, {"__builtins__": {}}, allowed_names)
             return f"Hesaplama: {expression} = {result}"
         except Exception as e:
             return f"Hesaplama hatası: {str(e)}"
 
-    # ─── Helpers ─────────────────────────────────────────────────────────────
-
     def _format_chunks_result(self, chunks: List[Dict]) -> str:
-        if not chunks:
-            return "Araştırma sonucu bulunamadı. Farklı anahtar kelimeler deneyin."
+        if not chunks: return "Araştırma sonucu bulunamadı. Farklı anahtar kelimeler deneyin."
         parts = []
         for i, c in enumerate(chunks):
             headers = [v for key, v in c['metadata'].items() if key.startswith("Header")]
@@ -408,8 +404,7 @@ Now decide your next action. Output ONLY a single JSON tool call.
         return "\n".join(parts)
 
     def _format_observations(self, observations: List[Dict]) -> str:
-        if not observations:
-            return ""
+        if not observations: return ""
         parts = []
         for i, o in enumerate(observations):
             tool = o.get("tool", "?")
@@ -417,6 +412,20 @@ Now decide your next action. Output ONLY a single JSON tool call.
             result_preview = str(o.get("result", ""))[:600]
             parts.append(f"[Adım {i+1}] Araç: {tool} | Girdi: {args_str}\nSonuç:\n{result_preview}")
         return "\n\n".join(parts)
+
+    def _verify_with_critic(self, user_query: str, final_answer: str, observations: str) -> str:
+        """Second-pass verification by a separate LLM call."""
+        critic_prompt = self.CRITIC_PROMPT.format(
+            user_query=user_query,
+            observations=observations,
+            final_answer=final_answer
+        )
+        try:
+            # Use same LLM for verification but with higher precision focus
+            response = self.llm.invoke([HumanMessage(content=critic_prompt)])
+            return response.content.strip()
+        except Exception as e:
+            return "TAMAM" # Fallback if critic fails, don't block user
 
     def _generate_fallback_answer(
         self,
@@ -446,8 +455,6 @@ ARAŞTIRMA SONUÇLARI:
             full_response = ""
             for chunk in self.llm.stream(messages):
                 content = chunk.content if hasattr(chunk, 'content') else ""
-                if content:
-                    full_response += content
+                if content: full_response += content
             return full_response
-        except Exception as e:
-            return f"Yanıt oluşturulurken hata oluştu: {str(e)}"
+        except Exception as e: return f"Hata: {str(e)}"

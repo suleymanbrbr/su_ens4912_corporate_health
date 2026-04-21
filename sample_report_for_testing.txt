@@ -1,0 +1,7 @@
+HASTA RAPORU / TIBBİ ÖZET
+HASTA ADI: Örnek Hasta
+TARİH: 08.04.2024
+TEŞHİS: Romatoid Artrit (ICD-10: M05.8)
+KLİNİK BULGULAR: Hastanın eklem ağrıları şiddetlidir. Mevcut tedavilere (Metotreksat) yanıt yetersizdir. DAS28 skoru 5.4 olarak saptanmıştır.
+ÖNERİLEN İLAÇ: ETANERSEPT (Enbrel) 50mg haftada bir.
+SUT KRİTERİ: Hastanın daha önce en az 2 farklı DMARD kullandığı ve yanıt almadığı belgelenmiştir.
