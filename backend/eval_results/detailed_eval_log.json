@@ -1,0 +1,528 @@
+{
+  "timestamp": 1777977380.036255,
+  "num_questions": 1,
+  "results": {
+    "gemma-3-1b-it": {
+      "no_kg": {
+        "summary": {
+          "avg_map": 0.5817,
+          "avg_ndcg": 1.0,
+          "context_recall": 1.0,
+          "faithfulness": 0.0,
+          "answer_relevance": 0.0,
+          "avg_tool_steps": 8.0,
+          "avg_latency_s": 13.75
+        },
+        "details": [
+          {
+            "question": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?",
+            "expected": "MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.",
+            "source": "1.7",
+            "ai_answer": "Hata: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_paid_tier_input_token_count, limit: 15000, model: gemma-3-1b\nPlease retry in 12.292729285s. [links {\n  description: \"Learn more about Gemini API quotas\"\n  url: \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n}\n, violations {\n  quota_metric: \"generativelanguage.googleapis.com/generate_content_paid_tier_input_token_count\"\n  quota_id: \"GenerateContentPaidTierInputTokensPerModelPerMinute\"\n  quota_dimensions {\n    key: \"model\"\n    value: \"gemma-3-1b\"\n  }\n  quota_dimensions {\n    key: \"location\"\n    value: \"global\"\n  }\n  quota_value: 15000\n}\n, retry_delay {\n  seconds: 12\n}\n]",
+            "metrics": {
+              "map": 0.5817,
+              "ndcg": 1.0,
+              "recall": 1.0,
+              "faithfulness": 0.0,
+              "relevance": 0.0,
+              "latency": 13.748004913330078,
+              "tool_steps": 8
+            }
+          }
+        ]
+      },
+      "with_kg": {
+        "summary": {
+          "avg_map": 0.0,
+          "avg_ndcg": 0.0,
+          "context_recall": 0.0,
+          "faithfulness": 0.0,
+          "answer_relevance": 0.0,
+          "avg_tool_steps": 1.0,
+          "avg_latency_s": 2.22
+        },
+        "details": [
+          {
+            "question": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?",
+            "expected": "MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.",
+            "source": "1.7",
+            "ai_answer": "Hata: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_paid_tier_input_token_count, limit: 15000, model: gemma-3-1b\nPlease retry in 58.995197982s. [links {\n  description: \"Learn more about Gemini API quotas\"\n  url: \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n}\n, violations {\n  quota_metric: \"generativelanguage.googleapis.com/generate_content_paid_tier_input_token_count\"\n  quota_id: \"GenerateContentPaidTierInputTokensPerModelPerMinute\"\n  quota_dimensions {\n    key: \"model\"\n    value: \"gemma-3-1b\"\n  }\n  quota_dimensions {\n    key: \"location\"\n    value: \"global\"\n  }\n  quota_value: 15000\n}\n, retry_delay {\n  seconds: 58\n}\n]",
+            "metrics": {
+              "map": 0.0,
+              "ndcg": 0.0,
+              "recall": 0.0,
+              "faithfulness": 0.0,
+              "relevance": 0.0,
+              "latency": 2.2206900119781494,
+              "tool_steps": 1
+            }
+          }
+        ]
+      }
+    },
+    "gemma-3-12b-it": {
+      "no_kg": {
+        "summary": {
+          "avg_map": 0.671,
+          "avg_ndcg": 1.0,
+          "context_recall": 1.0,
+          "faithfulness": 0.0,
+          "answer_relevance": 0.0,
+          "avg_tool_steps": 4.0,
+          "avg_latency_s": 22.78
+        },
+        "details": [
+          {
+            "question": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?",
+            "expected": "MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.",
+            "source": "1.7",
+            "ai_answer": "Hata: Invalid operation: The `response.text` quick accessor requires the response to contain a valid `Part`, but none were returned. The candidate's [finish_reason](https://ai.google.dev/api/generate-content#finishreason) is 1.",
+            "metrics": {
+              "map": 0.671,
+              "ndcg": 1.0,
+              "recall": 1.0,
+              "faithfulness": 0.0,
+              "relevance": 0.0,
+              "latency": 22.780380964279175,
+              "tool_steps": 4
+            }
+          }
+        ]
+      },
+      "with_kg": {
+        "summary": {
+          "avg_map": 0.7679,
+          "avg_ndcg": 1.0,
+          "context_recall": 1.0,
+          "faithfulness": 0.0,
+          "answer_relevance": 0.5,
+          "avg_tool_steps": 3.0,
+          "avg_latency_s": 12.79
+        },
+        "details": [
+          {
+            "question": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?",
+            "expected": "MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.",
+            "source": "1.7",
+            "ai_answer": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmesi kapsamında Türkiye'de sağlık hizmeti almak isteyen kişilerin durumu aşağıdaki gibi değerlendirilir:\n\nEvet, bu kişiler Kurum sağlık yardımlarından yararlandırılabilirler, ancak bazı şartları vardır. Özellikle ortez, protez, tıbbi araç ve gereç ile kişi kullanımına mahsus tıbbi cihazlar için YUPASS provizyon sisteminden önceden Kurumun ilgili biriminden onay alınması gerekmektedir. Acil haller dışında bu onay zorunludur. Bu durum, yabancı ülkelerle yapılan sosyal güvenlik sözleşmesi çerçevesinde geçici olarak Türkiye'de bulunan sigortalılar için geçerlidir.\n\n[Madde 1.7.1] Yabancı ülkelerle yapılan sosyal güvenlik sözleşmesi kapsamında geçici olarak Türkiye'de bulundukları sürede Kurum Sağlık yardımlarından yararlandırılan kişilere acil haller dışında sağlanacak ortez, protez, tıbbi araç ve gereç ile kişi kullanımına mahsus tıbbi cihaz için YUPASS provizyon sisteminde \"açıklamalar\" bölümünde belirtilen uyarı doğrultusunda önceden Kurumun ilgili biriminden onay alınacaktır.\n\n<KAYNAKLAR>\n<KAYNAK baslik=\"Madde 1.7.1 - Yurt dışı sigortalı müracaatları\">Yabancı ülkelerle yapılan sosyal güvenlik sözleşmesi kapsamında geçici olarak Türkiye'de bulundukları sürede Kurum Sağlık yardımlarından yararlandırılan kişilere acil haller dışında sağlanacak ortez, protez, tıbbi araç ve gereç ile kişi kullanımına mahsus tıbbi cihaz için YUPASS provizyon sisteminde \"açıklamalar\" bölümünde belirtilen uyarı doğrultusunda önceden Kurumun ilgili biriminden onay alınacaktır.</KAYNAK>\n</KAYNAKLAR>",
+            "metrics": {
+              "map": 0.7679,
+              "ndcg": 1.0,
+              "recall": 1.0,
+              "faithfulness": 0.0,
+              "relevance": 0.5,
+              "latency": 12.789270162582397,
+              "tool_steps": 3
+            }
+          }
+        ]
+      }
+    },
+    "gemma-3-4b-it": {
+      "no_kg": {
+        "summary": {
+          "avg_map": 1.0,
+          "avg_ndcg": 1.0,
+          "context_recall": 1.0,
+          "faithfulness": 0.0,
+          "answer_relevance": 1.0,
+          "avg_tool_steps": 2.0,
+          "avg_latency_s": 7.5
+        },
+        "details": [
+          {
+            "question": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?",
+            "expected": "MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.",
+            "source": "1.7",
+            "ai_answer": "Evet, yabancı ülkelerle yapılan sosyal güvenlik sözleşmesi kapsamında Türkiye'de geçici olarak bulunan sigortalılar, Kurum sağlık yardımlarından yararlandırılabilirler. Ancak, bu durum acil haller dışında geçerlidir.\n\nİşte nasıl gerçekleştirilir:\n\n1.  **YUPASS provizyonu:** Acil olmayan durumlarda, ortez, protez, tıbbi araç ve gereç veya kişi kullanımına mahsus tıbbi cihaz için YUPASS sisteminde \"açıklamalar\" bölümünde belirtilen uyarı doğrultusunda önceden Kurum'un ilgili biriminden onay alınması gerekmektedir. [Madde 1.7.1]\n\n[Kaynak 1] ve [Kaynak 2] bu konuda bilgi vermektedir.",
+            "metrics": {
+              "map": 1.0,
+              "ndcg": 1.0,
+              "recall": 1.0,
+              "faithfulness": 0.0,
+              "relevance": 1.0,
+              "latency": 7.5006022453308105,
+              "tool_steps": 2
+            }
+          }
+        ]
+      },
+      "with_kg": {
+        "summary": {
+          "avg_map": 1.0,
+          "avg_ndcg": 1.0,
+          "context_recall": 1.0,
+          "faithfulness": 0.0,
+          "answer_relevance": 0.0,
+          "avg_tool_steps": 2.0,
+          "avg_latency_s": 35.34
+        },
+        "details": [
+          {
+            "question": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?",
+            "expected": "MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.",
+            "source": "1.7",
+            "ai_answer": "Hata: Invalid operation: The `response.text` quick accessor requires the response to contain a valid `Part`, but none were returned. The candidate's [finish_reason](https://ai.google.dev/api/generate-content#finishreason) is 1.",
+            "metrics": {
+              "map": 1.0,
+              "ndcg": 1.0,
+              "recall": 1.0,
+              "faithfulness": 0.0,
+              "relevance": 0.0,
+              "latency": 35.33695101737976,
+              "tool_steps": 2
+            }
+          }
+        ]
+      }
+    },
+    "gemma-4-31b-it": {
+      "no_kg": {
+        "summary": {
+          "avg_map": 0.0,
+          "avg_ndcg": 0.0,
+          "context_recall": 0.0,
+          "faithfulness": 0.0,
+          "answer_relevance": 0.0,
+          "avg_tool_steps": 1.0,
+          "avg_latency_s": 20.58
+        },
+        "details": [
+          {
+            "question": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?",
+            "expected": "MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.",
+            "source": "1.7",
+            "ai_answer": "\n*   System Role: SUT (Sağlık Uygulama Tebliği) Expert.\n*   Goal: Answer the user's question comprehensively in Turkish based on provided research results.\n*   Constraint: If no information is found in the research results, state it clearly.\n*   User Question: \"How are health services provided for persons who benefit from the Institution's health benefits within the scope of social security agreements made with foreign countries?\"\n*   Provided Research Results: (None/Empty).\n\n*   The system prompt explicitly says: \"Bilgi bulunamadıysa açıkça belirt\" (If information is not found, state it clearly).\n*   The \"ARAŞTIRMA SONUÇLARI\" section is empty.\n\n*   Since there are no research results provided to me as the AI for this specific task, I must follow the system instruction and state that the information was not found.\n*   However, as a \"SUT Expert,\" I should be careful not to hallucinate or use outside knowledge if the prompt strictly mandates using the *provided* research results. The prompt says: \"Aşağıdaki araştırma sonuçlarını kullanarak... cevapla\" (Answer... using the following research results).\n\n*   Directly state that no information was found in the provided research results to answer the question.\n\n    *   \"Üzgünüm, sağlanan araştırma sonuçlarında yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında sağlık hizmetlerinin nasıl gerçekleştirildiğine dair herhangi bir bilgi bulunmamaktadır.\"Sağlanan araştırma sonuçlarında, yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetlerinin nasıl gerçekleştirildiğine dair herhangi bir bilgi bulunmamaktadır.",
+            "metrics": {
+              "map": 0.0,
+              "ndcg": 0.0,
+              "recall": 0.0,
+              "faithfulness": 0.0,
+              "relevance": 0.0,
+              "latency": 20.578425884246826,
+              "tool_steps": 1
+            }
+          }
+        ]
+      },
+      "with_kg": {
+        "summary": {
+          "avg_map": 0.0,
+          "avg_ndcg": 0.0,
+          "context_recall": 0.0,
+          "faithfulness": 0.0,
+          "answer_relevance": 0.0,
+          "avg_tool_steps": 1.0,
+          "avg_latency_s": 26.87
+        },
+        "details": [
+          {
+            "question": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?",
+            "expected": "MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.",
+            "source": "1.7",
+            "ai_answer": "\n*   Role: SUT (Sağlık Uygulama Tebliği) Expert.\n*   Task: Answer the user's question comprehensively in Turkish based on provided research results.\n*   Constraint: If no information is found, state it clearly.\n*   User Question: \"How are health services provided for people benefiting from the Institution's health benefits within the scope of social security agreements made with foreign countries?\"\n*   Research Results provided: None (empty).\n\n    *   The prompt says: \"Aşağıdaki araştırma sonuçlarını kullanarak... cevapla. Bilgi bulunamadıysa açıkça belirt.\" (Answer using the following research results... If information is not found, state it clearly.)\n    *   Research Results: \"(Araştırma sonucu yok)\" (No research result).\n\n    *   Since the system instruction explicitly tells me to use the provided research results and state clearly if no information is found, and since the \"Araştırma Sonuçları\" section is empty, I must inform the user that no information was provided to answer the question.\n\n    *   *Draft 1 (Internal):* Bilgi yok.\n    *   *Draft 2 (More professional):* Üzgünüm, sağlanan araştırma sonuçlarında bu konuyla ilgili herhangi bir bilgi bulunmamaktadır.\n    *   *Draft 3 (Aligning with SUT Expert persona):* SUT uzmanı olarak belirtmeliyim ki, bana sunulan araştırma sonuçları boş olduğu için yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında sağlık hizmetlerinin nasıl gerçekleştirildiğine dair bilgi sağlayamıyorum.\n\n    *   The prompt is a \"RAG\" (Retrieval-Augmented Generation) style prompt. The AI is strictly told to use the *provided* results. Even if the AI has internal knowledge about SUT, the specific instruction says \"use the following research results.\" If I use internal knowledge when research results are empty, I am violating the constraint of the prompt pattern provided.\n\n    *   Response: \"Paylaşılan araştırma sonuçlarında, yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında sağlık yardımlarından yararlanan kişilerin sağlık hizmetlerinin nasıl gerçekleştirildiğine dair herhangi bir bilgi bulunmamaktadır.\"Paylaşılan araştırma sonuçlarında, yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetlerinin nasıl gerçekleştirildiğine dair herhangi bir bilgi bulunmamaktadır.",
+            "metrics": {
+              "map": 0.0,
+              "ndcg": 0.0,
+              "recall": 0.0,
+              "faithfulness": 0.0,
+              "relevance": 0.0,
+              "latency": 26.866970777511597,
+              "tool_steps": 1
+            }
+          }
+        ]
+      }
+    },
+    "gemini-2.5-flash-lite": {
+      "no_kg": {
+        "summary": {
+          "avg_map": 1.0,
+          "avg_ndcg": 1.0,
+          "context_recall": 1.0,
+          "faithfulness": 1.0,
+          "answer_relevance": 1.0,
+          "avg_tool_steps": 3.0,
+          "avg_latency_s": 23.48
+        },
+        "details": [
+          {
+            "question": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?",
+            "expected": "MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.",
+            "source": "1.7",
+            "ai_answer": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri, MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilir.\n\nBu hizmetler için:\n\n*   Sağlık hizmetleri MEDULA sistemi üzerinden provizyon alınarak sağlanır. [Madde 1.7.1]\n*   Acil haller dışında, ortez, protez, tıbbi araç ve gereç ile kişi kullanımına mahsus tıbbi cihazlar için YUPASS provizyon sisteminde belirtilen uyarı doğrultusunda önceden Kurumun ilgili biriminden onay alınması gerekmektedir. [Madde 1.7.1]\n\n<KAYNAKLAR>\n<KAYNAK baslik=\"Madde 1.7.1 - Yurt dışı sigortalı müracaatları\">\n(1) Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri, MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.\n(4) Yabancı ülkelerle yapılan sosyal güvenlik sözleşmesi kapsamında geçici olarak Türkiye'de bulundukları sürede Kurum Sağlık yardımlarından yararlandırılan kişilere acil haller dışında sağlanacak ortez, protez, tıbbi araç ve gereç ile kişi kullanımına mahsus tıbbi cihaz için YUPASS provizyon sisteminde \"açıklamalar\" bölümünde belirtilen uyarı doğrultusunda önceden Kurumun ilgili biriminden onay alınacaktır.\n</KAYNAK>\n</KAYNAKLAR>",
+            "metrics": {
+              "map": 1.0,
+              "ndcg": 1.0,
+              "recall": 1.0,
+              "faithfulness": 1.0,
+              "relevance": 1.0,
+              "latency": 23.482280254364014,
+              "tool_steps": 3
+            }
+          }
+        ]
+      },
+      "with_kg": {
+        "summary": {
+          "avg_map": 0.7679,
+          "avg_ndcg": 1.0,
+          "context_recall": 1.0,
+          "faithfulness": 0.0,
+          "answer_relevance": 0.5,
+          "avg_tool_steps": 3.0,
+          "avg_latency_s": 16.04
+        },
+        "details": [
+          {
+            "question": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?",
+            "expected": "MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.",
+            "source": "1.7",
+            "ai_answer": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Türkiye'de geçici olarak bulunan ve Kurum sağlık yardımlarından yararlanmaya hak kazanan kişilerin sağlık hizmetleri, acil haller dışında, belirli kurallara tabidir.\n\nÖzellikle ortez, protez, tıbbi araç ve gereçler ile kişi kullanımına mahsus tıbbi cihazlar için, acil durumlar haricinde, YUPASS provizyon sisteminde belirtilen uyarılar doğrultusunda Kurumun ilgili biriminden önceden onay alınması gerekmektedir.\n\nBu bilgiler, SUT'un 1.7.1 maddesinde yer almaktadır.\n\n<KAYNAKLAR>\n<KAYNAK baslik=\"1.7.1 - Yurt dışı sigortalı müracaatları\">\n(4) Yabancı ülkelerle yapılan sosyal güvenlik sözleşmesi kapsamında geçici olarak Türkiye'de bulundukları sürede Kurum Sağlık yardımlarından yararlandırılan kişilere acil haller dışında sağlanacak ortez, protez, tıbbi araç ve gereç ile kişi kullanımına mahsus tıbbi cihaz için YUPASS provizyon sisteminde \"açıklamalar\" bölümünde belirtilen uyarı doğrultusunda önceden Kurumun ilgili biriminden onay alınacaktır.\n</KAYNAK>\n</KAYNAKLAR>",
+            "metrics": {
+              "map": 0.7679,
+              "ndcg": 1.0,
+              "recall": 1.0,
+              "faithfulness": 0.0,
+              "relevance": 0.5,
+              "latency": 16.04231286048889,
+              "tool_steps": 3
+            }
+          }
+        ]
+      }
+    },
+    "gemini-2.5-flash": {
+      "no_kg": {
+        "summary": {
+          "avg_map": 0.7679,
+          "avg_ndcg": 1.0,
+          "context_recall": 1.0,
+          "faithfulness": 0.0,
+          "answer_relevance": 0.5,
+          "avg_tool_steps": 3.0,
+          "avg_latency_s": 21.75
+        },
+        "details": [
+          {
+            "question": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?",
+            "expected": "MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.",
+            "source": "1.7",
+            "ai_answer": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Türkiye'de sağlık yardımlarından yararlanan kişilerin sağlık hizmetleri, belirli tıbbi malzemeler için önceden onay alınması şartıyla gerçekleştirilir.\n\n*   **Ön Onay Gerekliliği:** Acil durumlar dışında, ortez, protez, tıbbi araç ve gereçler ile kişisel kullanıma mahsus tıbbi cihazlar için Kurumun ilgili biriminden önceden onay alınması gerekmektedir. Bu onay, YUPASS provizyon sistemindeki \"açıklamalar\" bölümünde belirtilen uyarılar doğrultusunda yapılır. [1.7.1 - Yurt dışı sigortalı müracaatları]\n\n<KAYNAKLAR>\n<KAYNAK baslik=\"1.7.1 - Yurt dışı sigortalı müracaatları\">Yabancı ülkelerle yapılan sosyal güvenlik sözleşmesi kapsamında geçici olarak Türkiye'de bulundukları sürede Kurum Sağlık yardımlarından yararlandırılan kişilere acil haller dışında sağlanacak ortez, protez, tıbbi araç ve gereç ile kişi kullanımına mahsus tıbbi cihaz için YUPASS provizyon sisteminde \"açıklamalar\" bölümünde belirtilen uyarı doğrultusunda önceden Kurumun ilgili biriminden onay alınacaktır.</KAYNAK>\n</KAYNAKLAR>",
+            "metrics": {
+              "map": 0.7679,
+              "ndcg": 1.0,
+              "recall": 1.0,
+              "faithfulness": 0.0,
+              "relevance": 0.5,
+              "latency": 21.74647879600525,
+              "tool_steps": 3
+            }
+          }
+        ]
+      },
+      "with_kg": {
+        "summary": {
+          "avg_map": 0.7679,
+          "avg_ndcg": 1.0,
+          "context_recall": 1.0,
+          "faithfulness": 0.0,
+          "answer_relevance": 1.0,
+          "avg_tool_steps": 4.0,
+          "avg_latency_s": 38.13
+        },
+        "details": [
+          {
+            "question": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?",
+            "expected": "MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.",
+            "source": "1.7",
+            "ai_answer": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Türkiye'de geçici olarak bulunan ve Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri genel olarak karşılanır. Ancak bazı özel durumlar için önceden onay alınması gerekir.\n\nİşte detaylar:\n\n*   **Genel Sağlık Hizmetleri:** Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Türkiye'de geçici olarak bulunan kişilerin Kurum sağlık yardımlarından yararlandığı belirtilmiştir. Bu, genel sağlık hizmetlerinin karşılandığı anlamına gelir.\n*   **Ortez, Protez, Tıbbi Araç ve Gereçler ile Kişisel Kullanıma Mahsus Tıbbi Cihazlar:** Bu tür hizmetler için, acil durumlar dışında, Kurumun ilgili biriminden önceden onay alınması gerekmektedir. Bu onay işlemi YUPASS provizyon sistemindeki \"açıklamalar\" bölümünde belirtilen uyarı doğrultusunda yapılır. [Madde 1.7.1 (4)]\n\n<KAYNAKLAR>\n<KAYNAK baslik=\"1.7.1 - Yurt dışı sigortalı müracaatları\">Yabancı ülkelerle yapılan sosyal güvenlik sözleşmesi kapsamında geçici olarak Türkiye'de bulundukları sürede Kurum Sağlık yardımlarından yararlandırılan kişilere acil haller dışında sağlanacak ortez, protez, tıbbi araç ve gereç ile kişi kullanımına mahsus tıbbi cihaz için YUPASS provizyon sisteminde \"açıklamalar\" bölümünde belirtilen uyarı doğrultusunda önceden Kurumun ilgili biriminden onay alınacaktır.</KAYNAK>\n</KAYNAKLAR>",
+            "metrics": {
+              "map": 0.7679,
+              "ndcg": 1.0,
+              "recall": 1.0,
+              "faithfulness": 0.0,
+              "relevance": 1.0,
+              "latency": 38.127968072891235,
+              "tool_steps": 4
+            }
+          }
+        ]
+      }
+    },
+    "gemini-2.5-pro": {
+      "no_kg": {
+        "summary": {
+          "avg_map": 1.0,
+          "avg_ndcg": 1.0,
+          "context_recall": 1.0,
+          "faithfulness": 0.0,
+          "answer_relevance": 0.5,
+          "avg_tool_steps": 3.0,
+          "avg_latency_s": 46.87
+        },
+        "details": [
+          {
+            "question": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?",
+            "expected": "MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.",
+            "source": "1.7",
+            "ai_answer": "Evet, yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Türkiye'de geçici olarak bulunan kişiler, Sosyal Güvenlik Kurumu (SGK) sağlık yardımlarından yararlanabilirler. Ancak bazı özel durumlara dikkat etmek gerekir.\n\n*   **Önemli Kural:** Acil bir durum yoksa, size verilecek olan protez, ortez (örneğin dizlik, korse), tıbbi araç ve gereçler ile kişisel kullanımınıza özel tıbbi cihazlar için önceden SGK'dan onay alınması şarttır. [Madde 1.7.1]\n*   **İşlem Nasıl Yürür?:** Bu onay işlemi, hastanelerin kullandığı YUPASS provizyon sistemi üzerinden yapılır. Sistemde çıkan uyarılara göre hareket edilerek SGK'nın ilgili biriminden onay alınır. [Madde 1.7.1]\n\nÖzetle, genel sağlık hizmetlerini alabilirsiniz ancak protez gibi özel tıbbi malzemeler için SGK'dan ön onay alınmazsa ödeme sorunu yaşanabilir.\n\n<KAYNAKLAR>\n<KAYNAK baslik=\"Madde 1.7.1 - Yurt dışı sigortalı müracaatları\">(4) Yabancı ülkelerle yapılan sosyal güvenlik sözleşmesi kapsamında geçici olarak Türkiye'de bulundukları sürede Kurum Sağlık yardımlarından yararlandırılan kişilere acil haller dışında sağlanacak ortez, protez, tıbbi araç ve gereç ile kişi kullanımına mahsus tıbbi cihaz için YUPASS provizyon sisteminde \"açıklamalar\" bölümünde belirtilen uyarı doğrultusunda önceden Kurumun ilgili biriminden onay alınacaktır.</KAYNAK>\n</KAYNAKLAR>",
+            "metrics": {
+              "map": 1.0,
+              "ndcg": 1.0,
+              "recall": 1.0,
+              "faithfulness": 0.0,
+              "relevance": 0.5,
+              "latency": 46.87155199050903,
+              "tool_steps": 3
+            }
+          }
+        ]
+      },
+      "with_kg": {
+        "summary": {
+          "avg_map": 0.7679,
+          "avg_ndcg": 1.0,
+          "context_recall": 1.0,
+          "faithfulness": 0.5,
+          "answer_relevance": 1.0,
+          "avg_tool_steps": 3.0,
+          "avg_latency_s": 37.42
+        },
+        "details": [
+          {
+            "question": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?",
+            "expected": "MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.",
+            "source": "1.7",
+            "ai_answer": "Evet, ülkenizle Türkiye arasında sosyal güvenlik sözleşmesi varsa, Türkiye'de geçici olarak bulunduğunuz sırada sağlık hizmetlerinden yararlanabilirsiniz.\n\nSağlık hizmeti alırken süreç şu şekilde işler:\n\n*   Hastaneye başvurduğunuzda, sağlık hizmeti alma hakkınız \"YUPASS\" adı verilen özel bir sistem üzerinden kontrol edilir.\n*   Acil durumlar haricinde, size verilecek olan protez, ortez (örneğin dizlik, korse), tıbbi araç ve gereçler veya kişisel kullanımınıza özel tıbbi cihazlar için, hastanenin önceden Sosyal Güvenlik Kurumu'nun (SGK) ilgili biriminden onay alması gerekmektedir. [Madde 1.7.1]\n\nKısacası, genel muayene ve tedavileriniz sistem üzerinden yapılırken, protez gibi özel tıbbi malzemeler için SGK'dan ek bir onay süreci işletilir.\n\n<KAYNAKLAR>\n<KAYNAK baslik=\"Madde 1.7.1 - Yurt dışı sigortalı müracaatları\">Yabancı ülkelerle yapılan sosyal güvenlik sözleşmesi kapsamında geçici olarak Türkiye'de bulundukları sürede Kurum Sağlık yardımlarından yararlandırılan kişilere acil haller dışında sağlanacak ortez, protez, tıbbi araç ve gereç ile kişi kullanımına mahsus tıbbi cihaz için YUPASS provizyon sisteminde \"açıklamalar\" bölümünde belirtilen uyarı doğrultusunda önceden Kurumun ilgili biriminden onay alınacaktır.</KAYNAK>\n</KAYNAKLAR>",
+            "metrics": {
+              "map": 0.7679,
+              "ndcg": 1.0,
+              "recall": 1.0,
+              "faithfulness": 0.5,
+              "relevance": 1.0,
+              "latency": 37.41946601867676,
+              "tool_steps": 3
+            }
+          }
+        ]
+      }
+    },
+    "gemma-4-26b-a4b-it": {
+      "no_kg": {
+        "summary": {
+          "avg_map": 0.0,
+          "avg_ndcg": 0.0,
+          "context_recall": 0.0,
+          "faithfulness": 0.0,
+          "answer_relevance": 0.0,
+          "avg_tool_steps": 1.0,
+          "avg_latency_s": 67.27
+        },
+        "details": [
+          {
+            "question": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?",
+            "expected": "MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.",
+            "source": "1.7",
+            "ai_answer": "\n*   Role: SUT (Sağlık Uygulama Tebliği) Expert.\n*   Task: Answer the user's question comprehensively in Turkish based on provided research results.\n*   Constraints: If no information is found, state it clearly.\n*   Research Results: \"(Araştırma sonucu yok)\" (No research results found).\n*   User Question: \"Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?\" (How are health services provided for persons benefiting from Institution health aids within the scope of social security agreements made with foreign countries?)\n\n    *   The research results provided are empty (\"Araştırma sonucu yok\").\n    *   The system prompt says: \"Bilgi bulunamadıysa açıkça belirt\" (If no information is found, state it clearly).\n\n    *   *Direct approach:* Since I am an AI, I have internal knowledge, but the prompt specifically instructs me to use the *provided* research results. However, as an expert persona, if I strictly follow \"use the research results\" and the results are empty, I must say \"No information found.\"\n    *   *Nuanced approach:* Usually, in RAG (Retrieval-Augmented Generation) tasks, if the context is empty, the model shouldn't hallucinate based *only* on the context. But the user is asking a specific legal/social security question.\n    *   *Policy Check:* The instruction says: \"Aşağıdaki araştırma sonuçlarını kullanarak... cevapla.\" (Answer using the following research results...). If there are no results, and I follow the instruction strictly, I must say I couldn't find information in the provided results.\n\n    *   However, as an AI assistant, simply saying \"No info\" is unhelpful if I actually know the answer. But I must respect the \"SUT Expert\" persona and the constraint.\n    *   Let's look at the prompt again: \"Aşağıdaki araştırma sonuçlarını kullanarak... cevapla. Bilgi bulunamadıysa açıkça belirt.\"\n    *   Since \"Araştırma sonucu yok\", I cannot answer the question *using the provided results*.\n\n    *   *Option A (Strict):* \"Verilen araştırma sonuçlarında bu soruya ilişkin herhangi bir bilgi bulunmamaktadır.\" (No information found in the provided research results.)\n    *   *Option B (Helpful Expert):* Even though the research is empty, I can provide the general knowledge regarding SUT and Social Security Agreements (bilateral agreements) because I am an \"Expert.\" But the instruction says \"use the research results.\"\n\n    *Decision:* I will state that no information was found in the *provided research results*, but since I am acting as an \"SUT Expert,\" I will provide the general legal/procedural information regarding this topic to be helpful, while acknowledging the lack of specific research data provided.\n\n    *Self-Correction:* Actually, in these types of prompt engineering tasks, if the instruction is \"Answer using the results,\" and the results are empty, the correct behavior is to say \"Bilgi bulunamadı\" (Information not found). Providing external info might violate the \"use the research results\" constraint.\n\n    *Wait, let's look at the context again.* The prompt is a template. If the user provides no research, I can't fulfill the \"using the research results\" part.\n\n    *Let's provide the standard professional answer based on general SUT/SGK knowledge, as a \"SUT Expert\" would, while noting the absence of the specific research provided.*\n\n    *Actually, for a clean response:*\n    \"Sunulan araştırma sonuçlarında bu soruya yönelik herhangi bir bilgi bulunmamaktadır. Ancak bir SUT uzmanı olarak genel mevzuat bilgisi çerçevesinde konuyu açıklayabilirim:\" (No info in results, but as an expert...)\n\n    *Let's outline the actual answer for the user (Internal Knowledge):*\n    1.  **Social Security Agreements (Bilateral):** Turkey has agreements with many countries (Germany, France, etc.).\n    2.  **Forms/Documents:** Use of forms like A/T 11, E 101, etc. (depending on the country).\n    3.  **Mechanism:**\n        *   *In Turkey:* Foreigners covered by agreements receive services based on specific forms. They are treated like Turkish citizens regarding coverage but billing is done between institutions (reciprocity/settlement).\n        *   *In Foreign Countries:* Turkish citizens covered by agreements use their documentation to get services in the partner country.\n    4.  **Scope:** Usually emergency/unforeseen medical needs or specific planned treatments if the agreement allows.\n    5.  **Billing:** The local institution provides the service, then invoices the foreign institution based on agreed rates (SUT rates or bilateral rates).\n\n    \"Verilen araştırma sonuçlarında bu soruya ilişkin herhangi bir bilgi bulunmamaktadır. Ancak, bir SUT (Sağlık Uygulama Tebliği) uzmanı olarak mevcut genel mevzuat ve sosyal güvenlik uygulamaları çerçevesinde sorunuzu yanıtlayabilirim:\"\n\n    *Detailed Content:*\n    - **İkili Sosyal Güvenlik Sözleşmeleri:** Türkiye'nin birçok ülke ile yaptığı sözleşmeler uyarınca, bu ülkelerdeki sigortalılar veya hak sahipleri Türkiye'de, Türk sigortalılar da ilgili ülkede sağlık yardımlarından yararlanabilir.\n    - **Belgelendirme (Formlar):** Hizmet alımı için belirli formların (örneğin Almanya için A/T 11, eski sistemde E 101 vb.) ibrazı gerekir.\n    - **Hizmet Sunumu:** Sözleşme kapsamında olan kişiler, Türkiye'de SGK kapsamındaki sağlık kuruluşlarından (kamu veya anlaşmalı özel) yararlanır.\n    - **Ücretlendirme ve Tahsilat:** Sağlık hizmeti sunulduğunda, maliyetler SUT üzerinden veya sözleşmede belirtilen özel usullerle hesaplanır. Kurum (SGK), hizmeti veren kuruma ödeme yapar, ardından ilgili yabancı kurumla mahsuplaşma/fatura sürecini yürütür.\n    - **Kapsam:** Genellikle \"acil ve beklenmedik\" sağlık sorunları önceliklidir, ancak sözleşmenin detayına göre planlı tedaviler de kapsama alınabilir.\n\n    1. State information is not in the research results.\n    2. Provide expert knowledge.\n\n    *(Self-Correction during drafting)*: If this is a test of my ability to follow instructions *strictly*, and the instruction is \"use the research results,\" then answering from my own knowledge is technically a deviation. But \"Bilgi bulunamadıysa açıkça belirt\" implies that if the search fails, I should say so. If I add my own knowledge, I am going beyond \"using the research results.\"\n\n    However, in a real-world AI interaction, the user wants the answer. I will combine the two: \"Research results provided are empty. However, based on SUT expertise...\"\n\n    1. Bilgi bulunamadı uyarısı.\n    2. Uzman görüşüyle kapsamlı açıklama.\n\n    *Content details for the expert part:*\n    - Social Security Agreements (İkili Sözleşmeler).\n    - Documentation (Belgeler/Formlar).\n    - Service flow (Hizmet Akışı).\n    - Financial settlement (Mali Süreç/Mahsuplaşma).\n\n    *Let's refine the Turkish terminology:*\n    - Sosyal Güvenlik Kurumu (SGK).\n    - Sosyal Güvenlik Sözleşmeleri.\n    - Hak sahipleri.\n    - Tahakkuk ve mahsuplaşma.\n\n    *Ready to write.*Sunulan araştırma sonuçlarında bu soruya ilişkin herhangi bir bilgi bulunmamaktadır. Ancak bir **SUT (Sağlık Uygulama Tebliği) uzmanı** olarak, genel mevzuat ve sosyal güvenlik uygulamaları çerçevesinde sorunuzu kapsamlı bir şekilde aşağıda yanıtlıyorum:\n\nYabancı ülkelerle yapılan ikili sosyal güvenlik sözleşmeleri kapsamında, Türkiye'de sağlık yardımlarından yararlanan kişilerin (veya Türkiye'deki sözleşmeli kişilerin yabancı ülkede yararlanmasının) süreçleri belirli usul ve esaslara bağlanmıştır. Bu süreç temel olarak şu aşamalardan oluşur:\n\n### 1. Sözleşmenin Kapsamı ve Belgelendirme (Formlar)\nSosyal güvenlik sözleşmelerinden yararlanabilmek için en kritik unsur, ilgili ülke ile yapılan sözleşmenin türü ve kişinin beraberinde getirdiği **belgelerdir (formlar)**. \n*   Her ülke ile yapılan sözleşme farklı formlar gerektirir (Örneğin; Almanya ile yapılan sözleşmelerde kullanılan formlar ile diğer ülkelerin kullandığı formlar farklılık gösterebilir).\n*   Kişinin, kendi ülkesindeki sosyal güvenlik kurumundan aldığı ve Türkiye'de sağlık yardımı alabileceğini kanıtlayan geçerli bir belgeyi (geçici veya kalıcı belge) ibraz etmesi zorunludur.\n\n### 2. Sağlık Hizmetlerinin Sunumu\nSözleşme kapsamında olan kişiler, Türkiye'de tıpkı bir Türk sigortalısı gibi Sosyal Güvenlik Kurumu (SGK) ile anlaşmalı sağlık kuruluşlarından (kamu hastaneleri veya anlaşmalı özel hastaneler) yararlanabilirler.\n*   **Acil Durumlar:** Genellikle sözleşmeler, kişinin seyahat halindeyken karşılaşabileceği \"beklenmedik\" ve \"acil\" sağlık sorunlarını kapsar.\n*   **Planlı Tedaviler:** Bazı sözleşmelerde, önceden onay alınması şartıyla planlı tedaviler de kapsama dahil edilebilir.\n\n### 3. Hizmet Bedellerinin Hesaplanması ve Ödeme (SUT Uygulaması)\nSağlık hizmeti sunulduktan sonra mali süreç şu şekilde işler:\n*   **SUT Esasları:** Hizmet sunan sağlık kuruluşu, uygulanan tıbbi işlemler için **Sağlık Uygulama Tebliği (SUT)** hükümlerine göre faturalandırma yapar.\n*   **Kurumun Ödemesi:** Sağlık kuruluşu, hizmet bedelini öncelikle SGK'ya fatura eder. SGK, SUT üzerinden hesaplanan tutarı ilgili sağlık kuruluşuna öder.\n\n### 4. Kurumlar Arası Mahsuplaşma (Reciprocity/Settlement)\nHizmetin maliyetinin asıl sorumlusu, kişinin kendi ülkesindeki sosyal güvenlik kurumudur.\n*   SGK, kendisine ödediği bu tutarları, ilgili yabancı ülkenin sosyal güvenlik kurumuna fatura eder.\n*   Bu süreç, iki ülke arasındaki sosyal güvenlik anlaşmasında belirtilen **\"mahsuplaşma\" (settlement)** usullerine göre yürütülür. Bu, ülkeler arasında karşılıklı olarak borç ve alacakların hesaplanması işlemidir.\n\n### Özetle Süreç Akışı:\n1.  **Belge Kontrolü:** Kişi, geçerli sözleşme belgesini sunar.\n2.  **Hizmet Alımı:** Sağlık kuruluşu hizmeti verir.\n3.  **Yerel Ödeme:** SGK, SUT üzerinden hizmet bedelini hastaneye öder.\n4.  **Uluslararası Tahsilat:** SGK, ödediği tutarı ilgili yabancı kuruma fatura ederek geri alır.\n\n*Not: Uygulamada detaylar, ülkeler arasında imzalanan spesifik sözleşmenin içeriğine ve güncel SGK yönetmeliklerine göre değişiklik gösterebilir.*",
+            "metrics": {
+              "map": 0.0,
+              "ndcg": 0.0,
+              "recall": 0.0,
+              "faithfulness": 0.0,
+              "relevance": 0.0,
+              "latency": 67.27272510528564,
+              "tool_steps": 1
+            }
+          }
+        ]
+      },
+      "with_kg": {
+        "summary": {
+          "avg_map": 0.0,
+          "avg_ndcg": 0.0,
+          "context_recall": 0.0,
+          "faithfulness": 0.0,
+          "answer_relevance": 0.0,
+          "avg_tool_steps": 1.0,
+          "avg_latency_s": 63.02
+        },
+        "details": [
+          {
+            "question": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?",
+            "expected": "MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.",
+            "source": "1.7",
+            "ai_answer": "\n*   Role: SUT (Health Implementation Communiqué) Expert.\n*   Task: Answer the user's question comprehensively in Turkish using the provided research results.\n*   Research Results: \"(Araştırma sonucu yok)\" (No research results found).\n*   User Question: \"Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?\" (How are health services provided for individuals benefiting from Institution health aids within the scope of social security agreements made with foreign countries?)\n\n    *   The prompt says \"If information is not found, state it clearly.\"\n    *   However, as an AI, I have internal training data about SUT and Social Security Institution (SGK) procedures in Turkey, specifically regarding bilateral social security agreements.\n    *   *Decision:* While the \"Research Results\" section is empty, a professional SUT expert wouldn't just say \"I don't know\" if the topic is a standard administrative procedure. But I must follow the instruction: \"Bilgi bulunamadıysa açıkça belirt\" (If information is not found, state it clearly).\n    *   *Refined approach:* Since I am acting as an expert, I will provide the answer based on general knowledge of Turkish Social Security law (which governs SUT), while noting that the specific *provided research results* were empty. *Wait*, usually in these prompt structures, if the \"Research Results\" are empty, the model is expected to rely on its own knowledge or strictly follow the \"no information\" rule.\n    *   *Instructional nuance:* \"Aşağıdaki araştırma sonuçlarını kullanarak...\" (Using the following research results...). Since there are no results, strictly following the prompt means I can't answer *using the results*.\n    *   *However*, the persona is \"SUT Expert.\" An expert should answer the question.\n    *   *Balanced Approach:* I will provide the answer based on the legal framework of Social Security Agreements in Turkey (which is what the question asks for), but I will preface it by noting that no specific external research documents were provided in the context.\n\n    *   *Concept:* Bilateral Social Security Agreements (İkili Sosyal Güvenlik Sözleşmeleri).\n    *   *Key Documents:* Formlar (Forms like A, E, etc., depending on the country), International Health Insurance Card (EHIC/T/C equivalent).\n    *   *Two main scenarios:*\n        1.  Turkish citizens in a contracted country.\n        2.  Citizens of a contracted country in Turkey.\n    *   *Mechanism:*\n        *   *In Turkey:* Foreigners from contracted countries use specific forms/documents provided by their home country's institution. SGK processes these via \"Reciprocal agreements.\" Services are given based on the terms of the specific agreement.\n        *   *In Foreign Countries:* Turkish citizens use specific forms (like TR/A1, etc.) to access health services as if they were local citizens (or according to the agreement terms).\n    *   *Financial aspect:* Costs are often settled between the institutions of the two countries (Inter-institutional settlement).\n\n    *   *Introduction:* Acknowledge the role and the lack of specific research results provided, but answer using expertise.\n    *   *Core Answer:*\n        1.  **Temel Dayanak (Basis):** Bilateral social security agreements and the 5510 Law.\n        2.  **Kapsam (Scope):** Two-way benefit (Turkish citizens abroad, foreigners in Turkey).\n        3.  **Belgelendirme (Documentation):** Use of specialized forms (e.g., A, E, P series forms).\n        4.  **Uygulama Süreci (Process):**\n            *   Registration/Validation of forms at SGK or relevant institutions.\n            *   Treatment at contracted health facilities.\n            *   Cost recovery/settlement between institutions (Karşılıklı mahsuplaşma/ödeme).\n        5.  **Hizmet Şekli (Service Type):** Usually emergency or necessary medical treatment (Acil ve gerekli tedaviler).\n\n    *   Formal, professional, \"expert\" tone.\n    *   Clear headings.\n\n    *   *Greeting:* SUT uzmanı kimliğiyle.\n    *   *Disclaimer:* Araştırma sonuçları kısmında veri bulunmadığı için genel uzmanlık bilgisiyle cevaplanacaktır.\n    *   *Structure:*\n        *   Genel Çerçeve.\n        *   Yabancı Uyrukluların Türkiye'deki Durumu.\n        *   Türk Vatandaşlarının Yurt Dışındaki Durumu.\n        *   Kullanılan Belgeler ve İşleyiş.\n        *   Önemli Notlar.\n\n    *(Self-Correction during drafting)*: Ensure I mention that the specific details (like which form to use) depend on the *specific country's agreement*, as every agreement is unique.**Not:** *Sağlanan \"Araştırma Sonuçları\" kısmında herhangi bir veri bulunmadığı için, bir SUT (Sağlık Uygulama Tebliği) uzmanı olarak bu soruyu mevcut sosyal güvenlik mevzuatı ve uluslararası anlaşmaların genel işleyiş prensipleri çerçevesinde yanıtlıyorum.*\n\nYabancı ülkelerle yapılan ikili sosyal güvenlik sözleşmeleri, kişilerin sınır ötesi hareketliliklerinde sağlık hizmetlerinden yararlanmalarını güvence altına alan hukuki bir mekanizmadır. Bu kapsamda sağlık hizmetlerinin gerçekleştirilmesi, **\"karşılıklılık ilkesi\"** ve **\"sözleşme metnindeki özel hükümler\"** çerçevesinde yürütülür.\n\nSüreç temel olarak iki ana senaryo üzerinden işler:\n\n### 1. Sözleşmeli Ülkelerin Vatandaşlarının Türkiye'de Sağlık Hizmetlerinden Yararlanması\n\nSözleşme kapsamında olan bir yabancı ülke vatandaşı Türkiye'ye geldiğinde, Kurum (SGK) tarafından sağlanan sağlık yardımlarından faydalanabilmek için belirli prosedürleri izlemek zorundadır:\n\n*   **Belgelendirme (Form Sistemi):** Kişi, kendi ülkesindeki sosyal güvenlik kurumundan alınan ve uluslararası geçerliliği olan özel formlar (örneğin; A, E, P serisi formlar veya ilgili ülkeye özgü belgeler) ile başvurmalıdır. Bu belgeler, kişinin kendi ülkesinde sağlık sigortasının aktif olduğunu kanıtlar.\n*   **Hizmetin Türü:** Genellikle bu kişiler, \"acil tıbbi durumlar\" veya \"tedavinin ertelenemeyeceği durumlar\" için sağlık yardımlarından yararlandırılırlar. Sözleşmenin detayına göre, planlı tedaviler için de belirli şartlar altında onay alınabilir.\n*   **Provizyon ve Ödeme:** Sağlık hizmeti sunucusu (hastane), kişinin sunduğu geçerli belgeyi kontrol ederek provizyon alır. Hizmet bedeli, ilgili mevzuat ve SUT fiyatları üzerinden hesaplanır. Oluşan maliyetler, daha sonra iki ülke arasındaki sosyal güvenlik kurumları arasında yapılan **\"karşılıklı mahsuplaşma\" (inter-institutional settlement)** yoluyla çözülür.\n\n### 2. Türk Vatandaşlarının Sözleşmeli Ülkelerde Sağlık Hizmetlerinden Yararlanması\n\nTürkiye ile sosyal güvenlik sözleşmesi imzalanmış bir ülkede bulunan Türk vatandaşlarının durumu da benzer bir mekanizmayla yönetilir:\n\n*   **Belgelerin Temini:** Türkiye'deki SGK, ilgili ülke için geçerli olan formları (örneğin; TR/A1, TR/E12 vb.) vatandaşa düzenler. Vatandaş bu belge ile gittiği ülkedeki sağlık kuruluşuna başvurur.\n*   **Yerel Statüde Yararlanma:** Sözleşmelerin çoğu, vatandaşa o ülkede **\"kendi vatandaşları gibi\"** veya **\"yerleşik sigortalı gibi\"** sağlık hizmeti alma hakkı tanır. Bu, kişinin gittiği ülkedeki yerel sağlık sistemine entegre olması demektir.\n*   **Maliyetin Karşılanması:** Kişinin aldığı hizmetin maliyeti, o ülkenin sağlık sistemi tarafından karşılanır; daha sonra ilgili ülke kurumu, bu maliyeti Türkiye'deki SGK'dan talep eder (veya sözleşme gereği doğrudan mahsuplaşılır).\n\n### Uygulamada Dikkat Edilen Kritik Hususlar\n\n1.  **Sözleşme Farklılıkları:** Her ülke ile yapılan sözleşme aynı değildir. Bazı sözleşmeler sadece \"acil durumları\" kapsarken, bazıları \"planlı tedavileri\" ve \"bakım hizmetlerini\" de kapsayabilir. Bu nedenle her işlemde ilgili ülke ile yapılan **İkili Sosyal Güvenlik Sözleşmesi'nin özel maddelerine** bakılması esastır.\n2.  **SUT ve Ücretlendirme:** Türkiye'deki sağlık tesislerinde hizmet alan yabancılar için uygulanan ücretlendirme, sözleşmede aksine bir hüküm yoksa, SUT'ta belirlenen fiyatlar veya sözleşme çerçevesindeki limitler üzerinden gerçekleştirilir.\n3.  **Belge Geçersizliği:** Geçerli bir uluslararası form veya belge sunamayan kişiler, \"yabancı uyruklu/turist\" statüsünde değerlendirilir ve sağlık hizmeti bedelini doğrudan kendileri (veya özel sigortaları) ödemek durumunda kalırlar.\n\n**Özetle:** Süreç; **doğru belgenin ibrazı $\\rightarrow$ sözleşme hükümlerine uygun hizmetin verilmesi $\\rightarrow$ kurumlar arası mali mutabakat** döngüsü ile gerçekleştirilir.",
+            "metrics": {
+              "map": 0.0,
+              "ndcg": 0.0,
+              "recall": 0.0,
+              "faithfulness": 0.0,
+              "relevance": 0.0,
+              "latency": 63.0182147026062,
+              "tool_steps": 1
+            }
+          }
+        ]
+      }
+    },
+    "gemini-3.1-pro-preview": {
+      "no_kg": {
+        "summary": {
+          "avg_map": 1.0,
+          "avg_ndcg": 1.0,
+          "context_recall": 1.0,
+          "faithfulness": 1.0,
+          "answer_relevance": 1.0,
+          "avg_tool_steps": 3.0,
+          "avg_latency_s": 34.66
+        },
+        "details": [
+          {
+            "question": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?",
+            "expected": "MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.",
+            "source": "1.7",
+            "ai_answer": "Evet, bu kapsamdaki kişilerin sağlık hizmetleri SGK tarafından karşılanır. İşlemler hastanelerde MEDULA sistemi üzerinden onay (provizyon) alınarak yapılır.\n\nİşte bilinmesi gereken detaylar:\n- Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında olan kişilerin sağlık hizmetleri, MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilir [Madde 1.7.1].\n- Eğer bu kişiler Türkiye'de geçici olarak bulunuyorsa; acil durumlar dışında ihtiyaç duyacakları ortez, protez, tıbbi araç-gereç ve kişisel tıbbi cihazlar için YUPASS sistemindeki uyarılara göre önceden SGK'nın ilgili biriminden onay alınması zorunludur [Madde 1.7.1].\n\n<KAYNAKLAR>\n<KAYNAK baslik=\"Madde 1.7.1 - Yurt dışı sigortalı müracaatları\">(1) Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri, MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir. (4) Yabancı ülkelerle yapılan sosyal güvenlik sözleşmesi kapsamında geçici olarak Türkiye'de bulundukları sürede Kurum Sağlık yardımlarından yararlandırılan kişilere acil haller dışında sağlanacak ortez, protez, tıbbi araç ve gereç ile kişi kullanımına mahsus tıbbi cihaz için YUPASS provizyon sisteminde \"açıklamalar\" bölümünde belirtilen uyarı doğrultusunda önceden Kurumun ilgili biriminden onay alınacaktır.</KAYNAK>\n</KAYNAKLAR>",
+            "metrics": {
+              "map": 1.0,
+              "ndcg": 1.0,
+              "recall": 1.0,
+              "faithfulness": 1.0,
+              "relevance": 1.0,
+              "latency": 34.662641286849976,
+              "tool_steps": 3
+            }
+          }
+        ]
+      },
+      "with_kg": {
+        "summary": {
+          "avg_map": 1.0,
+          "avg_ndcg": 1.0,
+          "context_recall": 1.0,
+          "faithfulness": 1.0,
+          "answer_relevance": 0.5,
+          "avg_tool_steps": 3.0,
+          "avg_latency_s": 33.19
+        },
+        "details": [
+          {
+            "question": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?",
+            "expected": "MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.",
+            "source": "1.7",
+            "ai_answer": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Türkiye'de geçici olarak bulunan kişilerin sağlık hizmetleri SGK tarafından karşılanmaktadır. Ancak bazı tıbbi malzemelerin alımında dikkat edilmesi gereken özel bir kural vardır:\n\n- Acil durumlar dışında; ortez, protez, tıbbi araç ve gereçler ile kişisel kullanıma özel tıbbi cihazlar alınacağı zaman, YUPASS (Yurt Dışı Provizyon Aktivasyon ve Sağlık Sistemi) sistemindeki uyarılara göre SGK'nın ilgili biriminden önceden onay alınması zorunludur.\n- Acil durumlarda ise bu ön onay şartı aranmaz.\n\nKısacası, acil olmayan durumlarda tıbbi cihaz veya protez gibi malzemeler alacaksanız, ödemenin SGK tarafından yapılabilmesi için mutlaka önceden Kurumdan onay almanız gerekmektedir. [Madde 1.7.1]\n\n<KAYNAKLAR>\n<KAYNAK baslik=\"Madde 1.7.1 - Yurt dışı sigortalı müracaatları\">(4) Yabancı ülkelerle yapılan sosyal güvenlik sözleşmesi kapsamında geçici olarak Türkiye'de bulundukları sürede Kurum Sağlık yardımlarından yararlandırılan kişilere acil haller dışında sağlanacak ortez, protez, tıbbi araç ve gereç ile kişi kullanımına mahsus tıbbi cihaz için YUPASS provizyon sisteminde \"açıklamalar\" bölümünde belirtilen uyarı doğrultusunda önceden Kurumun ilgili biriminden onay alınacaktır.</KAYNAK>\n</KAYNAKLAR>",
+            "metrics": {
+              "map": 1.0,
+              "ndcg": 1.0,
+              "recall": 1.0,
+              "faithfulness": 1.0,
+              "relevance": 0.5,
+              "latency": 33.185765981674194,
+              "tool_steps": 3
+            }
+          }
+        ]
+      }
+    }
+  }
+}
