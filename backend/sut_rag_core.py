@@ -10,10 +10,53 @@ from typing import List, Dict, Generator
 from sentence_transformers import CrossEncoder
 
 # LangChain & AI Libraries
+import google.generativeai as google_genai
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+
+# ─── Native Gemma Wrapper (bypasses Langchain v1beta issue) ─────────────────
+class _NativeGemmaWrapper:
+    """Thin wrapper around google.generativeai for Gemma models.
+    Exposes .invoke() and .stream() to match the Langchain LLM interface."""
+    class _Response:
+        def __init__(self, text): self.content = text
+
+    def __init__(self, model_name: str, api_key: str):
+        google_genai.configure(api_key=api_key)
+        self._model = google_genai.GenerativeModel(model_name)
+
+    def invoke(self, messages):
+        prompt = self._messages_to_text(messages)
+        response = self._model.generate_content(prompt)
+        try:
+            text = response.text
+        except ValueError:
+            text = ""
+        return self._Response(text)
+
+    def stream(self, messages):
+        prompt = self._messages_to_text(messages)
+        for chunk in self._model.generate_content(prompt, stream=True):
+            try:
+                if chunk.text:
+                    yield self._Response(chunk.text)
+            except ValueError:
+                pass
+
+    def _messages_to_text(self, messages) -> str:
+        parts = []
+        for m in messages:
+            if isinstance(m, SystemMessage):
+                parts.append(f"[SYSTEM]: {m.content}")
+            elif isinstance(m, HumanMessage):
+                parts.append(f"[USER]: {m.content}")
+            elif isinstance(m, AIMessage):
+                parts.append(f"[ASSISTANT]: {m.content}")
+            else:
+                parts.append(str(m.content) if hasattr(m, 'content') else str(m))
+        return "\n".join(parts)
 
 # KG Storage
 from kg_storage import KG_Storage_Manager
@@ -58,7 +101,12 @@ class SUT_RAG_Engine:
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
             return
-        self.llm = ChatGoogleGenerativeAI(model=model_name, google_api_key=api_key, temperature=0.1)
+        if model_name.startswith("gemma"):
+            # Gemma models are not supported by Langchain's v1beta endpoint;
+            # use the native google.generativeai SDK via our wrapper instead.
+            self.llm = _NativeGemmaWrapper(model_name, api_key)
+        else:
+            self.llm = ChatGoogleGenerativeAI(model=model_name, google_api_key=api_key, temperature=0.1)
 
     def _init_openrouter_llm(self, model_name: str):
         api_key = os.getenv("OPENROUTER_API_KEY")
@@ -92,9 +140,11 @@ class SUT_RAG_Engine:
     # ─── Tool Definitions (schema injected into system prompt) ───────────────
 
     TOOL_SCHEMA = """
+⚠️ CRITICAL INSTRUCTION: Your response must be ONLY a single valid JSON object. No explanations, no markdown, no text before or after. Just the raw JSON.
+
 Sen bir SUT Uzmanı yapay zeka asistanısın. Görevin: kullanıcının sorusunu Türkçe olarak eksiksiz, doğru ve kaynaklı biçimde yanıtlamak.
 
-KULLANILABILECEK ARAÇLAR (Her turda yalnızca 1 araç çağır. Çıktının yalnızca JSON olması gerekiyor):
+KULLANILABİLECEK ARAÇLAR (Her turda yalnızca 1 araç çağır. Çıktının yalnızca JSON olması gerekiyor):
 
 1. search_sut_chunks — Semantik vektör arama. Genel, kavramsal sorular için kullan.
    {"tool": "search_sut_chunks", "query": "<doğal dil sorgu>", "k": <3-8>}
@@ -131,7 +181,10 @@ SONUÇ YAZMA SÜRECİ (finish çağırırken):
    <KAYNAK baslik="Madde X.X.X (veya Kısa Başlık)">Kaynak metni burada...</KAYNAK>
    </KAYNAKLAR>
 5. Tüm yanıtı Türkçe yaz.
+
+⚠️ REMINDER: Output ONLY the JSON object. No text before, no text after. Start with { and end with }.
 """
+
 
     TOOL_REACTION_PROMPT = """
 == SUT UZMAN ASİSTAN (ROL: {role}) ==
@@ -148,7 +201,8 @@ Rol: {role_description}
 --- KULLANICI SORUSU ---
 {user_query}
 
-Şimdi tek bir JSON araç çağrısı üret. Başka hiçbir metin yazma.
+YANITIN YALNIZCA VE YALNIZCA bir JSON nesnesi olmalıdır. {{ ile başla ve }} ile bit. Hiçbir açıklama, yorum veya markdown ekleme.
+ÖRNEK: {{"tool": "search_sut_chunks", "query": "...", "k": 5}}
 """
 
     CRITIC_PROMPT = """
@@ -223,9 +277,17 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
                 user_query=user_query,
             )
 
+            raw = ""
             try:
                 decision_msg = self.llm.invoke([HumanMessage(content=prompt)])
-                raw = decision_msg.content.strip()
+                raw_content = decision_msg.content
+                if isinstance(raw_content, list):
+                    parts = []
+                    for p in raw_content:
+                        if isinstance(p, dict): parts.append(p.get("text", str(p)))
+                        else: parts.append(str(p))
+                    raw_content = "".join(parts)
+                raw = str(raw_content).strip()
 
                 if raw.startswith("```"):
                     raw = raw.split("```")[1]
@@ -423,7 +485,14 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
         try:
             # Use same LLM for verification but with higher precision focus
             response = self.llm.invoke([HumanMessage(content=critic_prompt)])
-            return response.content.strip()
+            res_content = response.content
+            if isinstance(res_content, list):
+                parts = []
+                for p in res_content:
+                    if isinstance(p, dict): parts.append(p.get("text", str(p)))
+                    else: parts.append(str(p))
+                res_content = "".join(parts)
+            return str(res_content).strip()
         except Exception as e:
             return "TAMAM" # Fallback if critic fails, don't block user
 
@@ -454,7 +523,17 @@ ARAŞTIRMA SONUÇLARI:
 
             full_response = ""
             for chunk in self.llm.stream(messages):
-                content = chunk.content if hasattr(chunk, 'content') else ""
-                if content: full_response += content
+                content = getattr(chunk, "content", "")
+                if isinstance(content, (list, tuple)):
+                    parts = []
+                    for part in content:
+                        if isinstance(part, dict):
+                            parts.append(part.get("text", str(part)))
+                        else:
+                            parts.append(str(part))
+                    content = "".join(parts)
+                
+                if content:
+                    full_response += str(content)
             return full_response
         except Exception as e: return f"Hata: {str(e)}"

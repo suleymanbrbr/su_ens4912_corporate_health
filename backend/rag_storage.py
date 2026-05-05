@@ -106,9 +106,33 @@ class SUT_Storage_Manager:
                 hashes = '#' * min(6, depth)
                 return f"{hashes} {m.group(0)}"
             text = regex.sub(r"^\*\*((\d+\.)+\d+[\.\d\w-]*)\s*-*\s*([^ \n\*]+.*?)\*\*", h_repl, text, flags=regex.MULTILINE)
+            
+            # --- FIX FAKE HEADERS ---
+            # Demote any markdown header (#) that does NOT start with a number (like 1., 2.3) or EK-
+            def fix_fake_headers(m):
+                hashes, title = m.groups()
+                title_stripped = title.strip()
+                # Remove markdown bold/italic before checking
+                clean_title = regex.sub(r'^[\*\s]+', '', title_stripped)
+                # If it doesn't start with a digit or 'EK-', demote it to bold text
+                if not regex.match(r'^(\d|EK-)', clean_title):
+                    return f"**{title_stripped}**"
+                return m.group(0)
+            
+            text = regex.sub(r'^(#{1,6})\s+(.+)$', fix_fake_headers, text, flags=regex.MULTILINE)
             headers_to_split_on = [("#", "Header 1"), ("##", "Header 2"), ("###", "Header 3"), ("####", "Header 4")]
             splitter = MarkdownHeaderTextSplitter(headers_to_split_on=headers_to_split_on)
-            return splitter.split_text(text)
+            md_splits = splitter.split_text(text)
+            
+            # Since we removed fake headers, some sections might be massive (16k+ chars). 
+            # We must chunk them further to fit into the embedding model's 512 token limit.
+            from langchain_text_splitters import RecursiveCharacterTextSplitter
+            char_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=1200, 
+                chunk_overlap=200,
+                separators=["\n\n", "\n", ".", " ", ""]
+            )
+            return char_splitter.split_documents(md_splits)
         except Exception as e:
             print(f"[ERROR] Chunking failed: {e}")
             return []

@@ -1,5 +1,5 @@
 {
-  "evaluation_date": "2026-03-29T22:19:15",
+  "evaluation_date": "2026-05-05T12:54:38",
   "num_questions": 200,
   "k_values": [
     1,
@@ -10,30 +10,30 @@
   "new_system": {
     "name": "pgvector + PostgreSQL + Cross-Encoder Reranker + gemini-2.0-flash",
     "metrics": {
-      "hit_rate@1": 0.29,
-      "mrr@1": 0.29,
-      "ndcg@1": 0.29,
-      "precision@1": 0.29,
-      "hit_rate@3": 0.405,
-      "mrr@3": 0.34,
-      "ndcg@3": 0.3912,
-      "precision@3": 0.155,
-      "hit_rate@5": 0.42,
-      "mrr@5": 0.3433,
-      "ndcg@5": 0.4194,
-      "precision@5": 0.107,
-      "hit_rate@10": 0.475,
-      "mrr@10": 0.3507,
-      "ndcg@10": 0.473,
-      "precision@10": 0.07,
-      "avg_latency_sec": 1.823,
-      "p95_latency_sec": 2.039
+      "hit_rate@1": 0.31,
+      "mrr@1": 0.31,
+      "ndcg@1": 0.31,
+      "precision@1": 0.31,
+      "hit_rate@3": 0.455,
+      "mrr@3": 0.3775,
+      "ndcg@3": 0.5715,
+      "precision@3": 0.255,
+      "hit_rate@5": 0.505,
+      "mrr@5": 0.389,
+      "ndcg@5": 0.692,
+      "precision@5": 0.212,
+      "hit_rate@10": 0.565,
+      "mrr@10": 0.3964,
+      "ndcg@10": 0.889,
+      "precision@10": 0.1675,
+      "avg_latency_sec": 0.707,
+      "p95_latency_sec": 0.839
     }
   },
   "old_system": {
-    "name": "FAISS IndexFlatL2 + SQLite (no reranker) — REAL empirical measurement",
-    "git_commit": "2b38285",
-    "note": "Same DOCX, same embedding model. Rebuilt from git history and evaluated on identical 200 questions.",
+    "name": "FAISS IndexFlatL2 + SQLite + gemini-2.5-flash (no reranker)",
+    "baseline_type": "empirical",
+    "baseline_source": "REAL empirical measurement (eval_old_faiss.py, git commit 2b38285)",
     "metrics": {
       "hit_rate@1": 0.195,
       "mrr@1": 0.195,
@@ -52,25 +52,26 @@
       "ndcg@10": 0.5006,
       "precision@10": 0.0905,
       "avg_latency_sec": 0.016,
-      "p95_latency_sec": 0.024
+      "p95_latency_sec": 0.024,
+      "architecture": "FAISS IndexFlatL2 + SQLite, no reranker, same embedding model (paraphrase-multilingual-MiniLM-L12-v2)"
     }
   },
   "improvements": {
-    "hit_rate@1_improvement_%": 48.7,
-    "mrr@1_improvement_%": 48.7,
-    "ndcg@1_improvement_%": 48.7,
-    "precision@1_improvement_%": 48.7,
-    "hit_rate@3_improvement_%": 12.5,
-    "mrr@3_improvement_%": 26.7,
-    "ndcg@3_improvement_%": 16.3,
-    "precision@3_improvement_%": 5.7,
-    "hit_rate@5_improvement_%": 2.4,
-    "mrr@5_improvement_%": 23.0,
-    "ndcg@5_improvement_%": 5.0,
-    "precision@5_improvement_%": -10.1,
-    "hit_rate@10_improvement_%": -5.0,
-    "mrr@10_improvement_%": 20.3,
-    "ndcg@10_improvement_%": -5.5,
-    "precision@10_improvement_%": -22.7
+    "hit_rate@1_improvement_%": 59.0,
+    "mrr@1_improvement_%": 59.0,
+    "ndcg@1_improvement_%": 59.0,
+    "precision@1_improvement_%": 59.0,
+    "hit_rate@3_improvement_%": 26.4,
+    "mrr@3_improvement_%": 40.7,
+    "ndcg@3_improvement_%": 69.8,
+    "precision@3_improvement_%": 73.8,
+    "hit_rate@5_improvement_%": 23.2,
+    "mrr@5_improvement_%": 39.4,
+    "ndcg@5_improvement_%": 73.2,
+    "precision@5_improvement_%": 78.2,
+    "hit_rate@10_improvement_%": 13.0,
+    "mrr@10_improvement_%": 36.0,
+    "ndcg@10_improvement_%": 77.6,
+    "precision@10_improvement_%": 85.1
   }
 }
