@@ -4,6 +4,7 @@
 # Evaluates using MAP, NDCG, and LLM-as-a-Judge Faithfulness metrics.
 
 import os
+import random
 import time
 import json
 import math
@@ -31,11 +32,23 @@ OUT_DIR.mkdir(exist_ok=True)
 
 # ─── Config ──────────────────────────────────────────────────────────────────
 # Adjust to test smaller slices for speed
-Num_Questions_To_Test = 100
+Num_Questions_To_Test = 50
 
 MODELS_TO_TEST = [
-    {"provider": "google", "name": "gemini-3.1-pro-preview"}
+    # --- GEMINI (Proprietary via Google API) ---
+    # {"provider": "google", "name": "gemini-2.5-flash-lite"},
+    # {"provider": "google", "name": "gemini-2.5-flash"},
+    # {"provider": "google", "name": "gemini-2.5-pro"},
+    {"provider": "google", "name": "gemini-3.1-pro-preview"},
+
+    # --- LOCAL MODELS (via LM Studio — OpenAI-compatible local server) ---
+    # ⚠️  Run these ONE AT A TIME in LM Studio before starting the benchmark.
+    #     Model name must EXACTLY match the model identifier shown in LM Studio.
+    #     Default server: http://localhost:1234/v1  (set LOCAL_LLM_API_BASE in .env to override)
+    # {"provider": "local", "name": "qwen/qwen3.5-9b"},
+    {"provider": "local", "name": "lmstudio-community/Meta-Llama-3-8B-Instruct-GGUF"},
 ]
+
 
 # ─── Metrics Calculation ─────────────────────────────────────────────────────
 
@@ -82,16 +95,27 @@ def evaluate_llm_judge(question: str, reference: str, answer: str, judge_model, 
     2. Answer Relevance: Does the AI answer directly address the user question?
     Returns (faithfulness_score, relevance_score)
     """
+    # Normalize answer type — models can return dict/list despite best efforts
+    if isinstance(answer, dict):
+        answer = json.dumps(answer, ensure_ascii=False)
+    elif isinstance(answer, list):
+        answer = "\n".join(str(x) for x in answer)
+    else:
+        answer = str(answer) if answer is not None else ""
+
     if not answer or "[ERROR]" in answer or "Hata:" in answer:
         print(f"    [JUDGE] [{model_name} | Q{q_index}] Response contains error or is empty. Scoring 0.0.")
         return 0.0, 0.0
+    
+    # Truncate very long answers to avoid token limits
+    answer_truncated = answer[:2000]
     
     prompt = f"""
 Sen tarafsız bir değerlendirici yapay zekasın. RAG (Retrieval-Augmented Generation) sisteminin çıktısını iki kritere göre değerlendireceksin.
 
 Soru: {question}
 Gerçek/Beklenen Cevap (Referans): {reference}
-Yapay Zeka (RAG) Cevabı: {answer[:1500]}
+Yapay Zeka (RAG) Cevabı: {answer_truncated}
 
 KRİTER 1: FAITHFULNESS (Sadakat)
 - RAG Cevabı, Referans bilgisiyle çelişiyor mu veya Referansta olmayan bir bilgiyi uyduruyor mu?
@@ -139,9 +163,11 @@ KRİTER 2: RELEVANCE (İlgililik)
             print(f"    FAITHFULNESS: {f_score:.2f} | RELEVANCE: {r_score:.2f}")
             return f_score, r_score
         else:
-            print(f"    [JUDGE] Could not parse JSON from response.")
+            print(f"    [JUDGE] Could not parse JSON from response. Raw: {resp[:200]}")
+            return 0.5, 0.5
     except Exception as e:
         print(f"    [JUDGE ERROR] {type(e).__name__}: {e}")
+        return 0.5, 0.5
     return 0.5, 0.5
 
 # ─── Schema Helper ───────────────────────────────────────────────────────────
@@ -309,7 +335,19 @@ def run_evaluation():
         print(f"Error loading {EVAL_CSV}: {e}")
         return
 
-    test_subset = rows[:Num_Questions_To_Test]
+    n = min(Num_Questions_To_Test, len(rows))
+    if n == 0:
+        print(f"[ERROR] No questions in {EVAL_CSV}")
+        return
+    seed_str = os.getenv("EVAL_RANDOM_SEED", "42")
+    try:
+        rng_seed = int(seed_str)
+    except ValueError:
+        rng_seed = 42
+    rng = random.Random(rng_seed)
+    test_subset = rng.sample(rows, n)
+    print(f"[INFO] Random sample: {n} / {len(rows)} questions from {EVAL_CSV} (seed={rng_seed}, override with EVAL_RANDOM_SEED)")
+
     results_summary = {}
     
     # Ensure directories exist
@@ -325,21 +363,52 @@ def run_evaluation():
         timeout=60.0
     )
 
-    # Run in parallel
-    print(f"\n🚀 Starting parallel evaluation for {len(MODELS_TO_TEST)} models...")
-    with ThreadPoolExecutor(max_workers=len(MODELS_TO_TEST)) as executor:
-        future_to_model = {executor.submit(evaluate_single_model, cfg, test_subset, judge_model, OUT_DIR, MODELS_DIR): cfg for cfg in MODELS_TO_TEST}
-        for future in as_completed(future_to_model):
+    # Separate cloud and local models — local models must run sequentially
+    # because LM Studio only serves one model at a time.
+    cloud_models = [cfg for cfg in MODELS_TO_TEST if cfg["provider"] != "local"]
+    local_models  = [cfg for cfg in MODELS_TO_TEST if cfg["provider"] == "local"]
+
+    # ── Cloud models: run in parallel ────────────────────────────────────────
+    if cloud_models:
+        print(f"\n🌐 Starting PARALLEL evaluation for {len(cloud_models)} cloud model(s)...")
+        with ThreadPoolExecutor(max_workers=len(cloud_models)) as executor:
+            future_to_model = {
+                executor.submit(evaluate_single_model, cfg, test_subset, judge_model, OUT_DIR, MODELS_DIR): cfg
+                for cfg in cloud_models
+            }
+            for future in as_completed(future_to_model):
+                try:
+                    m_name, m_results = future.result()
+                    results_summary[m_name] = m_results
+                except Exception as e:
+                    print(f"Model thread generated an exception: {e}")
+
+    # ── Local models: run sequentially (one model loaded at a time) ───────────
+    if local_models:
+        print(f"\n🖥️  Starting SEQUENTIAL evaluation for {len(local_models)} local model(s)...")
+        print("=" * 60)
+        print("⚠️  LOCAL MODEL INSTRUCTIONS:")
+        print("   1. Open LM Studio → 'Local Server' tab.")
+        print("   2. Load the model listed below, then click 'Start Server'.")
+        print("   3. Press ENTER here when the server is ready.")
+        print("   4. Repeat for each model when prompted.")
+        print("=" * 60)
+        for cfg in local_models:
+            print(f"\n   ➡️  Please load model in LM Studio: '{cfg['name']}' then press ENTER...")
+            input()
             try:
-                m_name, m_results = future.result()
+                m_name, m_results = evaluate_single_model(cfg, test_subset, judge_model, OUT_DIR, MODELS_DIR)
                 results_summary[m_name] = m_results
             except Exception as e:
-                print(f"Model thread generated an exception: {e}")
+                print(f"Local model '{cfg['name']}' failed: {e}")
     
     # Save overall 
     final_output = {
         "timestamp": time.time(),
         "num_questions": len(test_subset),
+        "eval_csv": EVAL_CSV,
+        "random_seed": rng_seed,
+        "question_ids_sample": [q["id"] for q in test_subset],
         "results": results_summary
     }
     
@@ -349,6 +418,9 @@ def run_evaluation():
         summary_only = {
             "timestamp": final_output["timestamp"],
             "num_questions": final_output["num_questions"],
+            "eval_csv": final_output["eval_csv"],
+            "random_seed": final_output["random_seed"],
+            "question_ids_sample": final_output["question_ids_sample"],
             "results": {}
         }
         for m, mdata in results_summary.items():

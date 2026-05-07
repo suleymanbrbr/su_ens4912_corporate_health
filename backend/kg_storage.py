@@ -11,7 +11,8 @@ from collections import deque
 
 
 def get_conn():
-    return psycopg2.connect(os.getenv("DATABASE_URL"), cursor_factory=psycopg2.extras.DictCursor)
+    url = os.getenv("LOCAL_DATABASE_URL") or os.getenv("DATABASE_URL")
+    return psycopg2.connect(url, cursor_factory=psycopg2.extras.DictCursor)
 
 
 class KG_Storage_Manager:
@@ -52,13 +53,23 @@ class KG_Storage_Manager:
     def find_nodes_semantic(self, query: str, k: int = 5, type_filter: str = None) -> List[Dict]:
         """Semantic vector search on node label+text embeddings."""
         try:
-            from langchain_huggingface import HuggingFaceEmbeddings
-            if not hasattr(self, '_embed_model'):
-                self._embed_model = HuggingFaceEmbeddings(
-                    model_name="paraphrase-multilingual-MiniLM-L12-v2",
-                    model_kwargs={'device': 'cpu'}
-                )
-            vec = self._embed_model.embed_query(query[:512])
+            from embedding_utils import build_hf_embeddings, embed_query_retrieval, resolve_embedding_model_name
+            if not getattr(self, "_kg_sem_embed", None):
+                conn = get_conn()
+                try:
+                    cur = conn.cursor()
+                    cur.execute(
+                        "SELECT vector_dims(embedding) FROM kg_nodes WHERE embedding IS NOT NULL LIMIT 1"
+                    )
+                    row = cur.fetchone()
+                    cur.close()
+                    dim = row[0] if row else None
+                finally:
+                    conn.close()
+                name = resolve_embedding_model_name(dim)
+                self._kg_sem_embed = build_hf_embeddings(name)
+                self._kg_sem_model_name = name
+            vec = embed_query_retrieval(self._kg_sem_embed, self._kg_sem_model_name, query[:512])
             vec_str = "[" + ",".join(map(str, vec)) + "]"
         except Exception as e:
             print(f"[KG_STORAGE] Embed failed: {e}")

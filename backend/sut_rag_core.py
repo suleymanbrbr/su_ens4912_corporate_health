@@ -11,7 +11,6 @@ from sentence_transformers import CrossEncoder
 
 # LangChain & AI Libraries
 import google.generativeai as google_genai
-from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
@@ -60,6 +59,7 @@ class _NativeGemmaWrapper:
 
 # KG Storage
 from kg_storage import KG_Storage_Manager
+from embedding_utils import build_hf_embeddings, embed_query_retrieval, resolve_embedding_model_name, DEFAULT_MINILM
 
 # ─── Tool Icon Map ───────────────────────────────────────────────────────────
 TOOL_ICONS = {
@@ -90,6 +90,8 @@ class SUT_RAG_Engine:
             self._init_google_llm(model_name)
         elif llm_provider == "openrouter":
             self._init_openrouter_llm(model_name)
+        elif llm_provider == "local":
+            self._init_local_llm(model_name)
         else:
             self._init_google_llm("gemini-2.0-flash")
 
@@ -123,21 +125,55 @@ class SUT_RAG_Engine:
             temperature=0.1
         )
 
-    def _initialize_embeddings(self):
-        return HuggingFaceEmbeddings(
-            model_name="paraphrase-multilingual-MiniLM-L12-v2",
-            model_kwargs={'device': 'cpu'}
+    def _init_local_llm(self, model_name: str):
+        """Connect to a locally running OpenAI-compatible server.
+        Works with LM Studio (default: http://localhost:1234/v1),
+        Ollama (http://localhost:11434/v1), or any similar server.
+        Set LOCAL_LLM_API_BASE in .env to override the default URL.
+        Set LOCAL_LLM_API_KEY in .env if your server requires auth.
+        """
+        raw_base = os.getenv("LOCAL_LLM_API_BASE", "http://localhost:1234/v1").strip().rstrip("/")
+        # OpenAI-compatible servers expect .../v1 (LM Studio default). Avoid silent failures when .env omits /v1.
+        base_url = raw_base if raw_base.endswith("/v1") else f"{raw_base}/v1"
+        api_key  = os.getenv("LOCAL_LLM_API_KEY",  "lm-studio")  # LM Studio accepts any non-empty string
+        print(f"[INIT] Connecting to local LLM server at: {base_url}")
+        self.llm = ChatOpenAI(
+            model=model_name,
+            openai_api_key=api_key,
+            openai_api_base=base_url,
+            temperature=0.1,
+            request_timeout=300,  # local models can be very slow with big context; 5 min
         )
+
+    def _initialize_embeddings(self):
+        name = os.getenv("SUT_EMBEDDING_MODEL", "").strip() or DEFAULT_MINILM
+        self._embedding_model_name = name
+        return build_hf_embeddings(name)
 
     def load_database(self) -> bool:
         try:
-            self.conn = psycopg2.connect(os.getenv("DATABASE_URL"))
+            # Use LOCAL_DATABASE_URL when running from the terminal (outside Docker).
+            # Docker containers use DATABASE_URL (with 'db' hostname).
+            db_url = os.getenv("LOCAL_DATABASE_URL") or os.getenv("DATABASE_URL")
+            self.conn = psycopg2.connect(db_url)
             cur = self.conn.cursor()
             cur.execute("SELECT EXISTS (SELECT FROM pg_tables WHERE schemaname='public' AND tablename='chunks')")
             exists = cur.fetchone()[0]
-            cur.close()
             if not exists:
+                cur.close()
                 print("[WARN] 'chunks' table not found. Re-index required from Admin Panel.")
+                return True
+            cur.execute(
+                "SELECT vector_dims(embedding) FROM chunks WHERE embedding IS NOT NULL LIMIT 1"
+            )
+            row = cur.fetchone()
+            cur.close()
+            dim = row[0] if row else None
+            resolved = resolve_embedding_model_name(dim)
+            if resolved != self._embedding_model_name:
+                print(f"[INIT] Aligning embedding model with DB ({dim}d vectors): {resolved}")
+                self._embedding_model_name = resolved
+                self.embeddings_model = build_hf_embeddings(resolved)
             return True
         except Exception as e:
             print(f"[WARN] Postgres database connection failed: {e}")
@@ -271,8 +307,27 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
             }
         }.get(role.upper(), {"name": "SUT Uzmanı", "desc": "Genel SUT uzmanı."})
 
+        search_tool_names = {"search_sut_chunks", "search_sut_fulltext", "lookup_kg_entity", "explore_kg_path"}
+        searches_done = 0
+
         for iteration in range(MAX_AGENT_ITERATIONS):
             obs_str = self._format_observations(observations)
+
+            # On the LAST iteration, skip the LLM tool-decision entirely and
+            # jump straight to synthesis.  Small local models (Qwen3.5, Llama-8B)
+            # ignore text-based urgency hints and keep calling search forever.
+            iterations_left = MAX_AGENT_ITERATIONS - iteration
+            if iterations_left == 1 and searches_done >= MIN_SEARCHES_BEFORE_FINISH:
+                break  # will hit the fallback synthesis below the loop
+
+            # When running low on iterations, inject an urgency hint.
+            urgency_hint = ""
+            if iterations_left <= 3 and searches_done >= MIN_SEARCHES_BEFORE_FINISH:
+                urgency_hint = (
+                    "\n\n⚠️ SON TUR UYARISI: Başka arama yapma! Şimdi MUTLAKA "
+                    '{"tool": "finish", "answer": "<Türkçe kapsamlı yanıt>"}'
+                    " çağır. Elindeki bilgileri derle ve soruyu yanıtla."
+                )
 
             prompt = self.TOOL_REACTION_PROMPT.format(
                 role=role_meta["name"],
@@ -280,7 +335,7 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
                 tool_schema=self.TOOL_SCHEMA,
                 history=history_str or "(Yeni konuşma)",
                 observations=obs_str or "(Henüz araç kullanılmadı.)",
-                user_query=user_query,
+                user_query=user_query + urgency_hint,
             )
 
             raw = ""
@@ -300,7 +355,18 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
                     if raw.startswith("json"):
                         raw = raw[4:].strip()
 
-                tool_call = json.loads(raw)
+                # Primary parse attempt
+                try:
+                    tool_call = json.loads(raw)
+                except json.JSONDecodeError:
+                    # Fallback: extract first JSON object (handles Qwen3/DeepSeek thinking
+                    # models that emit \n\n{...} after their <think> reasoning block)
+                    import re as _re
+                    m = _re.search(r'\{[^{}]*\}', raw, _re.DOTALL)
+                    if m:
+                        tool_call = json.loads(m.group())
+                    else:
+                        raise
             except Exception as e:
                 yield {"agent_step": {
                     "iteration": iteration + 1,
@@ -314,8 +380,30 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
             tool_name = tool_call.get("tool", "unknown")
             icon = TOOL_ICONS.get(tool_name, "🔧")
 
+            if tool_name in search_tool_names:
+                searches_done += 1
+
             if tool_name == "finish":
-                final_answer = tool_call.get("answer", "")
+                raw_answer = tool_call.get("answer", "")
+                # Normalize: some models (Llama-3, Mistral) return answer as a
+                # nested dict {"Başlık": ..., "İçerik": ..., "KAYNAKLAR": ...}
+                # instead of a plain string.  Flatten it to a readable string.
+                if isinstance(raw_answer, dict):
+                    parts = []
+                    if "İçerik" in raw_answer:
+                        parts.append(str(raw_answer["İçerik"]))
+                    elif "content" in raw_answer:
+                        parts.append(str(raw_answer["content"]))
+                    else:
+                        # Fallback: join all string values
+                        for v in raw_answer.values():
+                            if isinstance(v, str):
+                                parts.append(v)
+                    final_answer = "\n\n".join(parts) if parts else json.dumps(raw_answer, ensure_ascii=False)
+                elif isinstance(raw_answer, list):
+                    final_answer = "\n".join(str(x) for x in raw_answer)
+                else:
+                    final_answer = str(raw_answer)
                 yield {"status": "🕵️ Critic denetimi yapılıyor..."}
                 critic_feedback = self._verify_with_critic(user_query, final_answer, obs_str)
                 
@@ -401,7 +489,7 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
         if not self.conn: return []
         initial_k = k * 3
         try:
-            q_vec = self.embeddings_model.embed_query(query)
+            q_vec = embed_query_retrieval(self.embeddings_model, self._embedding_model_name, query)
             q_vec_str = "[" + ",".join(map(str, q_vec)) + "]"
             cur = self.conn.cursor()
             cur.execute("""
@@ -508,38 +596,41 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
         observations: List[Dict],
         chat_history: List[Dict]
     ) -> str:
-        """Called when max iterations hit — asks LLM to synthesize from what we have."""
+        """Called when max iterations hit — asks LLM to synthesize from what we have.
+        Uses invoke() instead of stream() for reliability with local models.
+        Truncates observations to avoid huge prompts that cause timeouts.
+        """
         obs_str = self._format_observations(observations)
+        # Truncate to avoid blowing up the context window / causing timeouts
+        obs_str = obs_str[:2000] if obs_str else "(Araştırma sonucu yok)"
 
-        system_prompt = f"""Sen SUT (Sağlık Uygulama Tebliği) uzmanısın.
-Aşağıdaki araştırma sonuçlarını kullanarak kullanıcının sorusunu Türkçe olarak kapsamlı şekilde cevapla.
-Bilgi bulunamadıysa açıkça belirt.
-
-ARAŞTIRMA SONUÇLARI:
-{obs_str or '(Araştırma sonucu yok)'}
-"""
+        # Short, focused synthesis prompt — keep it small for local models
+        combined_prompt = (
+            "Sen SUT (Sağlık Uygulama Tebliği) uzmanısın.\n"
+            "Aşağıdaki araştırma sonuçlarını kullanarak kullanıcının sorusunu "
+            "Türkçe olarak kapsamlı şekilde cevapla. "
+            "Eğer sonuçlarda soruyla ilgili bilgi yoksa, bunu açıkça belirt "
+            "ve genel bilgi ver.\n\n"
+            f"ARAŞTIRMA SONUÇLARI:\n{obs_str}\n\n"
+            f"SORU: {user_query}\n\n"
+            "YANIT:"
+        )
         try:
-            messages = [SystemMessage(content=system_prompt)]
-            for msg in chat_history[-4:]:
-                if msg.get("role") == "user":
-                    messages.append(HumanMessage(content=msg.get("content", "")))
-                elif msg.get("role") == "assistant":
-                    messages.append(AIMessage(content=msg.get("content", "")))
-            messages.append(HumanMessage(content=user_query))
-
-            full_response = ""
-            for chunk in self.llm.stream(messages):
-                content = getattr(chunk, "content", "")
-                if isinstance(content, (list, tuple)):
-                    parts = []
-                    for part in content:
-                        if isinstance(part, dict):
-                            parts.append(part.get("text", str(part)))
-                        else:
-                            parts.append(str(part))
-                    content = "".join(parts)
-                
-                if content:
-                    full_response += str(content)
-            return full_response
-        except Exception as e: return f"Hata: {str(e)}"
+            resp = self.llm.invoke([HumanMessage(content=combined_prompt)])
+            raw = resp.content
+            if isinstance(raw, list):
+                parts = []
+                for part in raw:
+                    if isinstance(part, dict):
+                        parts.append(part.get("text", str(part)))
+                    else:
+                        parts.append(str(part))
+                raw = "".join(parts)
+            result = str(raw).strip()
+            # If the model wraps its answer in <think>...</think>, extract the part after it
+            if "</think>" in result:
+                result = result.split("</think>", 1)[-1].strip()
+            return result if result else "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı."
+        except Exception as e:
+            print(f"[FALLBACK ERROR] {type(e).__name__}: {e}")
+            return "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı."
