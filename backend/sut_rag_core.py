@@ -106,7 +106,13 @@ class SUT_RAG_Engine:
             # use the native google.generativeai SDK via our wrapper instead.
             self.llm = _NativeGemmaWrapper(model_name, api_key)
         else:
-            self.llm = ChatGoogleGenerativeAI(model=model_name, google_api_key=api_key, temperature=0.1)
+            self.llm = ChatGoogleGenerativeAI(
+                model=model_name, 
+                google_api_key=api_key, 
+                temperature=0.1,
+                max_retries=1,
+                timeout=60.0
+            )
 
     def _init_openrouter_llm(self, model_name: str):
         api_key = os.getenv("OPENROUTER_API_KEY")

@@ -34,17 +34,6 @@ OUT_DIR.mkdir(exist_ok=True)
 Num_Questions_To_Test = 100
 
 MODELS_TO_TEST = [
-    # --- GEMMA (Open Weights) ---
-    {"provider": "google", "name": "gemma-3-1b-it"},
-    {"provider": "google", "name": "gemma-3-4b-it"},
-    {"provider": "google", "name": "gemma-3-12b-it"},
-    {"provider": "google", "name": "gemma-4-26b-a4b-it"},
-    {"provider": "google", "name": "gemma-4-31b-it"},
-    
-    # --- GEMINI (Proprietary) ---
-    {"provider": "google", "name": "gemini-2.5-flash-lite"},
-    {"provider": "google", "name": "gemini-2.5-flash"},
-    {"provider": "google", "name": "gemini-2.5-pro"},
     {"provider": "google", "name": "gemini-3.1-pro-preview"}
 ]
 
@@ -201,14 +190,20 @@ def evaluate_single_model(model_cfg, test_subset, judge_model, OUT_DIR, MODELS_D
         faith_scores = []
         relevance_scores = []
         tool_counts = []
-        tool_success = 0
+        tool_success = [0]  # using list for mutable reference in threads
         
-        for i, q in enumerate(test_subset, 1):
+        def process_question(i, q):
             t0 = time.time()
             final_answer = ""
             agent_steps = []
             retrieved_chunks = []
             
+            # Instantiate engine per thread to prevent DB cursor collisions
+            engine = SUT_RAG_Engine(llm_provider=provider, model_name=model_name)
+            engine.load_database()
+            if mode == "no_kg":
+                engine.TOOL_SCHEMA = strip_kg_tools(engine.TOOL_SCHEMA)
+                
             try:
                 for chunk in engine.query_agentic_rag_stream(q["question"]):
                     if "agent_step" in chunk:
@@ -221,9 +216,13 @@ def evaluate_single_model(model_cfg, test_subset, judge_model, OUT_DIR, MODELS_D
                             except: pass
                     if "final_answer" in chunk:
                         final_answer = chunk["final_answer"]
-                        tool_success += 1
+                        tool_success[0] += 1
             except Exception as e:
                 final_answer = f"[ERROR] {str(e)}"
+                
+            if engine.conn:
+                try: engine.conn.close()
+                except: pass
                 
             latency = time.time() - t0
             
@@ -237,22 +236,30 @@ def evaluate_single_model(model_cfg, test_subset, judge_model, OUT_DIR, MODELS_D
             
             t_count = len(agent_steps)
             
-            latencies.append(latency)
-            map_scores.append(q_map)
-            ndcg_scores.append(q_ndcg)
-            recall_scores.append(q_recall)
-            faith_scores.append(f_score)
-            relevance_scores.append(r_score)
-            tool_counts.append(t_count)
-            
-            mode_results.append({
-                "question": q["question"],
-                "expected": q["answer"],
-                "source": q["source"],
-                "ai_answer": final_answer,
-                "metrics": {"map": q_map, "ndcg": q_ndcg, "recall": q_recall, "faithfulness": f_score, "relevance": r_score, "latency": latency, "tool_steps": t_count}
-            })
-            time.sleep(1)
+            return {
+                "latency": latency, "q_map": q_map, "q_ndcg": q_ndcg, "q_recall": q_recall,
+                "f_score": f_score, "r_score": r_score, "t_count": t_count,
+                "result": {
+                    "question": q["question"],
+                    "expected": q["answer"],
+                    "source": q["source"],
+                    "ai_answer": final_answer,
+                    "metrics": {"map": q_map, "ndcg": q_ndcg, "recall": q_recall, "faithfulness": f_score, "relevance": r_score, "latency": latency, "tool_steps": t_count}
+                }
+            }
+
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            futures = [executor.submit(process_question, i, q) for i, q in enumerate(test_subset, 1)]
+            for future in as_completed(futures):
+                res = future.result()
+                latencies.append(res["latency"])
+                map_scores.append(res["q_map"])
+                ndcg_scores.append(res["q_ndcg"])
+                recall_scores.append(res["q_recall"])
+                faith_scores.append(res["f_score"])
+                relevance_scores.append(res["r_score"])
+                tool_counts.append(res["t_count"])
+                mode_results.append(res["result"])
         
         # Aggregate
         avg_lat = sum(latencies)/len(latencies) if latencies else 0
@@ -311,7 +318,12 @@ def run_evaluation():
     MODELS_DIR.mkdir(exist_ok=True)
     
     # Initialize Judge
-    judge_model = ChatGoogleGenerativeAI(model="gemini-3-pro-preview", temperature=0)
+    judge_model = ChatGoogleGenerativeAI(
+        model="gemini-3.1-pro-preview", 
+        temperature=0,
+        max_retries=1,
+        timeout=60.0
+    )
 
     # Run in parallel
     print(f"\n🚀 Starting parallel evaluation for {len(MODELS_TO_TEST)} models...")
