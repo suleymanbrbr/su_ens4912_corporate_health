@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import toast, { Toaster } from 'react-hot-toast'
 import { ArrowLeft, Settings as SettingsIcon, Moon, Sun, Monitor, Cpu, Sliders } from 'lucide-react'
 
 function Settings({ user, onLogout }) {
@@ -9,25 +10,27 @@ function Settings({ user, onLogout }) {
   const navigate = useNavigate()
 
   useEffect(() => {
+    document.title = 'Ayarlar — SUT Asistanı'
+  }, [])
+
+  useEffect(() => {
     setTheme(localStorage.getItem('theme') || 'light')
     setModel(localStorage.getItem('model') || 'gemini')
-    setDepth(parseInt(localStorage.getItem('k_depth') || '5'))
+    setDepth(parseInt(localStorage.getItem('k_depth') || '5', 10))
   }, [])
 
   const handleSave = () => {
     localStorage.setItem('theme', theme)
     localStorage.setItem('model', model)
     localStorage.setItem('k_depth', depth.toString())
-    
-    // Quick hack to apply dark mode if we implemented it globally
-    if(theme === 'dark') document.body.classList.add('dark-mode')
-    else document.body.classList.remove('dark-mode')
+    document.documentElement.setAttribute('data-theme', theme)
 
-    alert('Ayarlar başarıyla kaydedildi.')
+    toast.success('Ayarlar kaydedildi.')
   }
 
   return (
     <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)' }}>
+      <Toaster position="bottom-right" />
       <aside className="sidebar glass" style={{ width: '280px', borderRight: '1px solid var(--border)', padding: '2rem', display: 'flex', flexDirection: 'column' }}>
         <h2 className="text-gradient" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
           <SettingsIcon size={24} /> Ayarlar
@@ -41,6 +44,9 @@ function Settings({ user, onLogout }) {
       </aside>
 
       <main style={{ flex: 1, padding: '3rem', overflowY: 'auto' }}>
+        <nav aria-label="Breadcrumb" style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+          <Link to="/" style={{ color: 'var(--primary)', fontWeight: 600 }}>Ana sayfa</Link> / <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>Ayarlar</span>
+        </nav>
         <header style={{ marginBottom: '2rem' }}>
           <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>Uygulama Ayarları</h1>
           <p style={{ color: 'var(--text-muted)' }}>Sistem davranışlarını ve arayüzü özelleştirin.</p>
@@ -56,8 +62,8 @@ function Settings({ user, onLogout }) {
               <button onClick={() => setTheme('light')} className={`btn-${theme === 'light' ? 'primary' : 'secondary'}`} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, justifyContent: 'center' }}>
                 <Sun size={18} /> Aydınlık
               </button>
-              <button onClick={() => setTheme('dark')} className={`btn-${theme === 'dark' ? 'primary' : 'secondary'}`} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, justifyContent: 'center', opacity: 0.5 }}>
-                <Moon size={18} /> Karanlık (Yakında)
+              <button type="button" onClick={() => setTheme('dark')} className={`btn-${theme === 'dark' ? 'primary' : 'secondary'}`} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, justifyContent: 'center' }}>
+                <Moon size={18} /> Karanlık
               </button>
             </div>
           </div>

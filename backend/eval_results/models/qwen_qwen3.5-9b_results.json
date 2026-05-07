@@ -1,0 +1,1533 @@
+{
+  "model_name": "qwen/qwen3.5-9b",
+  "provider": "local",
+  "timestamp": "2026-05-05T19:06:39.982495",
+  "results": {
+    "no_kg": {
+      "summary": {
+        "avg_map": 0.7376,
+        "avg_ndcg": 0.8303,
+        "context_recall": 0.92,
+        "faithfulness": 0.46,
+        "answer_relevance": 0.45,
+        "avg_tool_steps": 4.42,
+        "avg_latency_s": 514.0
+      },
+      "details": [
+        {
+          "question": "Amfoterisin B'ye refrakter invazif aspergilozis tedavisinde hangi ilaçlara refrakterlik aranmaktadır?",
+          "expected": "Amfoterisin B, lipozomal amfoterisin B veya vorikonazol tedavilerine.",
+          "source": "4.2",
+          "ai_answer": "Merhaba, ben SUT (Sağlık Uygulama Tebliği) uzmanı olarak verdiğiniz araştırma sonuçlarını ve soruyu inceledim.\n\n**Araştırma Sonuçları Değerlendirmesi:**\nVerilen üç kaynaklı araştırma sonucu incelendiğinde, **Amfoterisin B**, **Invazif Aspergilozis** veya bu enfeksiyonun tedavisi ile ilgili herhangi bir SUT maddesi bulunmamaktadır. Elde edilen sonuçlar şu konuları kapsamaktadır:\n1.  **Kaynak 1:** Multipl Skleroz (MS) hastalığında kullanılan fampiridin, beta interferon ve diğer MS ilaçlarının kullanım ilkelerini içermektedir.\n2.  **Kaynak 2:** Lizozomal hastalıklar (Gaucher hastalığı) için enzim replasman tedavisi ve miglustat kullanım kriterlerini içermektedir.\n3.  **Kaynak 3:** Belinostat ilacının Relaps Refrakter Periferik T Hücreli Lenfoma tedavisinde kullanım ilkelerini içermektedir.\n\nBu nedenle, sağladığım araştırma sonuçları içerisinde **\"Amfoterisin B'ye refrakter invazif aspergilozis tedavisinde hangi ilaçlara refrakterlik aranmaktadır?\"** sorusunun cevabını içeren spesifik SUT maddesi veya düzenleme bulunmamaktadır.\n\n**Genel Bilgi ve Tıbbi Bağlam:**\nSUT sonuçlarında bu bilgi yer almadığı için, genel tıbbi literatür ve tedavi protokolleri ışığında konuyla ilgili genel bilgilere aşağıda yer verilmiştir:\n\n*   **İlk Basamak Tedavi:** Invazif aspergilozis tedavisinde genellikle ilk basamak olarak Vorikonazol veya Liposomal Amfoterisin B gibi ajanlar tercih edilir.\n*   **Refrakterlik Tanımı:** \"Amfoterisin B'ye refrakter\" olması, hastanın yeterli dozda ve sürede bu ilacı aldıktan sonra klinik belirtilerin (ateş, solunum yetmezliği vb.) düzelmemesi veya radyolojik olarak enfeksiyonun ilerlemesini ifade eder.\n*   **İkinci Basamak Seçenekler:** Amfoterisin B'ye refrakterlik durumunda veya ilk basamak tedavisi başarısız olduğunda, SUT kapsamında genellikle diğer azoller (örneğin İzavuonazol, Pozakonazol) veya farklı sınıftaki antifungal ajanlar değerlendirilir. Ancak hangi ilaca geçiş yapılacağı ve bu geçişin SUT kapsamında hangi maddelerle desteklenip desteklenmediği, ilgili ilacın spesifik kullanım kriterlerine (örn: \"Amfoterisin B'ye refrakter hastalarda\" ibaresi içeren madde) bağlıdır.\n*   **SUT Kapsamı:** SUT, belirli ilaçların hangi hastalıklarda ve hangi tedavi başarısızlığı (refrakterlik) durumunda kullanılabileceğini detaylıca belirler. Amfoterisin B'ye refrakter invazif aspergilozis için onaylanmış alternatif bir ilacın adı, verdiğiniz sonuçlarda yer almamaktadır.\n\n**Sonuç:**\nVerilen araştırma sonuçları (MS, Gaucher hastalığı ve Lenfoma odaklı) sorunuzla doğrudan ilgili değildir. Bu nedenle SUT kapsamında bu spesifik durum için resmi bir madde numarası veya ilaç listesi verilememektedir. İlgili tedaviyi planlarken güncel SUT'ün \"Antifungal Ajanlar\" veya \"Sistemik Antimikrobiyal Tedaviler\" başlıkları altında ilgili ilacın kullanım kriterlerini (örneğin Vorikonazol, İzavuonazol vb.) kontrol etmeniz gerekmektedir.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 0.5,
+            "latency": 420.00973296165466,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Kseroderma pigmentosum ve albinizm tedavisinde kullanılan güneşten koruyucu kremler hangi uzman hekim tarafından reçete edilebilir?",
+          "expected": "Cilt hastalıkları uzman hekimlerince.",
+          "source": "4.2",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 396.85936880111694,
+            "tool_steps": 5
+          }
+        },
+        {
+          "question": "Miyelodisplastik Sendromda (MDS) görülen dirençli anemi tedavisinde decitabinin kullanılabilmesi için kemik iliği blast oranının hangi değerin üzerinde artmış olması gerekmektedir?",
+          "expected": "%5'in üzerinde.",
+          "source": "4.2",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 471.5985269546509,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Sağlık hizmeti sunucuları, kişilerin müracaatı aşamasında kimlik tespiti için hangi belgeleri kullanabilir?",
+          "expected": "Nüfus cüzdanı, sürücü belgesi, evlenme cüzdanı, pasaport veya Kurum sağlık kartı.",
+          "source": "1.6",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.7679,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 572.9141862392426,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "Ani işitme kaybı için uygulanan HBO tedavisinde, 20. seans sonunda tedavi bedellerinin ödenmeye devam etmesi için saf ses ortalamasında en az kaç dB'lik bir düzelme olması gerekmektedir?",
+          "expected": "20 dB",
+          "source": "2.4",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.4377,
+            "ndcg": 0.6509,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 429.23358178138733,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Bir hastaya bir yıl içinde ESWT tedavisi en fazla kaç farklı vücut bölgesine uygulanabilir?",
+          "expected": "2",
+          "source": "2.4",
+          "ai_answer": "Verilen araştırma sonuçları incelendiğinde, sorunuzla ilgili (\"Bir",
+          "metrics": {
+            "map": 0.4674,
+            "ndcg": 0.6934,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 720.5071859359741,
+            "tool_steps": 7
+          }
+        },
+        {
+          "question": "Sorafenib'i hangi uzmanlar reçete edebilir?",
+          "expected": "Tıbbi onkoloji uzmanları.",
+          "source": "4.2",
+          "ai_answer": "Verilen araştırma sonuçları incelendiğinde, **\"Sorafenib\"** ilacının reçete edilebileceği uzman hekim ile ilgili **doğrudan ve açıkça belirtilen bir bilgi bulunmamaktadır.**\n\nAraştırma sonuçlarının içeriğine göre yapılan analiz şöyledir:\n1.  **Kaynak 1:** Migren tedavisi için nöroloji uzman hekimlerinin reçete yetkisini (Triptanlar, Topiramat vb.) düzenlemektedir. Sorafenib bu listede yer almamaktadır.\n2.  **Kaynak 2:** Kanser tedavisinde \"Özel düzenleme yapılan ilaçlar\" başlığı altında fotemustin, interleukin-2, octreotid gibi bazı ilaçların sağlık kurulu raporu gerektirdiği belirtilmiştir. Ancak bu listede **Sorafenib** ismi açıkça geçmemektedir.\n3.  **Kaynak 3:** Osteoporoz ve Paget Hastalığı tedavisi için endokrinoloji uzman hekimlerinin yetkisini düzenlemektedir. Sorafenib ile ilgili bir ifade yoktur.\n\n**Genel Bilgi (SUT Uzmanı Olarak):**\nSorafenib, hepatosellüler karsinom (karaciğer kanseri) ve renal hücreli karsinom (böbrek kanseri) tedavisinde kullanılan bir **onkolojik ilaçtır**. Sağlık Uygulama Tebliği (S",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 570.3474178314209,
+            "tool_steps": 5
+          }
+        },
+        {
+          "question": "15 yaşındaki bir bireyin gözlük camının süresinden önce yenilenmesi için silendirik değerinde ne kadar değişiklik olması gerekir?",
+          "expected": "Metinde 14 yaş ve altı için bilgi bulunmaktadır, 15 yaş için bilgi bulunmamaktadır.",
+          "source": "3.3",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak verdiğiniz araştırma sonuçlarını ve sorunuzuzu detaylıca inceledim. Verilen arama sonuçları, 15 yaşındaki bir bireyin gözlük camının süresinden önce yenilenmesi için **silendirik değerinde (mercek gücünde) ne kadar değişiklik olması gerektiğine dair spesifik sayısal bir eşik (örneğin +0.25 veya -0.50 diyoptri gibi) içermemektedir.**\n\nAşağıda, araştırma sonuçlarına dayalı olarak bilinen SUT kuralları ve genel bilgi çerçevesinde detaylı açıklamayı bulabilirsiniz:\n\n### 1. Araştırma Sonuçlarındaki Bulunan Bilgiler\nVerilen SUT metin parçalarında (3.3.3.A - Gözlük cam ve çerçevesi başlığı altında) şu temel şartlar belirtilmiştir:\n*   **Reçete Şartı:** Gözlük camının temini, göz sağlığı ve hastalıkları uzman hekimleri veya bu dalda ihtisas yapan asistan hekimler tarafından düzenlenmiş reçeteye/e-reçeteye dayanılarak yapılır.\n*   **Acil Durum Hariçliği:** Acil polikliniklerinde yazılan gözlük camı ve çerçeve reçeteleri SUT kapsamında bedelleri karşılanmaz.\n*   **Yasal Uyumluluk:** Gözlük camları ve çerçeveleri, 5193 sayılı Optisyenlik Hakkında Kanun hükümlerine uygun olarak faaliyet gösteren optik merkezlerden temin edilmelidir.\n\n### 2. Soruya İlişkin Spesifik Bilginin Yokluğu\nAraştırma sonuçlarında (Adım 1, 2, 3 ve 4), \"süresinden önce yenileme\" veya \"silendirik değer değişimi oranı\" için özel bir sayısal kural (değişim eşiği) yer almamaktadır. SUT metinlerinde genellikle gözlüklerin temini, geçerli bir reçete ve optisyenlik kanunu uyumu üzerinden düzenlenmiştir; belirli bir yaş sınırı veya silendirik değer değişimi oranı için özel bir madde bu sonuçlarda bulunmamaktadır.\n\n### 3. Genel Bilgi ve Uygulama Pratiği\nSUT kapsamında gözlük yenileme süreçleri ile ilgili genel prensipler şöyledir:\n*   **Reçete Geçerlilik Süresi:** Gözlük camları genellikle reçetenin geçerli olduğu süre (genellikle 1 yıl) boyunca temin edilir. Süre dolmadan yenilenme, \"tıbbi malzeme yenilemesi\" kapsamında değerlendirilir ancak bu durumun karşılanması için genellikle **tıbbi bir gerekçe** veya **reçetede belirtilen güncelleme** şarttır.\n*   **Değişim Şartı:** Eğer hastanın görme kusuru (silendirik değer) önemli ölçüde değişmişse ve yeni bir reçete düzenlenmişse, bu durum \"yenileme\" olarak kabul edilir. Ancak SUT metinlerinde bu değişimin ne kadar olması gerektiğine dair sabit bir sayısal oran (örneğin %10 veya 0.5 diyoptri) standart bir madde olarak yer almamaktadır; bu değerlendirme genellikle **uzman hekim tarafından** tıbbi gerekçe ile yapılır.\n*   **Yaş Faktörü:** Araştırma sonuçlarında 15 yaş gibi spesifik bir yaş grubu için silendirik değer değişimi konusunda özel bir kural bulunmamaktadır. Çocuk ve ergen gözlüklerinde reçete düzenleme kuralları yetişkinlerle aynıdır (uzman hekim tarafından).\n\n### Özet ve Tavsiye\nVerilen araştırma sonuçları, **silendirik değerinde ne kadar değişiklik olması gerektiğine dair kesin sayısal bir bilgi vermemektedir.** Gözlük camının süresinden önce yenilenmesi için en doğru yol şudur:\n1.  Göz sağlığı uzman hekimine başvurulmalı ve görme kusurundaki değişimin tıbbi gerekçesi (örneğin; hızlı ilerleyen miyop, astigmat değişimi vb.) raporlanmalıdır.\n2.  Yeni bir reçete düzenlenmelidir.\n3.  Bu yeni reçeteye dayalı olarak, SUT kurallarına uygun optik merkezlerden temin işlemi yapılmalıdır.\n\nAcil polikliniklerde yazılan reçeteler veya 5193 sayılı kanuna uygun olmayan optik merkezler bu kapsamda değerlendirilmez.",
+          "metrics": {
+            "map": 0.5958,
+            "ndcg": 0.7123,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 452.7520360946655,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Kanser tedavisinde ilaç kullanımına ilişkin sağlık kurulu raporunda, tıbbi onkoloji veya hematoloji uzman hekimi yoksa, kaç dermatoloji uzmanının yer alması gerekir?",
+          "expected": "3 dermatoloji uzmanı.",
+          "source": "4.2",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) kapsamında sunulan araştırma sonuçları ve mevcut mevzuat bilgileri ışığında sorunuza aşağıdaki şekilde yanıt verilmektedir:\n\n### Araştırma Sonuçlarına Göre Doğrudan Bulunan Bilgi\nSunulan araştırma sonuçlarında, **tıbbi onkoloji veya hematoloji uzmanı bulunmaması durumunda dermatoloji uzmanının sayısının belirlendiği bir hüküm yer almamaktadır.** Aksine, mevcut SUT düzenlemesi (özellikle 4.2.14 maddesi kapsamında) tam tersini öngörmektedir.\n\nAraştırma sonuçlarındaki **Kaynak 1**'de belirtilen hükme göre:\n> *\"SUT'un 4.2.14 maddesinde isimleri veya endikasyonu belirtilmeyen ilaçların kanser tedavisinde kullanımında; **tıbbi onkoloji veya hematoloji uzman hekimlerinden en az birinin yer aldığı** 1 yıl süreli sağlık kurulu raporuna dayanılarak tüm uzman hekimlerce reçete edilir.\"*\n\nBu madde, kanser tedavisi ile ilgili ilaçların (özellikle kemoterapi ve benzeri özel hastalık tedavileri) kullanımında sağlık kurulu raporunda **mutlaka en az bir tıbbi onkoloji veya hematoloji uzmanının** bulunması gerektiğini açıkça şart koşmaktadır.\n\n### Genel Bilgi ve Uzmanlık Alanı Uyumu\nAraştırma sonuçlarında dermatoloji uzmanının onkoloji/hematoloji yerine geçmesi veya sayısının belirtilmesi ile ilgili bilgi bulunmadığı için, genel SUT prensipleri doğrultusunda şu bilgileri vermek gerekir:\n\n1.  **Uzmanlık Alanı Uyumu:** SUT sisteminde ilaç endikasyonu ve tedavi protokolleri, ilgili uzmanlık alanına (onkoloji, hematoloji vb.) uygun sağlık kurulu raporuna dayanmalıdır. Dermatoloji uzmanları genellikle cilt hastalıkları veya dermatolojik onkoloji tedavileri için yetkilidir; ancak sistemik kanser tedavisi (kemoterapi, hormon tedavisi vb.) ve 4.2.14 maddesi kapsamında belirtilen ilaçlar için SUT, raporun temelinde **onkoloji veya hematoloji uzmanının** yer almasını zorunlu kılmaktadır.\n2.  **Rapor Geçerliliği:** Eğer bir sağlık kurulu raporu tıbbi onkoloji veya hematoloji uzmanı içermiyorsa ve bu durum SUT'un 4.2.14 maddesi gibi özel düzenlemelere tabi ilaçlar için söz konusuysa, dermatoloji uzmanının sayısının arttırılması raporun geçerliliği için yeterli olmayabilir. Mevzuat, ilgili alanın (onkoloji/hematoloji) temsil edilmesini şart koşmaktadır.\n3.  **Özetle:** Sorunuzda varsayılan \"onkoloji veya hematoloji uzmanı yoksa dermatoloji uzmanı kaç kişi gerekir?\" senaryosu, mevcut SUT sonuçlarında desteklenmemektedir. Mevcut düzenleme, bu tür tedavilerde en az bir onkoloji veya hematoloji uzmanının raporun temelinde olması gerektiğini belirtmektedir; dermatoloji uzmanı bu spesifik gerekliliği karşılamak için yerleşik bir alternatif olarak SUT metinlerinde (sunulan sonuçlarda) belirtilmemiştir.\n\n**Sonuç:** Araştırma sonuçları ve SUT 4.2.14 maddesi gereği, kanser tedavisi ilaçlarında sağlık kurulu raporunda dermatoloji uzmanı yerine onkoloji veya hematoloji uzmanının bulunması zorunludur; dermatoloji uzmanı sayısı bu şartın yerine geçmez.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.5,
+            "latency": 438.1011037826538,
+            "tool_steps": 5
+          }
+        },
+        {
+          "question": "SUT eki listelerden çıkarılan tıbbi malzemelerin bedellerinin Kurumca karşılanmayacağına dair hükümler hangi tarihten itibaren geçerli olacaktır?",
+          "expected": "01.05.2013 tarihinden itibaren.",
+          "source": "6.3",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.2211,
+            "ndcg": 0.4307,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 699.6245250701904,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Kemik İliği/Organ Nakil Merkezi ve Terapötik Aferez Merkezi ruhsatı olan ikinci basamak sağlık hizmeti sunucuları hangi durumda ekstrakorporeal fotoferez tedavisi için sağlık kurulu raporu düzenleyebilir?",
+          "expected": "Sadece Graft Versus Host Hastalığı veya solid organ nakillerinde doku reddinin önlenmesi (kalp, akciğer, böbrek nakillerinde) için.",
+          "source": "2.4",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.6168,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 496.76292872428894,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Büyüme hormonu tedavisine başlama kriterleri sağlanmış olsa bile, bu tedavi neyin yerine kullanılmaz?",
+          "expected": "Büyüme hormonu tedavisinin yerine kullanılmaz.",
+          "source": "4.2",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak sağlanan araştırma sonuçlarını incelediğimde, sorunuzun doğrudan cevabını içeren spesifik bir maddeye ulaşılamadığını belirtmek isterim. Sağlanan kaynaklar (Adım 1, Adım 2 ve Adım 3), büyüme hormonu tedavisinin erişkinlerde kullanım ilkeleri (epifiz hatları açık/kapalı durumları) ve IVF işlemlerindeki ilaç kullanımına odaklanmaktadır; ancak \"tedavinin neyin yerine kullanılmayacağı\" veya \"yasaklı kullanım alanları\" konusunda doğrudan bir ifade bulunmamaktadır.\n\nAncak, SUT genel ilkeleri ve tıbbi uygulama standartlarına dayanarak bu konudaki genel bilgiyi aşağıda sunuyorum:\n\n**Genel Bilgi ve Uygulama İlkeleri:**\n\nSağlık Uygulama Tebliği'ne göre, büyüme hormonu (somatropin) tedavisi **yalnızca onaylanmış endikasyonlar için** uygulanır. Başlangıç kriterleri sağlanmış olsa bile, bu tedavi şu amaçlarla veya durumların yerine kullanılmaz:\n\n1.  **Sadece Obezite Tedavisi:** Büyüme hormonu eksikliği tanısı olmayan hastalarda, sadece kilo verme veya obezite tedavisi amacıyla büyüme hormonu kullanımı SUT kapsamında uygun görülmez.\n2.  **Yaşlanma Karşıtı (Anti-Aging) Amaçları:** Yaşlanmayı yavaşlatmak veya cilt sağlığı gibi kozmetik amaçlar için, tanı konulmadan büyüme hormonu tedavisi başlatılmaz.\n3.  **Performans Artırımı:** Spor performansını artırmak veya kas kütlesi kazanmak amacıyla (tanı yokluğunda) kullanımı yasaktır.\n\n**Özetle:** Sağlanan araştırma sonuçları, epifiz hatlarının durumu ve erişkinlerde kullanım esaslarını detaylandırsa da, tedavinin \"yasaklı kullanım alanları\" (örneğin obezite veya anti-aging yerine kullanılmaması) konusunu doğrudan içermemektedir. Bu nedenle, tedavi sadece SUT'da tanımlanan büyüme bozuklukları ve eksiklik durumları için endikedir; diğer hastalıkların veya fizyolojik süreçlerin (kilo verme vb.) yerine kullanılması uygun değildir.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 536.1724998950958,
+            "tool_steps": 4
+          }
+        },
+        {
+          "question": "Hangi durumlarda trakeobronşiyal stentlerin bedelleri Kurumca karşılanır?",
+          "expected": "Trakeobronşiyal malign darlıklarda, trakeobronşiyal benign darlıklarda ve trakea özefageal fistüllerde kullanılmaları halinde.",
+          "source": "3.3",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 537.0919198989868,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "Rituksimab nüks gelişmesi durumunda hastalara en erken ne kadar süre sonra tekrar verilebilir?",
+          "expected": "16 haftadan daha erken olmamak kaydıyla.",
+          "source": "4.2",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak, sağladığınız araştırma sonuçlarını detaylıca inceledim. Sorunuz olan **\"Rituksimab nüks gelişmesi durumunda hastalara en erken ne kadar süre sonra tekrar verilebilir?\"** sorusunun cevabı, **sunulan araştırma sonuçlarında açıkça yer almamaktadır.**\n\n### Araştırma Sonuçları İçerisindeki Bilgiler\nVerilen metinler (Adım 1 ve Adım 2), Rituksimab'ın SUT kapsamında **\"İlaç > 4.2 - Bazı özel hastalıklara ve ilaç kullanımına ilişkin düzenlemeler\"** bölümünde, özellikle **Romatoid Artrit** tedavisinde listelendiğini göstermektedir. Ancak bu metinler sadece ilacın kapsama altındaki hastalıkları ve ilgili yönetmel",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 0.5,
+            "latency": 414.09931802749634,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Gözlük cam ve çerçeve reçetesi hangi uzman hekimler tarafından düzenlenebilir?",
+          "expected": "Göz sağlığı ve hastalıkları uzman hekimleri ile bu dalda ihtisas yapan asistan hekimler.",
+          "source": "3.3",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) hükümleri ışığında, gözlük cam ve çerçeve reçetesi düzenleme yetkisi ile ilgili detaylı bilgi aşağıdadır:\n\n**1. Yetkili Hekim Türü:**\nSUT'un \"3.3 - Bazı tıbbi malzemelerin temin edilme esasları\" başlığı altında yer alan **3.3.3 maddesi (Görmeye yardımcı tıbbi malzemeler)** gereğince, gözlük cam ve çerçeve bedellerinin Sosyal Güvenlik Kurumu tarafından karşılanması için reçete veya raporun **Göz Sağlığı ve Hastalıkları Uzman Hekimi** tarafından düzenlenmiş olması gerekmektedir.\n\n**2. Kabul Edilen Belgeler:**\nReçetenin, e-reçetenin veya sağlık kurulu raporunun/e-raporunun bu uzman hekim tarafından düzenlenmesi şarttır. Bu belgelerde belirtilen nitelikli görmeye yardımcı tıbbi malzeme bedelleri, SUT eki \"Görmeye Yardımcı Tıbbi Malzemeler\" (EK-3/D) Listesinde yer alan fiyatları aşmamak koşuluyla Kurumca karşılanır.\n\n**3. Süre ve Geçerlilik:**\nReçete veya raporun düzenlenme tarihinden itibaren **10 (on) işgünü** içerisinde kullanılması gerekmektedir. Bu süre aşımında malzeme bedelleri SUT kapsamında karşılanmayabilir.\n\n**Özetle;** SUT kapsamında gözlük reçetesi düzenlenmesi ve ilgili giderlerin karşılanması için **Göz Sağlığı ve Hastalıkları Uzman Hekimi**'nin düzenlediği belge esas alınmaktadır.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 434.1648280620575,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "Bir hastanın aynı sağlık hizmeti sunucusuna acil servis başvurusu hariç, daha önce aynı uzmanlık dalı için ayaktan başvurusunda '520032 Uzaktan hasta değerlendirmeye yönelik sağlık hizmetleri' işleminin faturalandırılması halinde, hangi listede yer alan tutar faturalandırılamaz?",
+          "expected": "SUT Eki EK-2/A Listesinde",
+          "source": "2.1",
+          "ai_answer": "Verilen araştırma sonuçları incelendiğinde, sağlanan metin (Kaynak 1) **\"520032 Uzaktan hasta değerlendirmeye yönelik sağlık hizmetleri\"** işleminin tanımını, MHRS sistemi üzerinden yürütülmesi gerektiğini ve Sağlık Bakanlığı denetimi altındaki kimlik doğrulama süreçlerini içermektedir. Ancak, metnin kesildiği veya sunulan özet kısmında **\"aynı uzmanlık dalı ayaktan başvuru sonrası faturalandırma kısıtlaması\"** ile ilgili spesifik bir hüküm (hangi listede tutarın faturalandırılamayacağı) yer almamaktadır.\n\nBu nedenle, araştırma sonuçları sorunun doğrudan cevabını içermemektedir. SUT (Sağlık Uygulama Tebliği) uzmanı perspektifiyle genel bilgi ve mevcut mevzuat çerçevesi",
+          "metrics": {
+            "map": 0.3333,
+            "ndcg": 0.5,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 0.0,
+            "latency": 434.1839270591736,
+            "tool_steps": 2
+          }
+        },
+        {
+          "question": "Yoğun bakım hizmetlerinde ilave ücret alınır mı?",
+          "expected": "Hayır, alınmaz.",
+          "source": "1.9",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.8825,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.5,
+            "relevance": 0.5,
+            "latency": 512.0520968437195,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Hangi durumlarda, tedavinin başladığı gün dahil olmak üzere en fazla 7 gün boyunca günde birden fazla seans hiperbarik oksijen tedavisi bedeli kurumca karşılanır?",
+          "expected": "Ani işitme kaybı ve acil hastalarda",
+          "source": "2.4",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.7204,
+            "ndcg": 0.9469,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 0.0,
+            "latency": 492.5976450443268,
+            "tool_steps": 5
+          }
+        },
+        {
+          "question": "Metastatik hepatosellüler kanserde sorafenib birinci basamakta hangi durumda kullanılabilir?",
+          "expected": "Hastanın kemoterapiye engel olacak bir durumu var ise.",
+          "source": "4.2",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.8523,
+            "ndcg": 0.9558,
+            "recall": 1.0,
+            "faithfulness": 0.5,
+            "relevance": 0.0,
+            "latency": 504.9142918586731,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "Lizozomal hastalıklar için enzim tedavisine devam edilebilmesi için tedavi başlangıcında kaydedilen değerlerde kötüleşme oranı en fazla ne kadar olmalıdır?",
+          "expected": "%30",
+          "source": "4.2",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak, sağladığınız araştırma sonuçlarını inceledim ve sorunuza aşağıdaki şekilde yanıt veriyorum:\n\n**Araştırma Sonuçlarına Göre Bulunan Bilgi:**\nSunulan üç arama sonucunda (Adım 1, Adım 2 ve Adım 3), lizozomal hastalıklar için enzim replasman tedavisine (ERT) devam edilebilmesi adına **\"tedavi başlangıcında kaydedilen değerlerde kötüleşme oranı\"** ile ilgili spesifik bir sayısal eşik veya yüzde değeri yer almamaktadır.\n\nSunulan metinler, Gaucher hastalığında enzim replasman tedavisinin ilk seçenek olduğunu ve şu durumlarda miglustat (substrat inhibisyonu) tedavisine geçilebileceğini belirtmektedir:\n1.  Enzim tedavisine ağır alerjik reaksiyonlar veya hipersensitivite gelişen hastalarda,\n2.  Enzim tedavisi kriterleri kapsamında enzim tedavisi kesilmiş olan hastalarda.\n\nAncak, \"kaydedilen değerlerde (biyobelirteçler) kötüleşme oranı\" ne kadar olursa tedaviye devam edilebileceğine dair bu metinlerde net bir rakam veya oran verilmemiştir.\n\n**Genel Bilgi ve Uzman Görüşü:**\nSUT kapsamında lizozomal depolama hastalıkları (özellikle Gaucher hastalığı) için enzim replasman tedavisinin sürdürülmesi genellikle aşağıdaki genel prensiplere dayanır:\n\n1.  **Biyobelirteç Takibi:** Tedavinin devamı, plazma GBA aktivitesi, khitotriozidaz gibi biyobelirteçlerdeki istikrarlı iyileşme veya kabul edilebilir seviyelerde seyretmesine bağlıdır.\n2.  **Klinik Durum:** Organ büyümesi (hepatosplenomegali), kemik ağrısı ve nörolojik durumun stabil kalması tedaviye devam kriteri olarak değerlendirilir.\n3.  **Kötüleşme Tanımı:** SUT'da \"kötüleşme\" genellikle biyobelirteçlerdeki beklenen iyileşmenin olmamas",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.5,
+            "latency": 772.915990114212,
+            "tool_steps": 7
+          }
+        },
+        {
+          "question": "Çocuklarda KBY ile ilişkili büyüme bozukluklarında somatropin kullanımında, büyüme hormonu tedavisine başlanması için hastanın hangi KBY evrelerinde olması ve ne kadar süredir diyalizde olması gerekmektedir?",
+          "expected": "KBY evresi evre III, IV, V olan veya 6 aydan fazla süredir diyalizde olması gerekmektedir.",
+          "source": "4.2",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 611.0454618930817,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Vorikonazol 200 mg tablet hangi endikasyonda kullanılabilir?",
+          "expected": "Aspergilloz ve candida enfeksiyonlarının profilaksi endikasyonunda kullanılır.",
+          "source": "4.2",
+          "ai_answer": "Sağlanan araştırma sonuçları, sorunuzda belirtilen **\"Vorikonazol 200 mg tablet\"** ile ilgili doğrudan bir bilgi içermemektedir. Sunulan metin (Kaynak 1), tamamen farklı bir ilaç olan **\"Aktive Protein C\"** kullanım ilkeleri ve ağır sepsis hastalarında yoğun bakım ünitelerindeki reçete koşullarını kapsamaktadır. Bu nedenle, sağlanan SUT (Sağlık Uygulama Tebliği) özetinden Vorikonazol ile ilgili spesifik bir madde veya kod bilgisi çıkarılamamaktadır.\n\nAncak, SUT uzmanı olarak genel tıbbi ve düzenleme bilgisine dayanarak Vorikonazol 200 mg tablet hakkında genel bilgi şöyledir:\n\n**Vorikonazol Genel Kullanım Bilgisi:**\n*   **İlaç Grubu:** Vorikonazol, triazol grubuna ait sistemik bir antifungal (mantar karşıtı) ilaçtır.\n*   **Temel Endikasyonlar:** Genellikle SUT ve tıbbi literatürde aşağıdaki mantar enfeksiyonlarının tedavisinde kullanılır:\n    1.  **İnvaziv Aspergilloz:** Özellikle akciğer aspergillozu gibi ciddi mantar enfeksiyonları için kılavuz ilaçtır.\n    2.  **Kandidemi ve Kandidoz:** Kan akışındaki Candida enfeksiyonları (kandidemi) ve yemek borusu kandidozu tedavisinde kullanılır.\n    3.  **Profilaksi:** İmmün yetmezliği olan hastalarda (örneğin kemoterapi gören hastalarda) mantar enfeksiyonu önleme amacıyla da reçete edilebilir.\n*   **SUT Bağlamı:** Sağlık Uygulama Tebliği'nde antifungal ilaçlar genellikle belirli bir bölümde (genellikle 4.1 veya 4.2 bölümleri altında \"Antifungallar\" başlığı) yer alır. Vorikonazol tablet formu, hastanede yatışlı hastalar ve ambulatoriyel hastalar için farklı kodlarla takip edilebilir. Ancak spesifik bir SUT maddesi (örneğin \"4.2.xx - Antifungal İlaçlar\") sağlanan sonuçlarda bulunmamaktadır.\n*   **Reçete Koşulları:** Genellikle mantar enfeksiyonunun laboratuvar kültürü veya klinik bulgularla desteklenmesi, dozajın hastanın ağırlığına ve böbrek fonksiyonlarına göre ayarlanması SUT kurallarına uygun olarak uygulanır.\n\n**Özetle:** Sağlanan araştırma çıktısı Vorikonazol hakkında bilgi vermediği için, endikasyonlar genel tıbbi kullanım kılavuzları (Aspergilloz, Kandida enfeksiyonları vb.) üzerinden verilmiştir. Kesin SUT kodu ve güncel ödeme koşulları için güncel Sağlık Bakanlığı SUT dokümanına veya ilgili ilaç kodunun (ATC: J02AA14) resmi kayıtlarına bakılması önerilir.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 385.37421226501465,
+            "tool_steps": 2
+          }
+        },
+        {
+          "question": "SUT'a göre, üçüncü basamak resmi sağlık hizmeti sunucusu olarak kabul edilen ve diş hekimliği fakültesi bulunduran bir üniversite hastanesi, aynı zamanda Sağlık Bakanlığınca üçüncü basamak hastane olarak basamaklandırılan bir Sağlık Bakanlığına bağlı hastane olabilir mi?",
+          "expected": "Evet, olabilir.",
+          "source": "1.3",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.0,
+            "ndcg": 0.0,
+            "recall": 0.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 483.90602803230286,
+            "tool_steps": 5
+          }
+        },
+        {
+          "question": "Upadasitinibin Crohn hastalığında kullanımında, tedaviye başlanabilmesi için anti-TNF ajanının ne kadar süreyle kullanılmış olması gerekmektedir ve bu sürede hastalık aktivitesi kontrol altına alınamazsa ne olmalıdır?",
+          "expected": "En az 3 ay süreyle kullanılmış olmasına rağmen hastalık aktivitesi kontrol altına alınamaması gerekir.",
+          "source": "4.2",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 605.2663447856903,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "Hangi tarihten itibaren SUT eki EK-2/G Listesinde yer alan işlemlerde ilave ücret alınmayacaktır?",
+          "expected": "09/04/2020",
+          "source": "1.9",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.4377,
+            "ndcg": 0.6509,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 552.6173589229584,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Kronik kalp yetmezliği tedavisinde ivabradin kullanımının hangi durumlarda kardiyoloji uzmanlarınca düzenlenen 1 yıl süreli uzman hekim raporuna dayanılarak reçete edilebileceği belirtilmiştir?",
+          "expected": "Beta blokör tedavisi dahil standart tedavi ile kombinasyon halinde, Beta blokör kontrendikasyonu olan veya Beta blokör tedavisine intoleransı olan.",
+          "source": "4.2",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak, sağladığınız araştırma sonuçlarını ve veritabanındaki mevcut bilgileri dikkatlice inceledim. Sorunuza ilişkin yanıtı aşağıda bulabilirsiniz:\n\n### Araştırma Sonuçlarına İlişkin Bulgular\nVerilen **3 adımlı araştırma sonucu**, sorunuzda belirtilen **\"Kronik Kalp Yetmezliği tedavisinde Ivabradin kullanımına dair 1 yıl süreli uzman hekim raporu şartını\"** içeren spesifik bir SUT maddesi veya metni **içermemektedir.**\n\nAraştırma sonuçlarında bulunan ilgili içerikler şu konuları kapsamaktadır:\n1.  **Kaynak 1:** Kronik kas iskelet ağrısı ve fibromiyalji tedavisinde kullanılan ilaçlar (örneğin Pregabalin) için romatoloji, ortopedi vb. uzman raporlarına dayalı reçete şartlarını içerir. Bu madde kalp yetmezliği veya ivabradin ile ilgili değildir.\n2.  **Kaynak 2:** Tam metin aramasında sonuç bulunamadı.\n3.  **Kaynak 3:** Kronik stabil angina pektoris tedavisinde Klopidogrel ve Ranolazin gibi ilaçlar için kardiyoloji uzman raporuna dayalı düzenlemeler (2 yıl süreli rapor örneği) yer almaktadır. Ancak bu madde, \"ivabradin\" veya \"kronik kalp yetmezliği\" endikasyonunu doğrudan kapsamamaktadır; angina pektoris ve farklı etken maddeleri konu edinmektedir.\n\n### Genel Bilgi ve Uzman Görüşü\nSUT sonuçlarında spesifik bir madde bulunmamasına rağmen, Türkiye'deki mevcut sağlık mevzuatı ve genel SUT uygulamaları çerçevesinde genel bilgiler şöyledir:\n\n*   **İvabradin ve Reçete Şartları:** İvabradin (Corlanor), SUT kapsamında genellikle \"özel hastalıklara ve ilaç kullanımına ilişkin düzenlemeler\" başlığı altında değerlendirilen, belirli kriterleri karşılayan hastalar için reçetelendirilebilen bir ilacıdır.\n*   **Kullanım Endikasyonu:** Kronik Kalp Yetmezliği (KKY) tedavisinde ivabradin; genellikle beta-blokör tedavisi yeterli olmayan veya toleransı olan, dinlenme kalp atış hızı belirli eşik değerleri (genellikle 70 çarpı/dakika üzeri) aşan ve HFrEF (reduktif solunum yetmezliği) tanısı konmuş hastalarda semptomatik tedavinin bir parçası olarak kullanılır.\n*   **Uzman Raporu Gerekliliği:** SUT'un ilgili maddelerine göre, yüksek maliyetli veya özel kullanım kriterleri olan ilaçlar (ivabradin dahil) genellikle **Kardiyoloji Uzmanı** tarafından düzenlenmiş raporlara dayanılarak reçete edilebilir.\n*   **Rapor Süresi:** Sorunuzda belirtilen \"1 yıl süreli rapor\" şartı, SUT'un ilgili maddesinde (muhtemelen 4.2 bölümünde) tanımlanmış olabilir ancak sağladığım sonuçlar bu spesifik süreyi ve endikasyonu doğrudan doğrulayan metni içermiyor. Genellikle bu tür ilaçların reçete süresi, hastanın tedavi sürecine ve ilacın kullanım kriterlerine (örneğin 6 ay veya 1 yıl) göre belirlenir.\n\n### Sonuç\nVerilen araştırma sonuçları, **ivabradin** ve **kronik kalp yetmezliği** kombinasyonu için SUT kapsamında reçete şartlarını (özellikle 1 yıl süreli rapor şartını) açıkça belirtmemektedir. Kaynaklardaki bilgiler fibromiyalji ve angina pektoris tedavisi ile sınırlıdır.\n\nBu nedenle, **ivabradin** için geçerli olan spesifik SUT maddesi (örneğin 4.2 bölümünün ilgili alt başlığı) ve rapor süresi şartları için resmi Sağlık Bakanlığı SUT metninin güncel \"İlaç > 4.2 - Bazı özel hastalıklara ve ilaç kullanımına ilişkin düzenlemeler\" bölümünü doğrudan incelemeniz veya bir sağlık kuruluşunun farmakoloji uzmanından güncel mevzuat bilgisi almanız önerilir.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 594.2829608917236,
+            "tool_steps": 4
+          }
+        },
+        {
+          "question": "Osteoporoz tedavisinde teriparatid kullanan bir hastanın tedaviye yanıt vermesi durumunda, bu durumun kanıtlandığı raporla en fazla ne kadar süreyle tedaviye devam edilebilir?",
+          "expected": "52 hafta.",
+          "source": "4.2",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 530.5695822238922,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "Hangi sağlık hizmeti sunucuları, SUT eki EK-2/A-2 Listesinde yer alan işlemleri işlem puanlarına %10 oranında ilave ederek faturalandırabilir?",
+          "expected": "Sağlık Bakanlığına bağlı eğitim ve araştırma hastaneler, Tıp Fakülteleri Bulunan Devlet Üniversiteleri Sağlık Uygulama ve Araştırma Merkezleri, Tıp Fakülteleri Bulunan Vakıf Üniversiteleri Sağlık Uygulama ve Araştırma Merkezleri.",
+          "source": "2.1",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.2211,
+            "ndcg": 0.4307,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 487.98376297950745,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Kimlik tespiti ve biyometrik doğrulama işlemlerini usulüne uygun yapmayan ve bu nedenle Kurumun zarara uğramasına sebebiyet veren sağlık hizmeti sunucularına nasıl bir yaptırım uygulanır?",
+          "expected": "Ödenen tutar geri alınır.",
+          "source": "1.6",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak, sağladığınız araştırma sonuçlarını ve mevcut mevzuat genel çerçevesini dikkate alarak sorunuza aşağıdaki şekilde yanıt veriyorum:\n\n**Araştırma Sonuçları İle İlgili Durum:**\nSunulan araştırma sonuçları (Adım 1, Adım 2 ve Adım 3), SUT'un \"Genel Hükümler\" bölümünden alınmış parçalar olup, **kimlik tespiti ve biyometrik doğrulama işlemlerinin prosedürünü** (işlemin nasıl yapılacağı) detaylandırmaktadır. Ancak bu sonuçlarda, usulsüz işlem yapma veya Kuruma zarar verme durumuna yönelik **spesifik yaptırım, ceza veya idari para cezaları** ile ilgili maddeler yer almamaktadır.\n\nSonuçlardaki mevcut bilgiler şunlardır:\n1.  **Sorumluluk Paylaşımı:** Kimlik doğrulama işleminde kullanılacak biyometrik sistem ve usuller Sağlık Bakanlığı (Kurum) tarafından belirlenir.\n2.  **İlk Kayıt Sorumluluğu:** Kişinin sağlık hizmeti sunucusuna ilk müracaatı sırasında, ilk biyometrik verinin Kurum veri tabanına kaydı sağlık hizmeti sunucusu tarafından yapılması zorunludur.\n\n**Genel Bilgi ve Mevzuat Çerçevesi:**\nAraştırma sonuçlarında doğrudan ceza miktarı veya yaptırım maddesi bulunmamakla birlikte, SUT genel yapısı ve idari mevzuat çerçevesinde bu tür ihlaller için genel bilgi şöyledir:\n\n*   **Yaptırım Bölümü:** SUT'ta \"Yaptırım\" veya \"Sorumluluk\" başlıklı özel bölümler bulunur. Kimlik tespiti ve biyometrik doğrulama gibi kritik güvenlik işlemlerinde usulsüzlük, veri güvenliği ihlali veya Kuruma zarar verme durumları genellikle bu bölümlerde düzenlenir.\n*   **Yaptırım Türleri:** Bu tür ihlallerde sağlık hizmeti sunucularına uygulanan yaptırımlar genellikle idari para cezaları, uyarı işlemleri veya ilgili işlemin durdurulması şeklinde olabilir. Zararın büyüklüğü ve ihlalin tekrarı durumunda ceza miktarları artabilir.\n*   **Veri Güvenliği:** Biyometrik verilerin korunması ve usulsüz kayıt işlemleri, veri güvenliği mevzuatı (KVKK) ile de örtüşen yaptırımlar doğurabilir.\n\n**Sonuç:**\nSağladığınız araştırma sonuçları, biyometrik doğrulamanın **kimin ne zaman yapacağını** tanımlasa da, usulsüzlükten kaynaklanan zarara yönelik **somut ceza maddelerini içermemektedir.** Bu spesifik yaptırım detayları için SUT'un \"Yaptırım\" bölümüne veya ilgili bakanlık genelgelerine doğrudan başvurulması gerekmektedir.",
+          "metrics": {
+            "map": 0.6168,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.5,
+            "latency": 579.4208471775055,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?",
+          "expected": "MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.",
+          "source": "1.7",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) kapsamında, yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri ile ilgili sorunuza aşağıdaki şekilde yanıt verilebilir:\n\n**Yabancı Ülkeler Sosyal Güvenlik Sözleşmesi Kapsamında Sağlık Hizmetlerinin Gerçekleştirilmesi**\n\nSağlık Uygulama Tebliği'nin **Genel Hükümler > 1.7 - Provizyon İşlemleri > 1.7.1 - Yurt Dışı Sigortalı Müracaatları** başlıklı bölümünde yer alan hükümlere göre;\n\nYabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Sosyal Güvenlik Kurumu sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri, **MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilmektedir.**\n\nBu işlem süreci ile ilgili güncel yasal dayanak ve değişiklikler şöyledir:\n*   **Yasal Dayanak:** 01/06/2022 tarihli ve 31853 sayılı Resmi Gazete'de yayımlanan SUT değişikliği (1. madde).\n*   **Uygulama Tarihi:** Değişiklik 01/03/2022 tarihinde yürürlüğe girmiştir.\n\nÖzetle, sözleşme kapsamında yararlanan kişilerin sağlık hizmetleri talepleri, MEDULA sistemi üzerinden provizyon işlemleri ile yönetilmekte ve sağlanmaktadır.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 716.2561218738556,
+            "tool_steps": 4
+          }
+        },
+        {
+          "question": "Hasta alt bezi/külotlu hasta alt bezi için düzenlenecek uzman hekim raporunun süresi en fazla ne kadar olabilir?",
+          "expected": "2 (iki) yıl.",
+          "source": "3.3",
+          "ai_answer": "Sağlıklı Uygulama Tebliği (SUT) uzmanı olarak, sağlanan araştırma sonuçlarına dayanarak sorunuza aşağıdaki gibi kapsamlı bir yanıt veriyorum:\n\n**Cevap:** Hasta alt bezi veya külotlu hasta alt bezi için düzenlenecek uzman hekim raporunun süresi **en fazla 2 (iki) yıl** olabilir.\n\n**Detaylı Açıklama ve Hukuki Dayanak:**\nSağlanan araştırma sonuçları (Kaynak 1), SUT'un **\"3.3 - Bazı tıbbi malzemelerin temin edilme esasları\"** başlığı altında yer alan **\"3.3.34 - Hasta alt bezi/külotlu hasta alt bezi\"** maddesinde bu sürenin açıkça belirtildiğini göstermektedir.\n\nBu maddeye göre raporun düzenlenmesi ve süresi ile ilgili detaylar şöyledir:\n\n1.  **Rapor Süresi:** Uzman hekim raporu, en fazla **2 yıl süreli** olarak düzenlenebilir.\n2.  **Hasta Koşulu:** Bu malzemelerin kullanılması gereken hastalar arasında çocuklar yer alırken, çocuklar için en az **2 (iki) yaşını tamamlamış** olmaları gerekmektedir.\n3.  **Düzenleme Yetkisi:** Rapor, ikinci veya üçüncü basamak resmi sağlık hizmeti sunucuları tarafından düzenlenir.\n4.  **Yürürlük Bilgisi:** Bu hüküm, 16 Mart 2023 tarihli Resmi Gazete (RG-16/03/2023-32134/17-y md.) ile güncellenmiş ve 24 Mart 2023 tarihinde yürürlüğe girmiştir.\n\nSonuç olarak, SUT hükümleri gereği talep edilen raporun süresinin 2 yılın üzerine çıkamayacağı tebliğde açıkça belirtilmiştir.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 334.92411613464355,
+            "tool_steps": 2
+          }
+        },
+        {
+          "question": "Hangi formdaki ilaçlar 4.2.24.B numaralı maddede yer alan hükümlerden istisnadır?",
+          "expected": "İnhale formları.",
+          "source": "4.2",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.5148,
+            "ndcg": 0.6183,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 526.5727121829987,
+            "tool_steps": 4
+          }
+        },
+        {
+          "question": "Yol ve gündelik giderleri ile ilgili esaslar hangi başlık altında yer almaktadır?",
+          "expected": "2.6.1",
+          "source": "Bilinmiyor",
+          "ai_answer": "Yol ve gündelik giderleri ile ilgili esaslar, **Sağlık Uygulama Tebliği (SUT)** kapsamında **\"Tanı ve Tedavi\"** ana başlığı altında yer almaktadır.\n\nAraştırma sonuçlarına dayanarak konunun SUT içindeki tam hiyerarşik yapısı şu şekildedir:\n\n*   **Ana Başlık:** Tanı ve Tedavi\n*   **Bölüm:** 2.6 - Yol ve gündelik giderleri\n*   **Alt Başlık (Ortak Hükümler):** 2.6.9 - Yol ve gündelik gideri ortak hükümleri\n\nBu bölümde, genel sağlık sigortalısı, bakmakla yükümlü olduğu kişiler ile refakatçilere yönelik yerleşim yeri içindeki nakiller için yol ve gündelik giderinin ödenmemesi gibi temel kurallar düzenlenmiştir. Ayrıca bu hükümlerin güncel durumu **RG-30/08/2014- 29104** sayılı tebliğ ile (5. madde) belirlenmiş olup, yürürlük tarihi 30 Ağustos 2014 olarak kaydedilmiştir.",
+          "metrics": {
+            "map": 0.0,
+            "ndcg": 0.0,
+            "recall": 0.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 491.6686179637909,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "Standing table için düzenlenecek sağlık kurulu raporunda, hastanın hangi klinik tablolara sahip olması veya hangi nörolojik defisitlere bağlı olarak ayakta durmanın tedaviye katkı sağlayacağının belirtilmesi gerekir?",
+          "expected": "Herhangi bir nedene bağlı tetrapleji veya parapleji klinik tablosu veya diğer nörolojk defisitlere bağlı olarak ayakta durmanın tedaviye katkı sağlayacağının belirtilmesi gerekir.",
+          "source": "3.3",
+          "ai_answer": "SUT (Sağlık Uygulama Tebliği) uzmanı olarak verdiğiniz araştırma sonuçlarını inceledim ve sorunuza aşağıdaki şekilde yanıt veriyorum:\n\n### Araştırma Sonuçlarına Göre Durum Tespiti\n\nVerilen araştırma sonuçları, **Standing Table** (Ayakta Dik Pozisyonlama Cihazı) için Sağlık Kurulu Raporu'nda (SKR) belirtilmesi gereken spesifik klinik tablo veya nörolojik defisit listesini doğrudan içermemektedir.\n\n*   **Kaynak 1:** İlaç reçetesi ve sağlık raporu ile verilebilecek ilaç listeleri (EK-4/F) hakkında bilgi vermektedir; cihaz endikasyonları ile ilgili değildir.\n*   **Kaynak 2:** Standing table'ı \"Bazı tıbbi malzemelerin temin edilme esasları\" başlığı altında, özellikle **\"Çocuklar için standing table\"** olarak sınıflandırmaktadır. Bu kaynakta cihazın fizik tedavi ve rehabilitasyon kliniklerinde uygulanması gerektiği belirtilmiş, ancak hangi hastalıklar veya defisitler için gerekli olduğu detaylandırılmamıştır. Ayrıca bu kaynağın içeriğinde \"Mülga:RG-16/03/2023-32134/17-g\" ibaresi bulunmaktadır; bu durumun güncel SUT hükümleriyle (Yürürlük: 24/03/2023) uyumlu olup olmadığını teyit etmeniz önemlidir. Kaynakta ayrıca cihazın temininde en az **3 uzman hekim** (ortopedi, fiziksel tıp/rehabilitasyon veya nöroloji branşlarından) görüşünün alınması gerektiği belirtilmiştir.\n*   **Kaynak 3:** Lizozomal hastalıklar ve ilaç kullanımına ilişkin özel düzenlemeler içermektedir; standing table endikasyonları ile doğrudan ilişkili değildir.\n\n### Genel Bilgi ve SUT Uygulaması Hakkında Önemli Notlar\n\nAraştırma sonuçlarında spesifik hastalık listesi bulunmadığı için, genel SUT prensipleri ve tıbbi malzeme temin esaslarına dayalı olarak aşağıdaki bilgileri paylaşmak isterim:\n\n1.  **Sağlık Kurulu Raporu İçerik Gereksinimleri:**\n    SUT kapsamında yüksek maliyetli rehabilitasyon cihazları (Standing Table gibi) için düzenlenen Sağlık Kurulu Raporunda, cihazın tedavideki yeri ve hastanın durumunun detaylandırılması beklenir. Genellikle raporun şu başlıkları içermesi gerekir:\n    *   **Tanı:** Hastanın mevcut klinik tablosu (örneğin; nörolojik hasar, ortopedik deformite vb.).\n    *   **Fonksiyonel Kısıtlılık:** Hastanın ayakta durma yeteneğinin kısıtlanması veya bu cihazın fonksiyonel iyileşme hedefine katkı sağlayacağı belirtilmelidir.\n    *   **Tedavi Hedefi:** Ayakta durmanın (standing) kas tonusunu artırması, omurga hizasını düzeltmesi, bağırsak/kalp fonksiyonlarını düzenlemesi veya nörolojik defisitlerin yönetimi gibi spesifik tedavi amaçları raporlanmalıdır.\n\n2.  **Uzman Görüşü Şartı:**\n    Kaynak 2'de belirtildiği üzere, bu tür cihazların temininde genellikle birden fazla uzman hekimin (ortopedi, fiziksel tıp/rehabilitasyon veya nöroloji) görüşünün raporda yansıtılması beklenir.\n\n3.  **Düzenleme Güncellemeleri:**\n    Kaynak 2'de yer alan \"Mülga\" ibaresi, ilgili yönetmeliğin güncellenmiş haliyle (RG-16/03/2023 sonrası) tekrar değerlendirilmesi gerektiğini işaret etmektedir. Bu nedenle, en güncel endikasyon listesi için **SUT'ün son halini** veya **Sağlık Bakanlığı'nın ilgili mevzuatını** kontrol etmeniz önerilir.\n\n**Özetle:** Verilen sonuçlarda Standing Table için gereken spesifik hastalık/defisit listesi yer almamaktadır. Raporun kabulü, cihazın tedavideki yeri ve uzman hekimlerin görüşüne dayalı olarak değerlendirilecektir.",
+          "metrics": {
+            "map": 0.2507,
+            "ndcg": 0.5,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 500.6239540576935,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Hangi tarihten itibaren faktör kullanımı için hastaya düzenlenecek ilk raporun üçüncü basamak resmi sağlık hizmeti sunucularında düzenlenmesi zorunluluğu getirilmiştir?",
+          "expected": "09/11/2024",
+          "source": "4.2",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.6667,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 0.0,
+            "latency": 595.6063392162323,
+            "tool_steps": 4
+          }
+        },
+        {
+          "question": "Pazopanib hangi kanser türlerinin tedavisinde kullanılabilir?",
+          "expected": "Renal hücreli karsinom ve metastatik sarkom.",
+          "source": "4.2",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak, sağladığınız araştırma sonuçlarını detaylıca inceledim ve Pazopanib'in hangi kanser türlerinde kullanıldığına dair sorunuza aşağıdaki şekilde yanıt veriyorum:\n\n### Araştırma Sonuçları Değerlendirmesi\nVerilen araştırma sonuçlarında (Adım 1 ve Adım 2), **Pazopanib** ilacının hangi kanser türlerinde tedavi edilebileceğine dair doğrudan bir bilgi bulunmamaktadır.\n\n*   **Kaynak 1:** Bu kaynak, tamamen farklı bir ilaç olan **Dupilumab**'ın atopik dermatit tedavisindeki kullanım ilkelerini (sağlık kurulu raporu koşuluyla) içermektedir ve Pazopanib ile ilgili değildir.\n*   **Kaynak 2:** Bu kaynak, SUT'un \"Kanser tedavisinde ilaç kullanım ilkeleri\" bölümünden bir kesittir (4.2.14.C). Ancak bu metin içinde Pazopanib ismi geçmemekte; sadece fotemustin, interleukin-2, octreotid, lanreotid ve streptozosin gibi bazı ilaçların mülga (geçerliliğini yitiren) olduğu belirtilmektedir.\n\nDolayısıyla, sağladığınız metinler Pazopanib'in SUT kapsamında hangi hastalıklarda kapsandığına dair spesifik bir hüküm veya madde içermez.\n\n### Genel Bilgi ve Tıbbi Kontekst\nAraştırma sonuçlarında Pazopanib ile ilgili bilgi bulunmadığı için, genel tıbbi literatür ve ilaç kullanım kılavuzları ışığında genel durumu aşağıda belirtmek isterim:\n\n1.  **İlaç Tanımı:** Pazopanib (ticari adıyla Votrient), bir tirozin kinaz inhibitörüdür ve genellikle anti-angiyojenik özellik gösterir.\n2.  **Genel Tedavi Alanları:** Tıbbi literatürde Pazopanib, aşağıdaki kanser türlerinde onkolojik tedavide kullanılmaktadır:\n    *   **Metastatik Böbrek Hücreli Kanser (mRCC):** İmmünoterapi veya sitemik terapi sonrası progresyon gösteren hastalarda.\n    *   **İleri Evre Yumuşak Doku Sarkomu:** Özellikle lenfoma olmayan yumuşak doku sarkomlarında.\n    *   **Tiroid Kanserleri:** Bazı tiroid kanseri türlerinde (örneğin diferansiyel olmayan tiroid kanserlerinde) kullanımı mevcuttur.\n3.  **SUT Kapsamı ve Sağlık Kurulu Raporu:** Türkiye'de SUT kapsamında kanser tedavisi için kullanılan ilaçların çoğu, \"Özel düzenleme yapılan ilaçlar\" (4.2.14.C gibi) başlığı altında veya genel onkoloji ilacı kuralları (4.2.14.A) çerçevesinde değerlendirilir. Pazopanib gibi yüksek maliyetli ve spesifik indikasyonlu ilaçların SUT kapsamında karşılanması, genellikle **tıbbi onkoloji uzman hekiminin yer aldığı sağlık kurulu raporu** ile belgelendirilerek sağlanır.\n\n### Sonuç\nÖzetle; mevcut araştırma sonuçları Pazopanib'in SUT kapsamındaki spesifik kanser indikasyonlarını içermemektedir. Bu nedenle, Pazopanib'in bir hastada SUT kapsamında karşılanıp karşılanmayacağına karar verilirken, ilgili Sağlık Bakanlığı güncel mevzuatı ve ilacın o anki \"Özel düzenleme yapılan ilaçlar\" listesine dahil olup olmadığına bakılmalıdır. Genellikle bu tür tedaviler için **Sağlık Kurulu Raporu** şarttır.",
+          "metrics": {
+            "map": 0.8875,
+            "ndcg": 0.9558,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 446.0515298843384,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "Bosentan kullanımında, tedaviye başlanabilmesi için gerekli olan minimum dijital ülser sayısı kaçtır ve bu ülserlerden kaç tanesi kardinal ülser olmalıdır?",
+          "expected": "En az 4 adet dijital ülser ve en az 1 tanesi kardinal ülser olmalıdır.",
+          "source": "4.2",
+          "ai_answer": "Merhaba, SUT (Sağlık Uygulama Tebliği) uzmanı olarak sorunuza araştırma sonuçları ışığında aşağıdaki şekilde yanıt veriyorum:\n\n**Araştırma Sonuçlarına Göre Durum:**\nYapılan literatür taraması ve SUT veritabanı sorgulamaları (Adım 1, 3 ve 4), **SUT Madde 4.2.43** (\"Dijital ülseri olan sistemik skleroz hastalarında",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.5,
+            "latency": 689.0805702209473,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Yurt dışında tedavi giderleri Kurumun ödediği tutarları aşarsa, aşan kısım kim tarafından karşılanır?",
+          "expected": "İşverenlerce karşılanır.",
+          "source": "2.5",
+          "ai_answer": "**YANIT:**\n\nVerilen araştırma sonuçları (SUT metin parçaları), yurt dışında tedavi giderlerinin Kurum tarafından ödenen tutarın üzerindeki aşan kısmın karşılanmasından doğrudan bahsetmemektedir. Araştırma sonuçlarında yer alan bilgiler, daha çok yurt dışı yol, refakatçi ve ilaç bedelleri gibi belirli kalemlerin ödeme sorumluluğunu (Kurumca ödenmesi) veya yurt içi ilaç giderlerini kapsamaktadır; ancak \"tedavi ücretinin aşan kısmı\" ile ilgili spesifik bir hüküm bulunmamaktadır.\n\nBu nedenle, sorunuzla ilgili **genel SUT bilgisi** çerçevesinde aşağıdaki açıklamayı sunuyorum:\n\n1.  **SUT Kapsamı ve Ödeme Sınırları:**\n    Sağlık Uygulama Tebliği (SUT) hükümlerine göre, Sosyal Güvenlik Kurumu (SGK/Kurum) tarafından yurt dışında tedavi için ödenen tutarlar, ilgili sağlık kurulu raporunda belirtilen hizmetler ve SUT'da tanımlanan limitler dahilinde gerçekleşir.\n\n2.  **Aşan Kısımın Karşılanması:**\n    Araştırma sonuçlarında doğrudan belirtilmemiş olsa da, genel SUT prensibi gereği; Kurumun ödediği tutar (raporda ve tebliğde belirlenen limitler dahilinde) üzerindeki aşan kısım (fark), genellikle **hasta tarafından** karşılanır. Yurt dışında yapılan tedavilerde, kurum sadece raporda belirtilen ve SUT sınırları içinde kalan hizmetleri öder; bu sınırların üzerinde oluşan ek ücretler veya farklar hastanın sorumluluğundadır.\n\n3.  **İstisnai Durumlar:**\n    Bazı özel anlaşmalı sağlık kuruluşları veya belirli sigorta poliçeleri (SGK dışı özel sigortalar) ile yapılan işlemlerde bu durum farklılık gösterebilir. Ancak standart SUT kapsamında, yurt dışında tedavi gören bir hastanın aşan gideri, Kurum tarafından karşılanmaz ve hasta tarafından ödenmesi gerekir.\n\n**Özetle:** Verilen kaynaklarda \"aşan kısım\" sorusuna doğrudan cevap bulunmamaktadır. Genel SUT uygulamasında ise, kurumun ödediği limitin üzerindeki farklar hastanın sorumluluğundadır. Kesin bilgi için ilgili sağlık kurulu raporunun detayları veya SGK'nın yurt dışı tedavi birimleriyle iletişime geçilmesi önerilir.",
+          "metrics": {
+            "map": 0.5974,
+            "ndcg": 0.7123,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 1.0,
+            "latency": 540.4111988544464,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Kişinin 16 yaşında olması durumunda, gözlük camı ve çerçevesinin miat süresi ne kadardır ve hangi durumda bu süre dolmadan yenilenebilir?",
+          "expected": "2 yıldır. Kırma kusurunun 0,5 diyoptrilik değişiklik göstermesi halinde süresinden önce yenilenebilir.",
+          "source": "3.3",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak, sağladığınız araştırma sonuçları ve genel SUT mevzuat bilgisi ışığında sorunuza aşağıdaki şekilde yanıt veriyorum:\n\n### 1. Araştırma Sonuçlarındaki Bilgi Durumu\nVerilen araştırma sonuçları (SUT metin parçaları), **16 yaşındaki bir birey için gözlük camı ve çerçevesinin miat süresinin ne kadar olduğunu** veya bu sürenin **dolmadan yenilenebileceği spesifik şartları doğrudan belirtmemektedir.** Metinlerde sadece teminin esasları (reçete gerekliliği, optisyenlik kanunu uyumu) ve acil poliklinik istisnaları yer almaktadır.\n\n### 2. Araştırma Sonuçlarında Bulunan Temel Esaslar\nMevcut metinler ışığında gözlük temininin temel şartları şunlardır:\n*   **Reçete Gerekliliği:** Gözlük camı ve çerçevesi, göz sağlığı ve hastalıkları uzman hekimleri ile bu dalda ihtisas yapan asistan hekimler tarafından düzenlenen reçeteye/e-reçeteye dayanılarak temin edilir.\n*   **Acil Poliklinik İstisnası:** Acil polikliniklerinde yazılan gözlük cam ve çerçeve reçeteleri bedelleri karşılanmaz (yani SUT kapsamında desteklenmez).\n*   **Yasal Uyumluluk:** Gözlük cam ve çerçeveleri, 5193 sayılı Optisyenlik Hakkında Kanun hükümlerine uygun olarak faaliyet gösteren optik merkezlerden temin edilmelidir.\n\n### 3. Genel SUT Bilgisi Işığında Cevap (Miat Süresi ve Yenileme)\nAraştırma sonuçlarında eksik olan miat süresi ve yenileme şartları konusunu, genel Sağlık Uygulama Tebliği uygulamaları ve sektörel standartlar üzerinden şu şekilde açıklayabiliriz:\n\n*   **Genel Miat Süresi:** SUT kapsamında gözlük camı ve çerçevesi için genellikle reçete tarihinden itibaren **1 yıl** geçerlilik süresi (miat) uygulanır. Bu süre, gözlüğün temin edildiği tarihten başlar.\n*   **Süre Dolmadan Yenileme Şartları:** Miat süresi dolmadan yenileme işlemi, standart olarak desteklenmez. Ancak şu durumlarda istisnai olarak değerlendirilebilir:\n    1.  **Tıbbi Gerekçe:** Göz sağlığında ani bir değişiklik (örneğin; miyopun hızlı ilerlemesi, katarakt",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 1.0,
+            "latency": 467.70203495025635,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "Tofacitinib veya upadasitinib reçetesi hangi uzman hekimler tarafından yazılabilir?",
+          "expected": "Romatoloji uzman hekimleri veya iç hastalıkları uzman hekimleri.",
+          "source": "4.2",
+          "ai_answer": "Verilen araştırma sonuçları incelendiğinde, **Tofacitinib veya Upadacitinib reçetesi için doğrudan ve spesifik bir SUT (Sağlık Uygulama Tebliği) maddesi bulunmamaktadır.**\n\nAraştırma sonuçlarında yer alan içerikler, sorunuzla ilgili değil; şu şekilde farklı hastalıkların düzenlemelerini içermektedir:\n*   **Kaynak 1 & 2:** Paget Hastalığı için Endokrinoloji uzman hekimi raporu gerekliliğini belirtmektedir.\n*   **Kaynak 3:** Akromegali tedavisi için Endokrinoloji ve Metabolizma veya Beyin ve Sinir Cerrahisi uzman hekimlerinin yer almasını belirtmektedir.\n\nBu nedenle, araştırma sonuçları Tofacitinib veya Upadacitinib reçete yetkisi hakkında doğrudan bilgi vermemektedir. Ancak SUT kapsamında bu ilaç",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 420.7997920513153,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Romatoid artritli erişkin hastalarda anti-TNF ilaçlara başlanabilmesi için Hastalık Aktivite Skoru (DAS) 28 değeri kaçın üzerinde olmalıdır?",
+          "expected": "5,1",
+          "source": "4.2",
+          "ai_answer": "Merhaba, SUT (Sağlık Uygulama Tebliği) uzmanı olarak sağladığınız araştırma sonuçlarını detaylıca inceledim. Sorunuz olan **\"Romatoid artritli erişkin hastalarda anti-TNF ilaçlara başlanabilmesi için Hastalık Aktivite Skoru (DAS) 28 değeri kaçın üzerinde olmalıdır?\"** sorusunun cevabı, mevcut araştırma sonuçlarında açıkça belirtilmemiştir.\n\nAşağıda, sağlanan metinlerdeki bilgilerin analizi ve genel SUT bağlamına dair bilgilere dayalı kapsamlı açıklamayı bulabilirsiniz:\n\n### 1. Araştırma Sonuçlarına Göre Durum\nSağlanan iki kaynaklı SUT metni incelendiğinde, anti-TNF ilaçlarının **başlangıcı** için spesifik bir DAS28 skor eşiği (örneğin \"DAS28 > X olmalıdır\") tanımlanmamaktadır",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 407.65433382987976,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "Sağlık hizmeti sunucuları faturalarını düzenlerken, hasta takip numarası/provizyon alınan kişilere sunulan sağlık hizmetleri hangi numara ile takip edilir?",
+          "expected": "Provizyon Aktivasyon ve Sağlık Sistemi (YUPASS) numarası ile.",
+          "source": "5.2",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) kapsamında, sağlık hizmeti sunucuları faturalarını düzenlerken ve hasta takip numarası/provizyon işlemlerini gerçekleştirdiklerinde kullanılan numara ile ilgili bilgiler aşağıdadır:\n\n**Cevap:**\nSağlık hizmeti sunucuları, fatura düzenleme ve takip süreçlerinde **T.C. Kimlik Numarası** veya **Yurtdışı Provizyon Aktivasyon ve Sağlık Sistemi (YUPASS) numarası** kullanılır.\n\n**Detaylı Açıklama:**\n\n1.  **Kimlik Bilgisi ile Takip:** SUT'un \"Genel Hükümler > 1.7 - Provizyon işlemleri\" başlıklı bölümüne göre, kurumla sözleşmeli sağlık hizmeti sunucuları, müracaat eden kişinin sağlık yardımlarından yararlanma hakkının olup olmadığını tespit etmek ve hasta takip numarası/provizyon almak için **MEDULA** sistemlerini (MEDULA-Hastane, MEDULA-Optik, MEDULA-Eczane) kullanır.\n    *   **Türk Vatandaşları İçin:** Bu işlemde **T.C. Kimlik Numarası** esas alınır.\n    *   **Yurtdışı Kişiler İçin:** Yurtdışı vatandaşları için ise **YUPASS numarası** kullanılır.\n\n2.  **Sistem Entegrasyonu:** Fatura düzenleme süreçleri (örneğin optisyenlik müesseseleri gibi özel sektörün faturaları dahilinde) MEDULA sistemleri üzerinden yürütülmektedir. Bu sistemler üzerinden sağlanan hasta takip numarası/provizyon, sağlık hizmeti bedellerinin Kurumca karşılanması ve fatura işlemlerinin kaydedilmesi için temel veri olarak kullanılır.\n\n3.  **Yasal Dayanak:** Bu işlemde referans alınan mevzuat; **RG- 18/03/2014- 28945/ 1 md.** olup, yürürlük tarihi **01/04/2014** olarak belirtilmiştir.\n\n**Özetle:** Hasta takip numarası/provizyon alınan kişilere sunulan sağlık hizmetleri, fatura düzenleme ve takip aşamasında **T.C. Kimlik Numarası** (yerli vatandaşlar için) veya **YUPASS numarası** (yurtdışı vatandaşları için) ile MEDULA sistemleri üzerinden takip edilir.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.5,
+            "relevance": 1.0,
+            "latency": 506.38436794281006,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "Ekstrakorporeal fotoferez tedavisi hangi durumlarda uygulandığında Kurumca karşılanır?",
+          "expected": "Kutanöz T hücreli lenfomalarda, Graft Versus Host Hastalığı, Sezary Sendromu, Pemfigus Vulgaris, Psöriasis ve solid organ nakillerinde doku reddinin önlenmesi (kalp, akciğer, böbrek nakillerinde) nedenleriyle uygulandığında.",
+          "source": "2.4",
+          "ai_answer": "**SUT Uzmanı Görüşü: Ekstrakorporeal Fotoferez Tedavisi Karşılanma Koşulları**\n\nSağlık Uygulama Tebliği (SUT) kapsamında **Ekstrakorporeal Fotoferez (ECP)** tedavisinin Kurumca karşılanması durumu ve ilgili şartlar aşağıda detaylandırılmıştır. Araştırma sonuçları ışığında, mevcut yönetmelik düzenlemeleri ve eksik kalan teknik detaylar şu şekilde özetlenmiştir:\n\n### 1. Tedavinin Karşılanabilirliği\nAraştırma sonuçlarına göre (Kaynak 1 & Kaynak 3), Ekstrakorporeal Fotoferez tedavisi **Sağlık Uygulama Tebliği kapsamında karşılanan bir tedavi yöntemi** olarak tanımlanmıştır. Bu kapsamda, ilgili bedellerin ödenebilmesi için belirli idari ve tıbbi şartların yerine getirilmesi gerekmektedir.\n\n### 2. Yönetmeliksel İdari Şartlar (SUT Kapsamında)\nSunulan SUT metinlerine göre tedavi bedelinin karşılanması için aşağıdaki prosedürlerin uygulanması zorunludur:\n\n*   **Sağlık Kurulu Raporu:** Tedavinin karşılanabilmesi için sağlık kurulu raporu düzenlenmesi gerekmektedir.\n*   **Kurum Yetkisi ve Ruhsatlar:** Tedaviyi uygulayan merkez, **Kemik İliği/Organ Nakil Merkezi** ve **Terapötik Aferez Merkezi** ruhsatına sahip olmalıdır.\n*   **Yönetmelik Değişiklikleri:** Metinlerdeki notlara göre (RG-25/08/2022 - 31934 sayılı karar), ilgili maddeler güncellenmiştir. Ancak metinde \"üçüncü basamak sağlık hizmeti sunucuları\" ibaresinin **Mülga** olduğu ve yeni yürürlük tarihli (RG-16/03/2023 - 32134 sayılı karar) düzenleme ile ilgili şartların değişebileceği belirtilmektedir. Bu nedenle, güncel SUT bültenlerinde \"üçüncü basamak\" şartının hala geçerli olup olmadığını teyit etmek önemlidir.\n\n### 3. Hastalık Listesi Hakkında Bilgi Durumu\n**Önemli Uyarı:** Sunulan araştırma sonuçları (Kaynak 1 ve Kaynak 3), tedaviyi karşılayan spesifik **hastalık listesini veya tıbbi endikasyonları içermemektedir.** Metinler, \"ikinci basa...\" cümlesinden kesildiği için hangi hastalıkların (örneğin; Kemik İliği/Organ Nakil Merkezi ve Terapötik Aferez Merkezi ruhsatı olan ikinci basamak sağlık hizmeti sunucuları tarafından...) karşılandığını tam olarak göstermemektedir.\n\nSUT metninin bu bölümü, genellikle spesifik hastalık tanımlarını içeren ayrı bir tablo veya madde (örneğin 2.4.4.Ç maddesinin devamı) ile tamamlanır ancak mevcut sonuçlarda bu liste yer almamaktadır.\n\n### 4. Genel Bilgi ve Uzman Görüşü\nEkstrakorporeal Fotoferez tedavisi, kanın vücut dışına alınarak özel bir ışıkla (UV-B) veya ilaçlarla işlenip tekrar hastaya verilmesi şeklinde yapılan bir afezez yöntemidir. SUT kapsamında karşılandığı genel tıbbi literatür ve uygulama standartlarına göre bu tedavi genellikle şu durumlarda endike edilmektedir:\n\n*   **Kütanöz T Hütle Lümfozu (CTCL):** Özellikle Mikozis Fungoides gibi hastalıkların tedavisinde.\n*   **Graft-versus-Host Hastalığı (GVHD):** Organ nakli sonrası gelişen bu komplikasyonun tedavisinde.\n*   **Sistemik Lupus Eritematozus (SLE):** Bazı durumlarda immünomodülasyon amaçlı.\n\n**Özetle:** SUT kapsamında tedaviye karşılanabilir ancak **hangi spesifik hastalıkların listesi** mevcut araştırma sonuçlarında yer almamaktadır. Bu nedenle, tedavinin tam olarak karşılanması için;\n1",
+          "metrics": {
+            "map": 0.575,
+            "ndcg": 0.8503,
+            "recall": 1.0,
+            "faithfulness": 0.5,
+            "relevance": 0.5,
+            "latency": 689.654876947403,
+            "tool_steps": 4
+          }
+        },
+        {
+          "question": "Aile hekimliği uzman hekimleri hangi ilaçları reçete edebilir?",
+          "expected": "Yetkilendirilen hekimler, aile hekimliği uzman hekiminin yazabildiği tüm ilaçları reçete edebilirler.",
+          "source": "4.1",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak, sağlanan araştırma sonuçlarını incelediğimde belirtmek gerekir ki; sunulan metinlerde **aile hekimliği uzman hekimlerinin reçete edebileceği ilaçların genel ve kapsamlı bir listesi yer almamaktadır.**\n\nSunulan araştırma sonucu (Kaynak 1), SUT'un \"Migren > İlaç Kullanım İlkeleri\" başlığı altında, belirli bir alt grup (migren tedavisi) için **kısıtlamalar** ve **özel yetki** düzenlemelerini içermektedir. Bu nedenle sorunuzun genel cevabını doğrudan bu sonuçlardan çıkarmak mümkün değildir. Ancak mevcut veriler ışığında ve SUT genel çerçevesiyle durumu şu şekilde özetleyebiliriz:\n\n### 1. Araştırma Sonuçlarına Göre Özel Durumlar\nSunulan metinde, aile hekimliği uzman hekimlerinin reçete edemeyeceği veya belirli şartlara tabi olduğu bazı ilaç grupları açıkça belirtilmiştir:\n*   **Triptanlar:** Migren tedavisinde kullanılan triptan grubu ilaçlar, SUT 4.2.19 maddesine göre **nöroloji uzman hekimleri tarafından** reçete edilmektedir. Aile hekimleri bu gruptaki ilaçları (ayda en fazla 6 doz/adet kuralı dahil) nöroloji uzmanı yetkisi olmadan reçete etmemektedir.\n*   **Topiramat:** Migren profilaktik tedavisi için Topiramat kullanımı, diğer profilaktik ilaçların 6 ay süreyle etkisiz kaldığı durumlarda ve **nöroloji uzman hekimince** düzenlenmektedir.\n\n### 2. Genel Bilgi (SUT Kapsamında Aile Hekimliği Yetkisi)\nAraştırma sonuçlarında yer almasa da, SUT genel çerçevesi ve sağlık sistemi uygulamaları ışığında aile hekimliği uzman hekimlerinin reçete yetkisi şu şekilde tanımlanır:\n\n*   **Temel Sağlık Hizmetleri:** Aile hekimleri, temel tıbbi sorunları (enfeksiyonlar, hipertansiyon, diyabet, kronik hastalıkların basit yönetimi vb.) kapsamında SUT'ya dahil olan ilaçları reçete edebilirler.\n*   **Kısıtlamalar ve Özel Durumlar:** SUT, belirli yüksek maliyetli, riskli veya uzmanlık gerektiren ilaç grupları için (örneğin yukarıda belirtilen migren ilaçları gibi) özel yetki şartları koyar. Bu tür durumlarda aile hekimleri genellikle ilgili branşın uzman hekimine yönlendirme yapar veya SUT'da belirtilen özel kriterleri karşılaması durumunda reçete edebilirler.\n*   **Reçete Yetkisi:** Aile hekimliği uzman hekimleri, kendi alanlarında (genel tıp) yetkili oldukları ilaçları ve SUT'un \"Aile Hekimliği\" bölümünde tanımlanan tedavi protokollerine uygun ilaçları reçete etme yetkisine sahiptirler.\n\n**Özetle:** Sunulan araştırma verileri, aile hekimlerinin reçete edebileceği *tüm* ilaç listesini içermemektedir; sadece migren tedavisi için nöroloji uzmanına ait özel bir kısıtlamayı (Triptanlar ve Topiramat) detaylandırmaktadır. Genel olarak aile hekimleri, SUT kapsamında kendi yetki alanlarındaki (genel tıp) ilaçları reçete edebilirler ancak belirli uzmanlık gerektiren veya yüksek riskli ilaç grupları için SUT'ta belirtilen özel şartlar ve branş yetkilerine (nöroloji vb.) uyulması gerekir.",
+          "metrics": {
+            "map": 0.0,
+            "ndcg": 0.0,
+            "recall": 0.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 378.20184087753296,
+            "tool_steps": 2
+          }
+        },
+        {
+          "question": "Yoğun bakım tedavisi için özel sağlık hizmeti sunucularına sevk hangi koşulda yapılabilir?",
+          "expected": "Resmi sağlık hizmeti sunucularında uygun yoğun bakım yatağının bulunmaması ve hasta naklinin 112 Komuta Kontrol Merkezi koordinasyonunda gerçekleştirilmesi koşuluyla.",
+          "source": "1.5",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) kapsamında yoğun bakım tedavisi için özel sağlık hizmeti sunucularına sevk işlemleri, belirli ve sıkı koşullar altında gerçekleştirilebilmektedir. Araştırma sonuçları ışığında, bu sevkün yapılabilmesi gereken temel şartlar şunlardır:\n\n1.  **Resmi Sağlık Kuruluşlarında Yatak Bulunmaması:** Sevk işlemi, hastanın mevcut resmi sağlık hizmeti sunucularında (devlet hastaneleri vb.) uygun yoğun bakım yatağının bulunmadığı durumlarda yapılabilir.\n2.  **112 Komuta Kontrol Merkezi Koordinasyonu:** Hasta nakli, mutlaka 112 Acil Çağrı Merkezi Komuta Kontrol Merkezi'nin koordinasyonunda gerçekleştirilmelidir.\n\n**Özetle:** Yoğun bakım tedavisi için özel sağlık hizmeti sunucularına sevk edilebilmesi için; **resmi sağlık kuruluşlarında uygun yoğun bakım yatağı bulunmaması** ve **hasta naklinin 112 Komuta Kontrol Merkezi koordinasyonunda gerçekleştirilmesi** koşulları birlikte sağlanmalıdır.\n\nBu hükümler, SUT'un Genel Hükümler bölümünde yer alan \"Sağlık hizmeti sunucularına müracaat ve yükümlülükler\" başlığı altında, özellikle hasta sevk işlemleri kapsamında düzenlenmiştir.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 474.9413192272186,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "Kırma kusurunda kaç diyoptrilik değişiklik olması halinde gözlük camı süresinden önce yenilenebilir?",
+          "expected": "0,5 diyoptrilik.",
+          "source": "3.3",
+          "ai_answer": "Verilen araştırma sonuçları incelendiğinde, **kırma kusurunda gözlük camı yenileme için belirlenen spesifik diyoptrilik değişiklik miktarı veya sınır bilgisi bu metinlerde yer almamaktadır.** Araştırma sonuçlarında (SUT 3.3.3.A maddesi kapsamında) sadece teminin şartları, reçete yetkisi ve yasal uyumluluk konularında bilgi bulunmaktadır.\n\nBu nedenle sorunuzun tam sayısal cevabını araştırma sonuçlarından çıkaramıyorum; ancak SUT (Sağlık Uygulama Tebliği) genel çerçevesi ve mevcut sonuçlardaki bilgiler ışığında durumu şu şekilde özetleyebilirim:\n\n**1. Araştırma Sonuçlarında Bulunan Bilgiler:**\n*   **Reçete Şartı:** Gözlük camının temininde, göz sağlığı ve hastalıkları uzman hekimleri ile bu dalda ihtisas yapan asistan hekimler tarafından düzenlenmiş reçeteye/e-reçeteye dayanılması zorunludur.\n*   **Acil Durum İstisnası:** Acil polikliniklerinde yazılan gözlük cam ve çerçeve reçeteleri SUT kapsamında bedelleri karşılanmaz.\n*   **Yasal Uyumluluk:** Gözlük camları ve çerçeveleri, 5193 sayılı Optisyenlik Hakkında Kanun hükümlerine uygun olarak faaliyet gösteren optik merkezlerden temin edilmelidir.\n\n**2. Genel Bilgi ve Uygulama Pratiği:**\nSUT kapsamında \"yenileme\" (renewal) işlemleri genellikle şu prensiplere göre değerlendirilir:\n*   **Reçete Geçerliliği:** Gözlük camı yenilenmesi için geçerli bir reçetenin olması şarttır. Reçetede kırma kusurunun (miyop, hipermetrop, astigmat) miktarı ve değişimi hekim tarafından belirlenir.\n*   **Diyoptrilik Değişiklik:** SUT'ün genel kuralları gereği, sadece \"yenileme\" için sabit bir diyoptri sayısı (örneğin 2 veya 3 diyoptri) her zaman açıkça belirtilmemektedir. Genellikle eski gözlük camının süresi dolmuş olması veya mevcut kırma kusurunda **belirgin bir değişiklik** olması durumunda, hekimin reçetesi doğrultusunda yenilenme işlemi SUT kapsamında değerlendirilir.\n*   **Kapsam:** Temel amaç göz sağlığının korunmasıdır; bu nedenle sadece estetik veya çok küçük değişiklikler için yenileme talepleri, hekimin klinik değerlendirmesine göre onaylanır.\n\n**Özetle:** Verilen sonuçlarda \"X diyoptri değişimi ile yenileme yapılır\" şeklinde kesin bir sayısal sınır bulunmamaktadır. Bu tür spesifik limitler genellikle SGK'nın güncel SUT tebliğlerinin ilgili eklerinde veya hekimin klinik değerlendirmesine göre belirlenir. Kesin bilgi için en güncel SUT metnini veya bir göz hastalıkları uzmanına danışmanız önerilir.",
+          "metrics": {
+            "map": 0.7972,
+            "ndcg": 0.9047,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 440.47952795028687,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "6197 sayılı kanun kapsamında serbest faaliyet gösteren eczaneler, hangi tür sağlık hizmeti sunucuları içerisinde değerlendirilir?",
+          "expected": "Birinci basamak özel sağlık hizmeti sunucuları",
+          "source": "1.3",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) kapsamında yapılan inceleme ve araştırma sonuçlarına dayanarak, 6197 sayılı Kanun kapsamında serbest faaliyet gösteren eczanelerin sağlık hizmeti sunucusu sınıflandırması aşağıdadır:\n\n**Cevap:**\n6197 sayılı Kanun kapsamında serbest faaliyet gösteren eczaneler, SUT mevzuatı çerçevesinde **\"Birinci basamak özel sağlık hizmeti sunucuları\"** kategorisi içerisinde değerlendirilmektedir.\n\n**Detaylı Açıklama:**\nAraştırma sonuçları incelendiğinde, bu sınıflandırmanın **SUT Genel Hükümler > 1.4 - Sağlık hizmeti sunucuları > 1.4.1.B - Birinci basamak özel sağlık hizmeti sunucuları** bölümünde açıkça yer aldığı görülmektedir.\n\nBu bölümün içeriğinde, birinci basamak özel sağlık hizmeti sunucusu olarak kabul edilen kuruluşlar listelenmiş olup, listenin beşinci maddesi şu şekilde belirtilmiştir:\n> *\"5) 18/12/1953 tarihli ve 6197 sayılı Eczacılar ve Eczaneler Hakkında Kanun kapsamında serbest faaliyet gösteren eczaneler\"*\n\nBu nedenle, ilgili mevzuat gereği bu tür eczaneler birinci basamak özel sağlık hizmeti sunucusu statüsündedir.",
+          "metrics": {
+            "map": 0.0,
+            "ndcg": 0.0,
+            "recall": 0.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 438.5471751689911,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "Azasitidin hangi uzman hekimler tarafından reçete edilebilir?",
+          "expected": "Hematoloji uzman hekimleri tarafından.",
+          "source": "4.2",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak verdiğiniz araştırma sonuçlarını inceledim ve sorunuza yanıt vermek için aşağıdaki değerlendirmeyi sunuyorum:\n\n**1. Araştırma Sonuçları Hakkında Durum Tespiti**\nVerilen araştırma sonuçlarında **\"Azasitidin\"** (Vidaza) ilacı ile ilgili spesifik bir SUT maddesi veya reçete edilebilir uzman hekim listesi **bulunmamaktadır**.\n*   **Kaynak 1:** Bu kaynak, Paget Hastalığı ve Osteoporoz gibi hastalıklarda Endokrinoloji uzmanı raporuna istinaden reçete düzenlemelerini içermektedir. Azasitidin ile doğrudan bir bağlantısı yoktur.\n*   **Kaynak 2:** Başlığında \"Kırım\" ibaresi geçmektedir ancak içerik kesintili olup sorunuzla ilgili bilgi vermemektedir.\n\nBu nedenle, sağladığım metinler Azasitidin için özel bir SUT maddesi içermemektedir. Ancak genel tıbbi ve SUT uygulamaları çerçevesinde size genel bilgi sunabilirim.\n\n**2. Genel Bilgi (Azasitidin Reçete Edilebilirliği)**\nSUT kapsamında sitostatik (kemoterapi) ilaçları genellikle ilgili branş uzmanları tarafından yönetilir. Azasitidin, kemoterapi ajanı sınıfına giren ve özellikle Miyelodisplastik Sendromlar (MDS) ve Akut Miyeloid Lösemi (AML) tedavisinde kullanılan bir hipometilasyon ajanıdır.\n\n*   **Reçete Yetkisi:** Türkiye'deki genel SUT uygulamaları ve tıbbi pratik ışığında, Azasitidin gibi sitostatik ilaçlar genellikle **Hematoloji** veya **Onkoloji** branşındaki uzman hekimler tarafından reçete edilebilir.\n*   **Rapor Gerekliliği:** SUT'un genel kuralı gereği, bazı özel hastalıklara ve sitostatik ilaç kullanımına ilişkin düzenlemelerde (örneğin 4.2 maddeleri kapsamında), ilacın kullanımı için ilgili branş uzmanının düzenlediği rapor veya tedavi planı istenebilir.\n*   **Önemli Not:** Azasitidin gibi spesifik kanser tedavisi ilaçları için SUT'un \"İlaç > 4.2 - Bazı özel hastalıklara ve ilaç kullanımına ilişkin düzenlemeler\" bölümünün ilgili alt maddeleri (genellikle sitostatikler için ayrılmış bölümler) kontrol edilmelidir. Ancak mevcut arama sonuçlarında bu spesifik madde yer almamaktadır.\n\n**Özetle:**\nMevcut araştırma verileri Azasitidin için doğrudan bir SUT maddesi içermemektedir. Genel tıbbi ve SUT standartlarına göre, bu ilaç **Hematoloji veya Onkoloji uzman hekimleri** tarafından reçete edilebilir; ancak spesifik kullanım koşulları (rapor süresi, rapor türü vb.) ilgili SUT maddesinin tam metnini kontrol etmekle belirlenmelidir.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 389.6286368370056,
+            "tool_steps": 2
+          }
+        },
+        {
+          "question": "Sağlık Bakanlığı dışındaki resmi sağlık hizmeti sunucularına yapılan hemodiyaliz amaçlı sevkler ne kadar süreyle geçerlidir?",
+          "expected": "3 ay",
+          "source": "1.5",
+          "ai_answer": "Verilen araştırma sonuçları incelendiğinde, Sağlık Bakanlığı dışındaki resmi sağlık hizmeti sunucularına yapılan hemodiyaliz amaçlı sevklerin **geçerlilik süresi** (ne kadar süreyle geçerli olduğu) hakkında doğrudan ve spesifik bir bilgi bulunmamaktadır.\n\nAraştırma sonuçlarında yer alan mevcut bilgiler şunlardır:\n1.  **Yoğun Bakım Sevk Kuralları:** Resmi sağlık hizmeti sunucularında yoğun bakım yatağı bulunmadığı ve naklin 112 Komuta Kontrol Merkezi koordinasyonunda gerçekleştiği koşuluyla, yoğun bakım tedavisi için özel sağlık hizmeti sunucularına sevk edilebileceği belirtilmiştir.\n2.  **İlaç Kullanım Kriterleri:** Hemodiyaliz hastalarında etelkalsetid kullanımına ilişkin serum kalsiyum ve parathormon (PTH) değerleri gibi laboratuvar kriterleri yer almaktadır.\n\n**Genel Bilgi:**\nSağlık Uygulama Tebliği (SUT) genel çerçevesinde ve Türkiye sağlık sistemi uygulamaları göz önüne alındığında, kronik tedavi süreçlerinde (hemodiyaliz dahil) hastaların sevk edildikleri sağlık kuruluşlarına yönelik sevk mektupları veya sözleşmeler genellikle belirli bir süre geçerli olur.\n\n*   **Genel Geçerlilik Süresi:** Hemodiyaliz gibi düzenli ve uzun süreli tedavilerde yapılan sevk işlemleri, genellikle **3 aylık** periyotlarla yenilenir veya bu süre boyunca geçerlidir.\n*   **Yenileme:** Sevk süresi dolduğunda tedavi devam edecekse, hastanın durumu değerlendirilerek yeni bir sevk işlemi yapılması veya mevcut sözleşmenin yenilenmesi gerekebilir.\n*   **Kurumlar Arası:** Sağlık Bakanlığı dışındaki (örneğin üniversite hastaneleri veya diğer kamu kurumları) resmi sağlık hizmeti sunucularına yapılan sevkler, genellikle o kurumların kendi SUT sözleşme hükümlerine ve ilgili bakanlık onaylarına tabi olur.\n\nÖzetle, sağlanan metinlerde hemodiyaliz sevk süresinin spesifik bir sayısal değeri (örneğin \"3 ay\" veya \"6 ay\") yer almamaktadır; bu bilgi genellikle ilgili hastane ile yapılan sözleşme veya",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 0.5,
+            "latency": 605.8184149265289,
+            "tool_steps": 4
+          }
+        },
+        {
+          "question": "Sitogenetik tetkiklerde, hekimin istem formunda belirttiği bilgilerin bir örneği nereye eklenmelidir?",
+          "expected": "Faturaya.",
+          "source": "2.4",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak verdiğiniz araştırma sonuçlarını inceledim. Sorunuz olan **\"Sitogenetik tetkiklerde, hekimin istem formunda belirttiği bilgilerin bir örneği nereye eklenmelidir?\"** konusuna dair araştırmada bulunan belgelerde **doğrudan ve spesifik bir yerleşim veya ekleme kuralı bulunmamaktadır.**\n\nAraştırma sonuçlarında bu konu ile ilgili mevcut bilgiler ve genel SUT çerçevesi şöyledir:\n\n### 1. Araştırma Sonuçlarının İçeriği\n*   **Fiyatlandırma ve Kodlama (Kaynak 1):** Sitogenetik tetkikler, SUT eki EK-2/B Listesi'ndeki \"9.B. Sitogenetik Tetkikler\" başlığı altında yer alan işlem kodları ile faturalandırılır. Ancak moleküler sitogenetik tetkikleri bu kapsamın dışında tutulmaktadır (RG-16/03/2023-32134 sayılı tebliğ). Bu madde, formun nereye ekleneceği değil, hangi işlemlerin fatura edilebileceğini belirtmektedir.\n*   **Sevk ve Belge İşleyişi (Kaynak 2 & 3):** Araştırmada yer alan diğer kaynaklar genel olarak \"Hasta Sevk Formu\" (EK-2/F) üzerinden yapılan sevk işlemlerini ve bu formun elektronik hale geçiş sürecini anlatmaktadır. Bu metinlerde, hekim istem formunun fatura veya dosyaya eklenmesi gibi spesifik bir belge ekleme prosedürü yer almamaktadır.\n\n### 2. Genel Bilgi ve Uzman Görüşü\nAraştırma sonuçlarında bu spesifik detayın bulunmaması nedeniyle, SUT genel prensipleri ve sağlık hizmet sunucularının yükümlülükleri çerçevesinde genel bilgi şöyledir:\n\n*   **Belge Ekleme Yeri:** Genellikle SUT kapsamında fatura edilen tetkikler (özellikle sitogenetik gibi yüksek maliyetli veya özel tetkikler) için hekimin istem formu, **fatura dosyasına** veya **elektronik talep dosyasına** eklenmesi beklenen belgeler arasındadır. Bu belge, tetkikin tıbbi gerekçesini ve SUT kapsamındaki uygunluğunu kanıtlayan ana belgedir.\n*   **Elektronik Geçiş:** Kaynaklarda belirtildiği üzere, sevk ve talep işlemlerinin Kurum bilgi işlem sistemi üzerinden elektronik olarak düzenlenmesi sağlanıncaya kadar kağıt formlar (Sevk Formu vb.) kullanılır. Sitogenetik tetkikleri için de benzer bir süreç izlenir; yani hekim istem formunun dijital ortamda sisteme yüklenmesi veya fiziksel kopyasının fatura dosyasına eklenmesi, sözleşmeli sağlık hizmeti sunucularının (üçüncü basamak) faturalandırma şartları arasında değerlendirilir.\n*   **Moleküler Sitogenetik İstisnası:** Kaynak 1'de belirtildiği üzere, moleküler sitogenetik tetkikleri EK-2/B listesindeki standart sitogenetik tetkiklerinden ayrı bir alt başlık altında yer alır ve bu grup için farklı faturalandırma kuralları uygulanabilir.",
+          "metrics": {
+            "map": 0.4188,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 501.54205203056335,
+            "tool_steps": 6
+          }
+        }
+      ]
+    },
+    "with_kg": {
+      "summary": {
+        "avg_map": 0.7238,
+        "avg_ndcg": 0.8303,
+        "context_recall": 0.92,
+        "faithfulness": 0.39,
+        "answer_relevance": 0.42,
+        "avg_tool_steps": 4.78,
+        "avg_latency_s": 472.13
+      },
+      "details": [
+        {
+          "question": "Amfoterisin B'ye refrakter invazif aspergilozis tedavisinde hangi ilaçlara refrakterlik aranmaktadır?",
+          "expected": "Amfoterisin B, lipozomal amfoterisin B veya vorikonazol tedavilerine.",
+          "source": "4.2",
+          "ai_answer": "Verilen araştırma sonuçları incelendiğinde, sorunuzda belirtilen **\"Amfoterisin B'ye refrakter invazif aspergilozis tedavisinde hangi ilaçlara refrakterlik aranmaktadır?\"** konusuna dair Sağlık Uygulama Tebliği (SUT) metinlerinde doğrudan bilgi bulunmamaktadır.\n\nAşağıda, sağlanan araştırma sonuçlarının içeriği ve bu eksikliğe dayalı genel tıbbi bilgilere göre hazırlanan kapsamlı yanıt yer almaktadır:\n\n### 1. Araştırma Sonuçları Analizi (SUT Metinleri)\nSağlanan üç kaynak parçası, sorunuzla ilgili spesifik bir SUT maddesi veya kodu içermemektedir. Kaynakların içerikleri şu şekilde olup invazif aspergilozis ile doğrudan ilişkilendirilememektedir:\n\n*   **Kaynak 1:** Multipl Skleroz (MS) hastalığında kullanılan ilaçlara (fampiridin, beta interferon, glatiramer asetat vb.) odaklanmaktadır.\n*   **Kaynak 2:** Lizozomal hastalıklar (Gaucher hastalığı) ve substrat inhibisyon tedavi kriterlerine (miglustat tedavisi) yer verilmektedir.\n*   **Kaynak 3:** Hepatit B'ye bağlı karaciğer sirozunda tedavi ilkeleri hakkında bilgi içermektedir.\n\nBu nedenle, SUT kapsamında invazif aspergilozis ve amfoterisin B refrakterlik kriterleri için spesifik bir madde numarası (örneğin; İlaç > 4.2 - Bazı özel hastalıklara... şeklinde) bu sonuçlarda yer almamaktadır.\n\n### 2. Genel Tıbbi Bilgi ve Tedavi Yaklaşımı\nSUT metinlerinde bu spesifik bilgi bulunmadığı için, genel tıbbi literatür ve enfeksiyon hastalıkları kılavuzlarına (IDSA/EORTC) dayalı genel bilgi aşağıdadır:\n\n**İnvazif Aspergilozis Tedavisinde Refrakterlik Durumu:**\nInvaziv aspergilozis tedavisinde, özellikle **Amfoterisin B'ye refrakterlik** (tedaviye yanıt ver",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.5,
+            "relevance": 0.5,
+            "latency": 500.00640296936035,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Kseroderma pigmentosum ve albinizm tedavisinde kullanılan güneşten koruyucu kremler hangi uzman hekim tarafından reçete edilebilir?",
+          "expected": "Cilt hastalıkları uzman hekimlerince.",
+          "source": "4.2",
+          "ai_answer": "Verilen araştırma sonuçları incelendiğinde, **Kseroderma Pigmentosum ve Albinizm** tedavisinde kullanılan güneşten koruyucu kremlerin **hangi spesifik uzman hekim tarafından reçete edileceği** (örneğin Dermatoloji Uzmanı mı yoksa diğer bir branş mı) doğrudan belirtilmemiştir. Araştırma sonuçları, bu ilaçların aylık bedelinin 226,80 TL'yi geçemeyeceğine dair güncel düzenlemeleri (RG-05/08/2024 tarihli değişiklik ile yürürlükte) ve ilgili tebliğ başlığını (SUT Madde 4.2.39) içermektedir ancak reçete yetkisi ile ilgili uzmanlık dalını açıkça yazmamaktadır.\n\n**Genel Bilgi:**\nSağlık Uygulama Tebliği (SUT) kapsamında bu tür nadir ve özel hastalıkların tedavisi genellikle tanıyı koyan ve takip eden branş olan **Dermatoloji** uzmanı tarafından yönetilir. Bu nedenle, pratikte reçete yetkisi Dermatoloji Uzmanına aittir. Ayrıca SUT genel kuralları gereği, bu tür özel ilaçlar için ilgili hastalığın uzman hekiminin (genellikle dermatoloji) onayı ve takip şarttır.\n\nÖzetle; araştırma sonuçlarında reçete edilecek spesifik uzmanlık dalı yer almamakla birlikte, tıbbi uygulama standartları ve SUT genel mantığı gereği bu tedaviler **Dermatoloji Uzmanı** tarafından yönetilir ve reçete edilir. İlaçların aylık bedeli ise 226,80 TL'yi geçmemektedir.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 463.0884428024292,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Miyelodisplastik Sendromda (MDS) görülen dirençli anemi tedavisinde decitabinin kullanılabilmesi için kemik iliği blast oranının hangi değerin üzerinde artmış olması gerekmektedir?",
+          "expected": "%5'in üzerinde.",
+          "source": "4.2",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 668.3140540122986,
+            "tool_steps": 7
+          }
+        },
+        {
+          "question": "Sağlık hizmeti sunucuları, kişilerin müracaatı aşamasında kimlik tespiti için hangi belgeleri kullanabilir?",
+          "expected": "Nüfus cüzdanı, sürücü belgesi, evlenme cüzdanı, pasaport veya Kurum sağlık kartı.",
+          "source": "1.6",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) Genel Hükümler bölümüne göre, sağlık hizmeti sunucuları kişilerin müracaatı aşamasında kimlik tespiti için aşağıda belirtilen belgeleri kullanabilirler:\n\n1.  **Kabul Edilen Belgeler:** SUT Genel Hükümler > 1.6 - Kimlik Tespiti başlığı altında, sağlık hizmeti sunucuları tarafından kişilerin müracaatı aşamasında (acil hallerde ise acil halin sona ermesinden sonra) aşağıdaki belgelerden biri ile kimlik tespiti yapılabilir:\n    *   Nüfus cüzdanı\n    *   Sürücü belgesi\n    *   Evlenme cüzdanı\n    *   Pasaport\n    *   Verilmiş ise Kurum Sağlık Kartı\n\n2.  **Biyometrik Kimlik Doğrulama:** Kimlik tespiti süreci sadece belgeye dayanmamaktadır. SUT Genel Hükümler > 1.6.1 maddesine göre, sağlık hizmeti sunucusu tarafından kişinin ilk biyometrik verisi Kurum veri tabanına kayıt işlemi yapılır. Bu işlem, uygulama tarihi ile uygulamaya ilişkin usul ve esasların Kurum tarafından belirlendiği bir süreçtir.\n\nÖzetle; SUT kapsamında kimlik tespiti için hem yukarıda sayılan resmi kimlik belgelerinden biri hem de biyometrik veri kaydı sağlık hizmeti sunucusu tarafından gerçekleştirilir.",
+          "metrics": {
+            "map": 0.671,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 416.1346137523651,
+            "tool_steps": 4
+          }
+        },
+        {
+          "question": "Ani işitme kaybı için uygulanan HBO tedavisinde, 20. seans sonunda tedavi bedellerinin ödenmeye devam etmesi için saf ses ortalamasında en az kaç dB'lik bir düzelme olması gerekmektedir?",
+          "expected": "20 dB",
+          "source": "2.4",
+          "ai_answer": "Verilen araştırma sonuçları (Adım 1, Adım 2 ve Adım 3), sorunuzda belirtilen **\"HBO tedavisi\"** ve **\"saf ses ortalaması düzelme kriteri\"** ile ilgili doğrudan bilgi içermemektedir.\n\n**Araştırma Sonuçlarının İçeriği:**\nEldaki sonuçlar, SUT'un **3.3 - Bazı tıbbi malzemelerin temin",
+          "metrics": {
+            "map": 0.4377,
+            "ndcg": 0.6509,
+            "recall": 1.0,
+            "faithfulness": 0.5,
+            "relevance": 0.0,
+            "latency": 423.0639679431915,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Bir hastaya bir yıl içinde ESWT tedavisi en fazla kaç farklı vücut bölgesine uygulanabilir?",
+          "expected": "2",
+          "source": "2.4",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak verdiğiniz araştırma sonuçlarını ve soruyu inceledim. Sorunuz olan **\"Bir hastaya bir yıl içinde ESWT tedavisi en fazla kaç farklı vücut bölgesine uygulanabilir?\"** sorusunun cevabı, sağlanan araştırma sonuçlarında **bulunmamaktadır.**\n\nAşağıda bu durumun nedenleri ve genel bilgilere dayalı açıklamalar yer almaktadır:\n\n### 1. Araştırma Sonuçlarındaki Bilgi Eksikliği\nVerilen üç arama adımı (Adım 1, Adım 2 ve Adım 3) üzerinden elde edilen sonuçlar incelendiğinde, metinlerin içeriği **ESWT (Ekstrakorporeal Şok Dalgası)** tedavisi ile ilgili değildir.\n*   **Kaynak İçeriği:** Tüm sonuçlar (Kaynak 1, Kaynak 2 ve Kaynak 3), SUT'ün **\"İlaç > 4.2 - Bazı özel hastalıklara ve ilaç kullanımına ilişkin düzenlemeler\"** bölümü altında yer alan **\"Büyüme Bozuklukları\"** başlığına aittir.\n*   **Konu:** Metinlerdeki bilgiler, büyüme hormonu tedavisi ile ilgili sonlandırma kriterlerini (Epifiz hattı kapama, yıllık büyüme hızı +2 cm'den düşük olması, boy uzunluğu sınırları vb.) içermektedir.\n*   **Sonuç:** Sağlanan metinlerde ESWT tedavisinin vücut bölgesi sayısı veya yıllık limitine dair herhangi bir madde bulunmamaktadır.\n\n### 2. Genel Bilgi ve SUT Bağlamı\nSUT kapsamında ESWT tedavisi genellikle \"Fizik Tedavi ve Rehabilitasyon\" veya ilgili özel tedavi yöntemleri bölümlerinde (Örn: 2.4 - Bazı tetkik ve tedavi yöntemlerinin usul ve esasları gibi) düzenlenir. Ancak sağlanan sonuçlar bu bölümün ESWT ile ilgili kısmını içermemektedir.\n\nGenel SUT prensipleri ve klinik uygulama standartlarına göre:\n*   **Vücut Bölgesi Sayısı:** SUT'ün genel ilkesi, tedavinin tıbbi gereklilik doğrultusunda uygulanmasıdır. ESWT için sabit bir \"yılda kaç farklı bölge\" sayısı (örneğin 3 veya 5 gibi) genellikle doğrudan yazılı bir limit olarak tanımlanmaz; bunun yerine **tedavi sıklığı** ve **bölge tekrarı** kısıtlamaları daha sıkça vurgulanır.\n*   **Güvenlik Protokolleri:** Aynı bölgeye kısa süreli tekrarlı uygulamalar (örneğin 6 ay içinde) genellikle doku hasarı riski nedeniyle önerilmez. Tedavi planı hastanın klinik durumuna göre belirlenir.\n*   **Yasal Kaynak:** Kesin sayısal limit veya uygulama kısıtlamaları için SUT'ün güncel \"Fizik Tedavi ve Rehabilitasyon\" veya \"Şok Dalgası Tedavisi\" ile ilgili özel maddeleri (genellikle 2.4 veya benzeri bölümler) kontrol etmek gerekmektedir.\n\n**Özetle:** Sağlanan araştırma sonuçları ESWT limitleri hakkında bilgi vermediği için, bu spesifik soruya metin bazlı bir sayısal cevap verilememektedir. Kesin bilgi için SUT'ün ilgili bölümünün (Şok Dalgası Tedav",
+          "metrics": {
+            "map": 0.4787,
+            "ndcg": 0.6934,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 794.4626202583313,
+            "tool_steps": 7
+          }
+        },
+        {
+          "question": "Sorafenib'i hangi uzmanlar reçete edebilir?",
+          "expected": "Tıbbi onkoloji uzmanları.",
+          "source": "4.2",
+          "ai_answer": "**SUT (Sağlık Uygulama Tebliği) Uzmanı Görüşü**\n\nAşağıda, sağlanan araştırma sonuçları doğrultusunda ve genel tıbbi bilgi ışığında \"Sorafenib'i hangi uzmanlar reçete edebilir?\" sorusuna kapsamlı cevap verilmiştir.\n\n### 1. Araştırma Sonuçlarına Göre Bulunan Bilgi\nSağlanan SUT (Sağlık Uygulama Tebliği) veritabanı arama sonuçları incelendiğinde, **\"Sorafenib\"** ilacının reçete edilebileceği spesifik uzman hekim grubu ile ilgili doğrudan bir madde veya hüküm bulunmamaktadır.\n\n*   **Adım 2 ve Adım 3 Sonuçları:** Bu adımlarda \"Sorafenib\" sorgusu yapıldığında, sistem Migren tedavisi (Triptanlar, Topiramat) ile ilgili düzenlemeleri içeren metinleri (4.2.19 - Migrende ilaç kullanım ilkeleri) getirmiştir. Bu sonuçlarda Sorafenib'ten bahsedilmemektedir.\n*   **Adım 5 Sonucu:** Osteoporoz ve Sudek Atrofi başlıklı bir bölümün (4.2.17) başlığı bulunmuş olsa da, bu bölümün içeriğinde Sorafenib'in reçete yetkisi ile ilgili bilgi yer almamaktadır.\n*   **Adım 4 Sonucu:** Tam metin aramasında sonuç bulunamadığı belirtilmiştir.\n\n**Sonuç:** Mevcut SUT snippet'lerinde (parçacıklarında), Sorafenib için özel bir \"reçete edebilir uzman\" kuralı açıkça yazılı değildir.\n\n### 2. Genel Bilgi ve Tıbbi Uygulama Pratiği\nSUT sonuçlarında spesifik madde bulunamadığından, genel tıbbi bilgi ve Türkiye'deki ilaç kullanım standartlarına göre şu bilgiler verilmektedir:\n\n*   **İlaç Grubu:** Sorafenib (ticari adıyla Nexavar), bir tirozin kinaz inhibitörüdür. Genellikle karaciğer kanseri (Hepatosellüler Karsinom), böbrek hücresel karsinomu ve gastrointestinal stromal tümörler (GIST) tedavisinde kullanılır.\n*   **Reçete Yetkisi:** Sorafenib gibi onkolojik (tümöral) hastalıkların tedavisinde kullanılan ilaçlar, SUT kapsamında genellikle **\"Tümör Hastalıkları Uzmanı\"** veya **\"Hematoloji ve Onkoloji Uzmanı\"** hekimler tarafından reçete edilebilir.\n*   **SUT Düzenlemeleri:** SUT'un \"Bazı özel hastalıklara ve ilaç kullanımına ilişkin düzenlemeler\" (4.2 maddesi) bölümü altında, onkolojik ilaçlar için genellikle \"Liste\" ilacı veya \"Özel Hastalık\" kapsamında değerlendirilir. Bu tür ilaçların reçetesi, ilgili uzmanlık alanına sahip hekimler tarafından verildiği kabul edilir.\n*   **Kısıtlamalar:** Bazı özel hastalıklarda (örneğin Migren örneğinde olduğu gibi) belirli doz sınırları veya uzmanlık gereklilikleri (nöroloji uzmanı vb.) SUT'ta belirtilir. Sorafenib için de benzer şekilde, ilacın kullanım amacı ve hastalık tanısı doğrultusunda ilgili onkoloji uzmanının reçete etmesi beklenir.\n\n### 3. Özet ve Tavsiye\n*   **SUT Veritabanı Durumu:** Sağlanan arama sonuçlarında Sorafenib'in reçete edilebileceği spesifik uzmanlık dalı (örneğin \"Gastroenteroloji\" veya \"Onkoloji\") açıkça yazılı değildir.\n*   **Genel Uygulama:** Sorafenib, onkolojik bir ilaç olduğu için Türkiye'de ve SUT genel çerçevesinde **Tümör Hastalıkları (Onkoloji) Uzman Hekimleri** tarafından reçete edilmektedir.\n*   **Önemli Not:** İlaçların reçete yetkisi SUT güncellemeleri ile değişebilir. En doğru bilgi için Sağlık Bakanlığı'nın güncel \"Sağlık Uygul",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 449.1678421497345,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "15 yaşındaki bir bireyin gözlük camının süresinden önce yenilenmesi için silendirik değerinde ne kadar değişiklik olması gerekir?",
+          "expected": "Metinde 14 yaş ve altı için bilgi bulunmaktadır, 15 yaş için bilgi bulunmamaktadır.",
+          "source": "3.3",
+          "ai_answer": "Merhaba, ben SUT (Sağlık Uygulama Tebliği) uzmanı olarak araştırma sonuçlarınızı detaylıca inceledim. Sorunuzda belirtilen **\"15 yaşındaki bir bireyin gözlük camının süresinden önce yenilenmesi için silendirik değerinde ne kadar değişiklik olması gerekir?\"** konusuna dair spesifik sayısal bilgi, sağlanan araştırma sonuçlarında (Adım 1, 3 ve 4) yer almamaktadır.\n\nAşağıda bu durumu açıkça belirtmiş olup, mevcut veriler ışığında genel SUT kuralları hakkında bilgilendirme sunuyorum:\n\n### 1. Araştırma Sonuçlarındaki Bulgular\nSağlanan metin parçaları (SUT Bölüm 3.3.3.A - Gözlük cam ve çerçevesi) şu temel şartları içermektedir:\n*   **Reçete Şartı:** Gözlük cam ve çerçevelerinin temini, göz sağlığı ve hastalıkları uzman hekimleri ile bu dalda ihtisas yapan asistan hekimler tarafından düzenlenen reçeteye veya e-reçeteye dayanarak yapılmalıdır.\n*   **Acil Durum İstisnası:** Acil polikliniklerinde yazılan gözlük cam ve çerçeve reçeteleri SUT kapsamında bedelleri karşılanmaz.\n*   **Yasal Uyumluluk:** Gözlük cam ve çerçeveleri, 5193 sayılı Optisyenlik Hakkında Kanun hükümlerine uygun olarak faaliyet gösteren optisyenler tarafından temin edilmelidir.\n\nAncak bu metinlerde **\"silendirik değer değişimi\"**, **\"yenile",
+          "metrics": {
+            "map": 0.5968,
+            "ndcg": 0.7123,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 448.0358760356903,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Kanser tedavisinde ilaç kullanımına ilişkin sağlık kurulu raporunda, tıbbi onkoloji veya hematoloji uzman hekimi yoksa, kaç dermatoloji uzmanının yer alması gerekir?",
+          "expected": "3 dermatoloji uzmanı.",
+          "source": "4.2",
+          "ai_answer": "Merhaba, SUT (Sağlık Uygulama Tebliği) uzmanı olarak sorunuza araştırma sonuçları ışığında aşağıdaki şekilde yanıt veriyorum:\n\n**Araştırma Sonuçlarına Göre Durum:**\nSunulan araştırma sonuçları (SUT Madde 4.2.14.Ç), kanser tedavisinde isimleri veya endikasyonu belirtilmeyen ilaçların kullanımına ilişkin sağlık kurulu raporlarında **tıbbi onkoloji veya hematoloji uzman hekimlerinden en az birinin** bulunması gerektiğini açıkça belirtmektedir.\n\nAncak, araştırma sonuçlarınızda **\"tıbbi onkoloji veya hematoloji uzman hekimi yoksa dermatoloji uzmanının kaç adet olması gerektiğine dair herhangi bir bilgi yer almamaktadır.\"** Bu metinlerde dermatoloji uzmanlarının bu spesifik madde kapsamında (4.2.14.Ç) onkoloji veya hematoloji uzmanı yerine geçmesi veya sayıları hakkında hüküm bulunmamaktadır.\n\n**Genel Bilgi ve Uygulama Açısından Değerlendirme:**\nSUT düzenlemelerinin genel mantığına ve sağladığınız metnin içeriğine dayanarak şu şekilde özetleyebiliriz:\n\n1.  **Zorunlu Branş Şartı:** Kanser tedavisi ilaçları için SUT'un ilgili maddeleri (4.2.14.Ç), genellikle hastalığın doğrudan uzman olduğu branşı olan **tıbbi onkoloji veya hematoloji** uzmanının rapor içinde bulunmasını şart koşar.\n2.  **Dermatolojinin Rolü:** Dermatoloji uzmanları, cilt hastalıkları ve cilt kanserlerinin (örneğin bazal hücreli karsinom vb.) tanı ve tedavisi için yetkilidirler. Ancak SUT'un \"kanser tedavisinde kullanılan diğer ilaçlar\" başlığı altında belirtilen genel onkolojik ilaç reçeteleri için, dermatoloji uzmanı tek başına veya sayısal olarak onkoloji/hematoloji uzmanının eksikliğini telafi eden bir rolü bu metinlerde tanımlanmamıştır.\n3.  **Sonuç:** Verilen araştırma sonuçlarına göre, tıbbi onkoloji veya hematoloji uzmanı yoksa dermatoloji uzmanının sayısının ne kadar olması gerektiği **belirli değildir ve mevcut SUT maddesi (4.2.14.Ç) bu durumu desteklememektedir.** Bu tür durumlarda genellikle ilgili hastalığın doğrudan uzman branşı olan onkoloji veya hematoloji raporunun bulunması beklenir.\n\nÖzetle; sorunuzdaki senaryo (onkoloji/hematoloji yoksa dermatoloji sayısı), mevcut araştırma sonuçlarında ve SUT'un bu spesifik maddesinde yer almamaktadır.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 1.0,
+            "latency": 402.89598512649536,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "SUT eki listelerden çıkarılan tıbbi malzemelerin bedellerinin Kurumca karşılanmayacağına dair hükümler hangi tarihten itibaren geçerli olacaktır?",
+          "expected": "01.05.2013 tarihinden itibaren.",
+          "source": "6.3",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak, sağladığınız araştırma sonuçlarını detaylıca inceledim ve sorunuza aşağıdaki şekilde yanıt veriyorum:\n\n**Araştırma Sonuçlarına Göre Durum:**\nVerilen araştırma sonuçları (Kaynak 1, 2 ve 3), SUT eki EK-3/C listelerinde yer alan tıbbi malzemelerin ödeme esaslarını ve geçici hükümleri içermektedir. Ancak, **SUT eki listelerden çıkarılan tıbbi malzemelerin bedellerinin Kurumca karşılanmayacağına dair genel geçerlilik tarihini açıkça belirten spesifik bir hüküm bu sonuçlarda yer almamaktadır.**\n\nKaynak 2 ve Kaynak 3'te \"Son Hükümler\" bölümünde geçen **\"22.06.2012\"** tarihi, sorunuzdaki genel kural için değil, **geçici ve geçiş hükümleri** kapsamında belirtilmiştir. Bu tarihten önceki sağlık kurulu raporlarına istinaden temin edilen ve ısmarlama olarak üretilen tıbbi malzemelerle ilgili özel bir durum (grandfathering/ataşma) söz konusudur. Yani, bu tarih listelerden çıkarılan tüm malzemelerin genel olarak karşılanmayacağına dair başlangıç tarihi değildir; daha ziyade o tarihten önceki süreçte başlayan işlemlerin veya raporların geçici olarak korunması ile ilgilidir.\n\n**Genel Bilgi ve Uzman Görüşü:**\nSUT (Sağlık Uygulama Tebliği) mevzuatı genel çerçevesinde değerlendirildiğinde, listelerden çıkarılan tıbbi malzemelerin Kurumca karşılanmaması ilkesi şu şekilde işler:\n\n1.  **Liste Bağlılığı:** SUT eki EK-3/C ve ilgili eklerde yer alan tıbbi malzemeler belirlenen fiyatlar üzerinden veya piyasa araştırması",
+          "metrics": {
+            "map": 0.2243,
+            "ndcg": 0.4307,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.5,
+            "latency": 530.658124923706,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Kemik İliği/Organ Nakil Merkezi ve Terapötik Aferez Merkezi ruhsatı olan ikinci basamak sağlık hizmeti sunucuları hangi durumda ekstrakorporeal fotoferez tedavisi için sağlık kurulu raporu düzenleyebilir?",
+          "expected": "Sadece Graft Versus Host Hastalığı veya solid organ nakillerinde doku reddinin önlenmesi (kalp, akciğer, böbrek nakillerinde) için.",
+          "source": "2.4",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.7679,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 428.6882908344269,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "Büyüme hormonu tedavisine başlama kriterleri sağlanmış olsa bile, bu tedavi neyin yerine kullanılmaz?",
+          "expected": "Büyüme hormonu tedavisinin yerine kullanılmaz.",
+          "source": "4.2",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak, sunulan araştırma sonuçlarını inceledim ve sorunuza aşağıdaki şekilde yanıt veriyorum:\n\n**Araştırma Sonuçları Hakkında Bilgi:**\nSunulan araştırma sonuçları (Adım 1, Adım 2 ve Adım 4), büyüme hormonu tedavisinin \"neyin yerine kullanılmadığı\" veya spesifik olarak \"başlama kriterleri sağlanmış olsa bile neyin yerine kullanılmayacağına dair\" doğrudan bir ifadeyi içermemektedir. Özellikle Adım 4'teki arama sonucu (Ezetimib ve safra asidi tutucular) soruyla alakasızdır ve Adım 1 ile Adım 2'deki sonuçlar erişkinlerde somatropin kullanım ilkeleri ve epifiz durumu üzerine odaklanmaktadır ancak \"kullanılmayan durumlar\" veya \"yerine kullanılmama\" kısıtlaması detayını tam olarak vermemektedir.\n\n**Genel Bilgi ve SUT Bağlamında Açıklama:**\nAraştırma sonuçlarında eksik olan bu spesifik bilgiyi, Sağlık Uygulama",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.5,
+            "relevance": 0.0,
+            "latency": 683.650319814682,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Hangi durumlarda trakeobronşiyal stentlerin bedelleri Kurumca karşılanır?",
+          "expected": "Trakeobronşiyal malign darlıklarda, trakeobronşiyal benign darlıklarda ve trakea özefageal fistüllerde kullanılmaları halinde.",
+          "source": "3.3",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) hükümleri ve sağlanan araştırma sonuçlarına dayanarak, trakeobronşiyal stentlerin bedellerinin Kurumca karşılanması koşulları aşağıda detaylandırılmıştır:\n\n**1. Karşılanma Şartları ve Yürütme Yeri**\n*   **Kuruluş Tipi:** Stent uygulaması ve ilgili malzeme temini, **üçüncü basamak resmi sağlık hizmeti sunucularında** gerçekleştirilmelidir.\n*   **Dokümantasyon Gerekliliği:** Bedelin Kurumca karşılanması için, işlem göğüs hastalıkları ve/veya göğüs cerrahisi uzmanları tarafından düzenlenmiş bir **sağlık kurulu raporuna** istinaden yapılmalıdır.\n\n**2. Tıbbi İndikasyonlar (Mevcut Metne Göre)**\nAraştırma sonuçlarında yer alan metne göre, stentlerin uygulanacağı ve bedelinin karşılanacağı durumlar şunlardır:\n*   **Trakeobronşiyal Malign Darlıklar:** Stentler özellikle trakeobronşiyal malign darlıklarda (primer veya metastatik tümörlerin mikst ekzofitik veya dıştan bası ile oluşturabileceği hava yolu darlıkları gibi) uygulanabilir.\n*   *(Not: Metin \"b) Trakeobr...\" şeklinde kesildiği için diğer potansiyel durumlar tam olarak görülmese de, mevcut hüküm malign darlıkların kapsadığını açıkça belirtmektedir.)*\n\n**3. Güncel Yönetmelik Durumu**\n*   Bu hükümler, **12/12/2024 tarihli ve 32750 sayılı Resmi Gazete'de** yayımlanan değişiklikle güncellenmiştir.\n*   Değişiklik **20/12/2024 tarihinde** yürürlüğe girmiştir.\n\n**Özetle:** Trakeobronşiyal stent bedellerinin Kurumca karşılanması için; üçüncü basamak resmi sağlık kuruluşlarında, göğüs hastalıkları/göğüs cerrahisi uzmanı tarafından düzenlenmiş sağlık kurulu raporuna dayalı olarak ve özellikle malign darlık (tümör kaynaklı hava yolu darlığı) gibi durumların varlığında uygulanması gerekmektedir.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.5,
+            "latency": 363.0817928314209,
+            "tool_steps": 2
+          }
+        },
+        {
+          "question": "Rituksimab nüks gelişmesi durumunda hastalara en erken ne kadar süre sonra tekrar verilebilir?",
+          "expected": "16 haftadan daha erken olmamak kaydıyla.",
+          "source": "4.2",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak sağlanan araştırma sonuçlarını incelediğimde, **Rituximab** ilacının nüks (tekrarlayan hastalık) gelişmesi durumunda tekrar uygulama aralığına dair SUT metinlerinde doğrudan ve spesifik bir bilgi bulunmamaktadır.\n\nAşağıda bu durumu detaylandıran bulgular ve genel bilgilendirme yer almaktadır:\n\n### 1. Araştırma Sonuçları Analizi\nYapılan arama sorgulamaları (Adım 2, 3 ve 4) sonuçlarında Rituximab'a ait spesifik bir madde tespit edilememiştir. Arama motoru tarafından getirilen sonuçlar şu ilaçlarla ilgili düzenlemeleri içermektedir:\n*   **Vedolizumab:** Crohn hastalığı tedavisi ile ilgili (Adım 2).\n*   **Kanakinumab ve Anakinra:** Sistemik juvenil idiyopatik artrit tedavisi ile ilgili (Adım 3).\n*   **Lizozomal Hastalıklar:** Enzim tedavisi kriterleri (Adım 4).\n\nBu sonuçlar, sağlanan metin parçalarında Rituximab'ın nüks sonrası tekrar uygulama süresi veya aralığına dair SUT maddesinin yer almadığını göstermektedir. Ayrıca Adım 1'de `lookup_kg_entity` aracının \"source_id\" hatası vermesi de bu ilacın veri tabanındaki spesifik tanımlamasının mevcut sonuçlarda eksik olduğunu işaret etmektedir.\n\n### 2. Genel Bilgi ve Klinik Pratik\nSUT metinlerinde doğrudan bulunamayan bu konuda genel tıbbi literatür ve kullanım alışkanlıkları çerçevesinde şu bilgiler verilebilir:\n\n*   **Kullanım Şekli:** Rituximab, genellikle anti-CD20 monoklonal antikor olarak kullanılır. Tedavi protokolleri hastalığın türüne (Romatoloji, Onkoloji vb.) göre değişiklik gösterir.\n*   **Bakım Dozu ve Aralık:** İndüksiyon tedavisi sonrasında bakım dozu genellikle **6 aylık** aralıklarla uygulanabilir. Ancak bu süre hastanın klinik durumu ve B-hücre sayısına (CD19/CD20 pozitif hücre sayısı) göre ayarlanabilir.\n*   **Nüks Durumu:** Nüks geliştiğinde, ilacın tekrar verilmesi için genellikle bir \"wash-out\" (temizleme) süresi beklenmez; ancak B-hücrelerin yeniden oluşması veya hastalığın kontrol altına alınmaması durumunda dozaj ve aralık yeniden değerlendirilir.\n*   **SGK Onayı:** Sağlık Uygulama Tebliği kapsamında ilaçların tekrar uygulanması genellikle \"Sağlık Kurulu Raporu\"na dayalıdır. Nüks durumunda raporun yenilenmesi ve yeni bir tedavi döneminin başlatılması, ilgili hastalığın SUT'daki spesifik bölümünde (örneğin Romatoloji veya Onkoloji bölümleri) tanımlanmış kriterlere göre değerlendirilir.\n\n### Sonuç\nSağlanan araştırma sonuçları kapsamında **Rituximab nüks sonrası tekrar uygulama aralığına dair SUT metni bulunmamaktadır.** Bu nedenle, spesifik bir süre (örneğin \"en az X ay\") SUT verilerinden türetilmemiştir. İlgili hastalık için güncel Sağlık Uygulama Tebliği'nin ilgili bölümü (örn. Romatoloji veya Onkoloji bölümleri) ve güncel SGK onaylı raporlar dikkate alınmalıdır.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.5,
+            "relevance": 0.5,
+            "latency": 423.8997492790222,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Gözlük cam ve çerçeve reçetesi hangi uzman hekimler tarafından düzenlenebilir?",
+          "expected": "Göz sağlığı ve hastalıkları uzman hekimleri ile bu dalda ihtisas yapan asistan hekimler.",
+          "source": "3.3",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) kapsamında, gözlük cam ve çerçeve reçetesi düzenleme yetkisi ile ilgili detaylı bilgi aşağıdadır:\n\n**Yetkili Hekim Türleri:**\nAraştırma sonuçlarındaki **3.3.3.A - Gözlük cam ve çerçevesi** başlıklı maddede (SUT Bölüm 3.3 - Bazı tıbbi malzemelerin temin edilme esasları), gözlük cam ve çerçeve reçetesi düzenleme yetkisi şu iki grup hekimlere aittir:\n\n1.  **Göz Sağlığı ve Hastalıkları Uzman Hekimleri**\n2.  **Bu Dalda İhtisas Yapan Asistan Hekimler**\n\n**SUT Madde Referansı:**\nİlgili düzenleme, SUT'ün **\"3.3 - Bazı tıbbi malzemelerin temin edilme esasları\"** bölümü altında yer alan **\"3.3.3 - Görmeye yardımcı tıbbi malzemeler\"** başlığındaki **\"3.3.3.A - Gözlük cam ve çerçevesi\"** maddesinde belirtilmiştir.\n\n**Önemli Not:**\nSUT hükümlerine göre, gözlük cam ve çerçevesinin temininde (yani e-reçete veya reçete ile işlem yapabilmek için) yukarıda belirtilen uzman hekimler tarafından düzenlenen resmi reçeteye/e-reçeteye dayanılması zorunludur.\n\nÖzetle; SUT mevzuatına göre gözlük reçetesi düzenleme yetkisi **Göz Sağlığı ve Hastalıkları Uzman Hekimleri** ile **bu dalda ihtisas yapan Asistan Hekimler** tarafından kullanılabilir.",
+          "metrics": {
+            "map": 0.671,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.5,
+            "relevance": 0.5,
+            "latency": 488.18174481391907,
+            "tool_steps": 4
+          }
+        },
+        {
+          "question": "Bir hastanın aynı sağlık hizmeti sunucusuna acil servis başvurusu hariç, daha önce aynı uzmanlık dalı için ayaktan başvurusunda '520032 Uzaktan hasta değerlendirmeye yönelik sağlık hizmetleri' işleminin faturalandırılması halinde, hangi listede yer alan tutar faturalandırılamaz?",
+          "expected": "SUT Eki EK-2/A Listesinde",
+          "source": "2.1",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.2714,
+            "ndcg": 0.5,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 426.2871091365814,
+            "tool_steps": 4
+          }
+        },
+        {
+          "question": "Yoğun bakım hizmetlerinde ilave ücret alınır mı?",
+          "expected": "Hayır, alınmaz.",
+          "source": "1.9",
+          "ai_answer": "**SUT Uzmanı Görüşü ve Cevabınız:**\n\nVerilen araştırma sonuçları incelendiğinde, **\"Yoğun Bakım\"** hizmetleri ile ilgili spesifik bir madde veya ilave ücret durumu hakkında doğrudan bilgi bulunmamaktadır. Ancak, sağlanan metinler SUT (Sağlık Uygulama Tebliği) Genel Hükümler kapsamında \"İlave Ücret\" konusuna dair genel prensipleri içermektedir. Bu nedenle sorunuzun cevabını araştırma sonuçlarının sınırları içinde değerlendirerek ve genel SUT bilgisi ışığında aşağıda detaylandırmaktayım:\n\n### 1. Araştırma Sonuçları Değerlendirmesi\n*   **Bilgi Eksikliği:** Sağlanan metinlerde (Adım 1 ve Adım 2), yoğun",
+          "metrics": {
+            "map": 0.9318,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.5,
+            "relevance": 0.5,
+            "latency": 411.3624291419983,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "Hangi durumlarda, tedavinin başladığı gün dahil olmak üzere en fazla 7 gün boyunca günde birden fazla seans hiperbarik oksijen tedavisi bedeli kurumca karşılanır?",
+          "expected": "Ani işitme kaybı ve acil hastalarda",
+          "source": "2.4",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.6963,
+            "ndcg": 0.9469,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 0.0,
+            "latency": 450.5955021381378,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Metastatik hepatosellüler kanserde sorafenib birinci basamakta hangi durumda kullanılabilir?",
+          "expected": "Hastanın kemoterapiye engel olacak bir durumu var ise.",
+          "source": "4.2",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak sağladığınız araştırma sonuçlarını inceledim ve sorunuza aşağıdaki şekilde yanıt veriyorum:\n\n### Araştırma Sonuçları Değerlendirmesi\nMevcut araştırma sonuçlarında, **sorafenib** ilacının metastatik hepatosellüler kanser (HCC) tedavisinde **birinci basamakta** kullanım koşullarına dair spesifik bir bilgi bulunmamaktadır. Bunun nedenleri şunlardır:\n\n1.  **Adım 1 Hatası:** `lookup_kg_entity` aracında \"sorafenib\" varlığının doğrulanması için yapılan sorgulama başarısız oldu (`source_id` hatası). Bu nedenle ilacın SUT içindeki spesifik tanımlaması bu aşamada elde edilemedi.\n2.  **Adım 2 Sonuçları:** `search_sut_chunks` ile bulunan sonuç (4.2.14 maddesi), kanser tedavisinde genel ilkeleri (ayakta kemoterapi, kür tanımı, uzman hekim raporu gerekliliği) içermektedir. Ancak bu metin parçasında \"sorafenib\" ismi açıkça geçmemekte ve sadece genel bir çerçeve çizilmektedir.\n\n### Genel Bilgi ve SUT Uyarısı\nAraştırma sonuçlarında sorunuzla ilgili spesifik bilgi bulunmadığı için, SUT (Sağlık Uygulama Tebliği) genel ilkeleri doğrultusunda genel bilgilere dayanarak şu değerlendirmeyi sunuyorum:\n\n*   **İlaç Kategorisi:** Sorafenib, metastatik hepatosellüler kanser tedavisinde kullanılan bir hedefe yönelik (targeted therapy) anti-kanser ilacıdır. SUT kapsamında bu tür ilaçlar genellikle \"özel hastalıklara ve ilaç kullanımına ilişkin düzenlemeler\" başlığı altında değerlendirilir.\n*   **Birinci Basamak Kullanımı:** SUT'un genel prensipleri gereği, sorafenib gibi yüksek maliyetli ve spesifik kanser tedavisi ilaçları, birinci basamak (aile hekimliği) tarafından doğrudan reçete edilmemektedir. Bu tür ilaçların kullanımı için genellikle **onkoloji veya hepatoloji uzmanı** tarafından hazırlanan tedavi protokolü ve rapor gereklidir.\n*   **Kullanım Koşulu:** Araştırma sonuçlarında bulunan 4.2.14 maddesi, ayaktan kemoterapi veya kanser tedavisi için \"tedavi protokolünü gösterir sağlık kurulu/uzman hekim raporuna dayanılarak\" işlem yapılması gerektiğini belirtmektedir. Bu durum, sorafenib'in birinci basamakta kullanımının da uzman hekimin izni ve raporu çerçevesinde olabileceğini (veya hastane tabanlı/onkoloji polikliniği üzerinden yönetildiğini) işaret etmektedir.\n\n**Özetle:** Sağladığınız araştırma sonuçları, sorafenib'in birinci basamakta kullanım koşullarını doğrudan tanımlamamaktadır. SUT genel kuralları gereği bu ilaçlar genellikle uzman hekim raporuna ve tedavi protokolüne dayalı olarak yönetilir; standart birinci basamak reçete işlemleri dışında kalmaktadır.",
+          "metrics": {
+            "map": 0.8875,
+            "ndcg": 0.9558,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 410.52698016166687,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "Lizozomal hastalıklar için enzim tedavisine devam edilebilmesi için tedavi başlangıcında kaydedilen değerlerde kötüleşme oranı en fazla ne kadar olmalıdır?",
+          "expected": "%30",
+          "source": "4.2",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak sunulan araştırma sonuçlarını incelediğimde, sorunuzda belirtilen **\"tedavi başlangıcında kaydedilen değerlerde kötüleşme oranının en fazla ne kadar olacağına dair spesifik bir yüzde sınırı\"** sağlanan metinlerde yer almamaktadır.\n\nAraştırma sonuçları (Kaynak 1 ve Kaynak 2) **SUT Bölüm 4.2.10.A-2** başlığı altında \"Substrat inhibisyon tedavi kriterleri\"ne odaklanmaktadır. Bu maddede şu bilgiler yer almaktadır:\n*   Gaucher hastalığında ilk tedavi seçeneği enzim replasman tedavisidir (ERT).\n*   Enzim tedavisine **ağır alerjik reaksiyonlar** veya **hipersensitivite** gelişen hastalarda,\n*   Enzim tedavisi kriterleri kapsamında **enzim tedavisi kesilmiş olan** hastalarda,\n    tedavi substrat inhibisyonu (miglustat) tedavisine geçilir.\n\nAncak bu metinlerde, enzim tedavisinin devamı için kabul edilebilir bir \"kötüleşme oranı\" yüzdesi veya sayısal değeri açıkça belirtilmemiştir.\n\n**Genel Bilgi ve Uzman Görüşü:**\nSağlık Uygulama Tebliği kapsamında lizozomal hastalıklar (örneğin Gaucher, Fabry vb.) için enzim replasman tedavisi (ERT) genellikle ilk tercih edilen tedavi yöntemidir. Tedavinin devamı veya kesilmesi ile ilgili kararlar SUT genel çerçevesinde şu prensiplerle değerlendirilir:\n1.  **Klinik Yanıt:** Hastanın klinik durumunun stabil kalması veya iyileşmesi beklenir.\n2.  **Güvenlik:** Alerjik reaksiyonlar veya ciddi yan etkiler tedavinin devamını engelleyen temel kriterlerdir.\n3.  **Tedavi Süresi ve Kriterleri:** Tedavinin belirli bir süre boyunca (örneğin ilk yıl) sürdürülmesi ve belirlenen klinik parametrelerde (biyobelirteçler, organ fonksiyonları) beklenen iyileşme sağlanmaması durumunda tedavi kriterlerinin yeniden değerlendirilmesi söz konusu olabilir.\n\nSonuç olarak, sunulan araştırma sonuçlarında \"kötüleşme oranı yüzdesi\"ne dair net bir sayısal sınır bulunmamaktadır; bu tür spesifik eşik değerleri genellikle SUT'un tam metnindeki ilgili hastalık kodu (örneğin Gaucher için özel kriterler) veya güncel klinik rehberlerde detaylandırılmıştır.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 415.7613968849182,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Çocuklarda KBY ile ilişkili büyüme bozukluklarında somatropin kullanımında, büyüme hormonu tedavisine başlanması için hastanın hangi KBY evrelerinde olması ve ne kadar süredir diyalizde olması gerekmektedir?",
+          "expected": "KBY evresi evre III, IV, V olan veya 6 aydan fazla süredir diyalizde olması gerekmektedir.",
+          "source": "4.2",
+          "ai_answer": "Merhaba, SUT (Sağlık Uygulama Tebliği) uzmanı olarak sorunuza aşağıda detaylıca yanıt veriyorum.\n\n### 1. Verilen Araştırma Sonuçları Hakkında Bilgi Durumu\nVerdiğiniz araştırma sonuçlarındaki **Kaynak 1** metni, büyüme bozukluklarında somatropin kullanımının genel başlama kriterlerini (boy standart sapması, yıllık büyüme hızı, IGF-I ve IGFBP-3 düzeyleri, büyüme hormonu seviyeleri vb.) içermektedir. Ancak, bu metin parçası **Kronik Böbrek Yetmezliği (KBY) ile ilişkili spesifik şartları doğrudan kapsamamaktadır.**\n\nMetinde şu bilgiler yer almaz:\n*   Hastanın hangi KBY evresinde olması gerektiğine dair (Örn: Evre 3, 4 veya 5) açıkça belirtilmemiştir.\n*   Diyaliz bağımlı hastalarda ne kadar süredir diyaliz yapıldığına dair (Örn: En az X ay) spesifik bir süre şartı bu metin parçasında yer almamaktadır.\n\n### 2. Genel SUT Bilgisi ve Uzman Görüşü\nVerilen sonuçlarda eksik olan ancak SUT kapsamında genel geçer olan bilgileri aşağıda özetliyorum:\n\n*   **KBY Evreleri:** SUT kapsamında, büyüme bozukluğu tedavisi için kronik böbrek yetmezliği (KBY) hastaları genellikle **Evre 3-5** arasında değerlendirilir. Özellikle diyaliz bağımlı hastalarda bu tedavi onayı, hastanın KBY tanısının net olması ve tedavinin büyüme geriliğinin düzeltilebilir olduğu durumlarda verilir.\n*   **Diyaliz Süresi Şartı:** Diyaliz bağımlı çocuklarda somatropin",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.5,
+            "relevance": 0.5,
+            "latency": 420.7255930900574,
+            "tool_steps": 2
+          }
+        },
+        {
+          "question": "Vorikonazol 200 mg tablet hangi endikasyonda kullanılabilir?",
+          "expected": "Aspergilloz ve candida enfeksiyonlarının profilaksi endikasyonunda kullanılır.",
+          "source": "4.2",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak sağlanan araştırma sonuçlarını incelediğimde, **Vorikonazol 200 mg tablet**'in spesifik endikasyonları veya kullanım alanı hakkında SUT metinlerinde doğrudan bir madde bulunamadığını tespit ettim.\n\nAraştırma sonuçlarının özeti ve durum şöyledir:\n1.  **SUT Metni İçeriği:** Sağlanan `search_sut_chunks` ve `search_sut_fulltext` sonuçlarında, Vorikonazol'un hangi enfeksiyonlarda veya hastalıklarda kullanılabileceğine dair spesifik bir madde (örneğin; invaziv aspergilloz, kandidemi vb.) yer almamaktadır.\n2.  **Bulunan İlgili Bilgiler:** Arama sonuçlarında sadece ilaca ilişkin genel SUT düzenlemeleri bulunmuştur. Özellikle \"Sadece Yatarak Tedavilerde Kullanımı Halinde Bedelleri Ödenecek İlaçlar\" (EK-4/G) listesi ile ilgili genel hükümler (Adım 3) ve farklı ilaçların (Aktive Protein C vb.) kullanım ilkeleri (Adım 2) yer almıştır. Ancak Vorikonazol'un endikasyonları bu metinlerde açıkça belirtilmemiştir.\n3.  **Arama Sonucu:** \"Vorikonazol endikasyon kullanım alanı madde\" sorgusu için tam metin arama yapıldığında sonuç bulunamadığı (Adım 4) bildirilmiştir.\n\n**Genel Bilgi ve Tıbbi Bağlam:**\nSUT veritabanındaki spesifik maddeye dayalı bir yanıt verilememekle birlikte, genel tıbbi literatür ve ilacın farmakolojik özellikleri ışığında Vorikonazol'un kullanım alanları şöyledir:\n\n*   **İlaç Sınıfı:** Vorikonazol, triazol grubuna ait sistemik antifungal (mantar karşıtı) bir ilaçtır.\n*   **Genel Endikasyonlar:** Genellikle invaziv aspergilloz, kandidemi, esofajal kandidiyazis ve diğer mantar enfeksiyonlarının tedavisinde kullanılır.\n*   **SUT Bağlamı:** SUT kapsamında bu tür ilaçlar genellikle \"Reçete ve Sağlık Raporu Yazım İlkeleri\" (4.1) veya \"Bazı Özel Hastalıklara İlişkin Düzenlemeler\" (4.2) başlıkları altında değerlendirilir. Ancak yukarıdaki sonuçlarda Vorikonazol'un bu listelerde spesifik olarak yer alıp almadığı ve hangi hastalık kodlarıyla ilişkilendirildiği SUT metinlerinde açıkça belirtilmemiştir.\n\n**Sonuç:**\nSağlanan araştırma verileri ışığında, **Vorikonazol 200 mg tablet'in endikasyonları SUT metinlerinde doğrudan tanımlı değildir.** Bu nedenle, ilacın kullanım alanı ve SUT kapsamındaki yeri için ilacın resmi prospektüsü veya ilgili sağlık kuruluşunun güncel ilaç listeleri (EK-4/G) ile teyit edilmesi önerilir.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.5,
+            "relevance": 1.0,
+            "latency": 407.1084768772125,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "SUT'a göre, üçüncü basamak resmi sağlık hizmeti sunucusu olarak kabul edilen ve diş hekimliği fakültesi bulunduran bir üniversite hastanesi, aynı zamanda Sağlık Bakanlığınca üçüncü basamak hastane olarak basamaklandırılan bir Sağlık Bakanlığına bağlı hastane olabilir mi?",
+          "expected": "Evet, olabilir.",
+          "source": "1.3",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.0,
+            "ndcg": 0.0,
+            "recall": 0.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 438.7046902179718,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Upadasitinibin Crohn hastalığında kullanımında, tedaviye başlanabilmesi için anti-TNF ajanının ne kadar süreyle kullanılmış olması gerekmektedir ve bu sürede hastalık aktivitesi kontrol altına alınamazsa ne olmalıdır?",
+          "expected": "En az 3 ay süreyle kullanılmış olmasına rağmen hastalık aktivitesi kontrol altına alınamaması gerekir.",
+          "source": "4.2",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 414.69174313545227,
+            "tool_steps": 2
+          }
+        },
+        {
+          "question": "Hangi tarihten itibaren SUT eki EK-2/G Listesinde yer alan işlemlerde ilave ücret alınmayacaktır?",
+          "expected": "09/04/2020",
+          "source": "1.9",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.4377,
+            "ndcg": 0.6509,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 624.317018032074,
+            "tool_steps": 7
+          }
+        },
+        {
+          "question": "Kronik kalp yetmezliği tedavisinde ivabradin kullanımının hangi durumlarda kardiyoloji uzmanlarınca düzenlenen 1 yıl süreli uzman hekim raporuna dayanılarak reçete edilebileceği belirtilmiştir?",
+          "expected": "Beta blokör tedavisi dahil standart tedavi ile kombinasyon halinde, Beta blokör kontrendikasyonu olan veya Beta blokör tedavisine intoleransı olan.",
+          "source": "4.2",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 461.6457540988922,
+            "tool_steps": 4
+          }
+        },
+        {
+          "question": "Osteoporoz tedavisinde teriparatid kullanan bir hastanın tedaviye yanıt vermesi durumunda, bu durumun kanıtlandığı raporla en fazla ne kadar süreyle tedaviye devam edilebilir?",
+          "expected": "52 hafta.",
+          "source": "4.2",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 429.22606897354126,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Hangi sağlık hizmeti sunucuları, SUT eki EK-2/A-2 Listesinde yer alan işlemleri işlem puanlarına %10 oranında ilave ederek faturalandırabilir?",
+          "expected": "Sağlık Bakanlığına bağlı eğitim ve araştırma hastaneler, Tıp Fakülteleri Bulunan Devlet Üniversiteleri Sağlık Uygulama ve Araştırma Merkezleri, Tıp Fakülteleri Bulunan Vakıf Üniversiteleri Sağlık Uygulama ve Araştırma Merkezleri.",
+          "source": "2.1",
+          "ai_answer": "Merhaba, SUT (Sağlık Uygulama Tebliği) uzmanı olarak verdiğiniz araştırma sonuçlarını ve soruyu inceledim. Aşağıda, mevcut bulgular ışığında sorunuza kapsamlı bir yanıt bulunmaktadır:\n\n### Araştırma Sonuçlarına Göre Durum",
+          "metrics": {
+            "map": 0.2243,
+            "ndcg": 0.4307,
+            "recall": 1.0,
+            "faithfulness": 0.5,
+            "relevance": 0.5,
+            "latency": 803.2958221435547,
+            "tool_steps": 7
+          }
+        },
+        {
+          "question": "Kimlik tespiti ve biyometrik doğrulama işlemlerini usulüne uygun yapmayan ve bu nedenle Kurumun zarara uğramasına sebebiyet veren sağlık hizmeti sunucularına nasıl bir yaptırım uygulanır?",
+          "expected": "Ödenen tutar geri alınır.",
+          "source": "1.6",
+          "ai_answer": "Merhaba, SUT (Sağlık Uygulama Tebliği) uzmanı olarak araştırma sonuçlarınızı detaylıca inceledim. Sorunuzda belirttiğiniz **\"Kimlik tespiti ve biyometrik doğrulama işlemlerini usulüne uygun yapmayan sağlık hizmeti sunucularına uygulanacak yaptırım\"** konusuna dair spesifik bir ceza veya yaptırım maddesi, sağlanan araştırma sonuçlarında (Kaynak 1, 2 ve 3) yer almamaktadır.\n\nAraştırma sonuçları incelendiğinde şu durumlar tespit edilmiştir:\n*   **İşlem Prosedürü:** Kaynaklar, biyometrik sistemin kim tarafından belirleneceğini (Kurum), ilk biyometrik verinin kaydedileceği yeri (sağlık hizmeti sunucusu) ve usul ve esasların Kurum tarafından belirlenmesi gibi **işleyiş prosedürlerini** detaylandırmaktadır.\n*   **Yaptırım Eksikliği:** Ancak, bu işlemlerin ihlal edilmesi durumunda uygulanacak para cezaları, uyarılar veya yetki iptalleri gibi yaptırım mekanizmaları ile ilgili maddeler bu metin parçalarında yer almamaktadır.\n\n**Genel Bilgi ve Uzman Görüşü:**\nSağlık Uygulama Tebliği (SUT) genel yapısı incelendiğinde, prosedürel hükümler genellikle \"Genel Hükümler\" veya ilgili işlemlerin tanımlandığı bölümlerde (örneğin 1.6 Kimlik Tespiti gibi), yaptırımlar ise ayrı bir bölümde (genellikle **\"Yaptırım ve Sorumluluklar\"** başlığı altında) düzenlenir.\n\nSUT kapsamında sağlık hizmeti sunucularının usulsüzlük yapması durumunda karşılaşabileceği genel yaptırım türleri şunlardır:\n1.  **Uyarı:** İlk ihlalde genellikle yazılı uyarı uygulanabilir.\n2.  **Para Cezası:** Kurumun zarara uğraması veya prosedürün ciddi şekilde ihlal edilmesi durumunda idari para cezaları kesilebilir.\n3.  **Yetki İptali veya Kısıtlama:** Sürekli usulsüzlük veya büyük zararlar doğması halinde, ilgili sağlık hizmeti sunucusunun biyometrik işlemlerini yapma yetkisi geçici veya kalıcı olarak kısıtlanabilir.\n\n**Özetle:** Sağlanan metinlerde \"kimlik tespiti ve biyometrik doğrulama\" prosedürü tanımlanmış olsa da, bu prosedürün ihlali için **belirli bir ceza miktarı veya yaptırım maddesi bulunmamaktadır.** Kesin yaptırım detayları için SUT'un ilgili \"Yaptırım\" bölümüne veya 6502 sayılı Sağlık Hizmetleri Genel Kanunu'nun ilgili cezai hükümlerine bakılması gerekmektedir.",
+          "metrics": {
+            "map": 0.6168,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.5,
+            "relevance": 0.5,
+            "latency": 477.11644887924194,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetleri nasıl gerçekleştirilir?",
+          "expected": "MEDULA sistemi üzerinden provizyon alınarak gerçekleştirilecektir.",
+          "source": "1.7",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) kapsamında yapılan araştırmalar ışığında, yabancı ülkelerle yapılan sosyal güvenlik sözleşmeleri kapsamında Kurum sağlık yardımlarından yararlandırılan kişilerin sağlık hizmetlerinin gerçekleştirilmesi süreci aşağıdaki gibi belirlenmiştir:\n\n**1. İşlem Yöntemi ve Sistem:**\nYabancı ülkelerle imzalanan sosyal güvenlik sözleşmeleri çerçevesinde, kurum tarafından sağlanan sağlık yardımlarından yararlanacak kişilerin sağlık hizmetleri, **MEDULA sistemi üzerinden provizyon alınarak** gerçekleştirilmektedir. Bu sistem üzerinden yapılan işlemler, ilgili müracaatların onaylanmasını ve hizmetin sunulmasını sağlar.\n\n**2. Güncel Yönetmelik Hükümleri:**\nBu işlem prosedürü ile ilgili güncel düzenleme detayları şu şekilde belirlenmiştir:\n*   **Değişiklik Tarihi:** 01/06/2022 tarihli Resmi Gazete (RG-31853) sayılı Yönetmelik değişikliği ile güncellenmiştir.\n*   **Yürürlük Tarihi:** Değişiklik, **01 Mart 2022** tarihinde yürürlüğe girmiştir.\n*   **SUT Bölümü:** Genel Hükümler > 1.7 - Provizyon işlemleri > 1.7.1 - Yurt dışı sigortalı müracaatları başlığı altında yer almaktadır.\n\n**Özetle;** SUT hükümlerine göre, sözleşme kapsamında yararlandırılan kişilerin sağlık hizmetleri artık kağıt usulü veya farklı yöntemlerle değil, **MEDULA sistemi üzerinden provizyon** yoluyla yürütülmektedir.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.5,
+            "relevance": 0.5,
+            "latency": 691.5356287956238,
+            "tool_steps": 4
+          }
+        },
+        {
+          "question": "Hasta alt bezi/külotlu hasta alt bezi için düzenlenecek uzman hekim raporunun süresi en fazla ne kadar olabilir?",
+          "expected": "2 (iki) yıl.",
+          "source": "3.3",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.7679,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 458.1626760959625,
+            "tool_steps": 4
+          }
+        },
+        {
+          "question": "Hangi formdaki ilaçlar 4.2.24.B numaralı maddede yer alan hükümlerden istisnadır?",
+          "expected": "İnhale formları.",
+          "source": "4.2",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.5148,
+            "ndcg": 0.6183,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 423.3893287181854,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Yol ve gündelik giderleri ile ilgili esaslar hangi başlık altında yer almaktadır?",
+          "expected": "2.6.1",
+          "source": "Bilinmiyor",
+          "ai_answer": "Yol ve gündelik giderleri ile ilgili esaslar, Sosyal Güvenlik Kurumu (SGK) SUT metninin **'Tanı ve Tedavi'** başlığı altında yer almaktadır.\n\nDetaylı bilgi:\n- Bu konular **'2.6 - Yol ve gündelik giderleri'** bölümünde toplanmıştır.\n- Ortak hükümler ise **'2.6.9 - Yol ve gündelik gideri ortak hükümleri'** maddesinde detaylandırılmıştır.\n\nÖnemli Kısıtlamalar:\n1) Yerleşim yeri içindeki nakiller için yol ve gündelik gider ödenmez.\n2) Sevk yapılmaksızın belediye/büyükşehir belediye yerleşim yeri dışındaki sağlık hizmeti sunucusundan hizmet alınması hâlinde de yol gideri ve gündelik ödenmez.\n\nBu hükümler 30/08/2014 tarihli Resmi Gazete ile değiştirilmiştir.",
+          "metrics": {
+            "map": 0.0,
+            "ndcg": 0.0,
+            "recall": 0.0,
+            "faithfulness": 0.0,
+            "relevance": 1.0,
+            "latency": 371.0899839401245,
+            "tool_steps": 4
+          }
+        },
+        {
+          "question": "Standing table için düzenlenecek sağlık kurulu raporunda, hastanın hangi klinik tablolara sahip olması veya hangi nörolojik defisitlere bağlı olarak ayakta durmanın tedaviye katkı sağlayacağının belirtilmesi gerekir?",
+          "expected": "Herhangi bir nedene bağlı tetrapleji veya parapleji klinik tablosu veya diğer nörolojk defisitlere bağlı olarak ayakta durmanın tedaviye katkı sağlayacağının belirtilmesi gerekir.",
+          "source": "3.3",
+          "ai_answer": "Sağlanan araştırma sonuçları incelendiğinde, sorunuzda belirtilen **\"Standing table\" (ayakta durma)** cihazı veya fizik tedavi uygulamaları için spesifik olarak nörolojik defisitler ve klinik tablolara dair SUT maddelerinin **bulunmadığı** görülmektedir.\n\nAşağıda araştırma sonuçlarının içeriği, eksiklik durumu ve genel SUT bilgisi ışığında detaylı değerlendirme yer almaktadır:\n\n### 1. Araştırma Sonuçlarının İçeriği ve Kısıtlılığı\nÇıkan tüm kaynaklar (Adım 2, 3 ve 4), hepsinde **\"İlaç > 4.1 - Reçete ve sağlık raporu yazım ilkeleri\"** başlığı altında EK-4/F listesi ile ilgili **ilaç reçetelerine** dair bilgiler içermektedir.\n*   Bu metinler, sağlık raporuna dayalı olarak verilebilecek ilaçların dozajı (en fazla 3 aylık) ve genel reçete ilkelerini açıklamaktadır.\n*   Araştırma sonuçlarında **\"Ayakta durma\"**, **\"fizik tedavi cihazları\"** veya **\"nörolojik defisit şartları\"** ile ilgili spesifik SUT maddeleri yer almamaktadır.\n\n### 2. Genel Bilgi ve Uzman Görüşü (SUT Prensibi)\nAraştırma sonuçlarında bu spesifik bilgi yer almadığı için, genel Sağlık Uygulama Tebliği (SUT) prensipleri ve rehabilitasyon uygulamaları bağlamında şu bilgileri paylaşabilirim:\n\n*   **Cihazlar ve Fizik Tedavi Bölümü:** SUT kapsamında fizik tedavi cihazları (standing table gibi) genellikle \"Fizik Tedavi ve Rehabilitasyon\" bölümünde değerlendirilir. İlaç listesi (EK-4/F) ile farklıdır; bu nedenle yukarıdaki sonuçlar ayakta durma cihazı için doğrudan bir hüküm vermez.\n*   **Sağlık Kurulu Raporu Gerekliliği:** Ayakta durma gibi rehabilitatif uygulamalar için sağlık kurulu raporu düzenlenmesi durumunda, hastanın nörolojik defisitleri (örneğin spinal kord yaralanması, felç, spastisite) veya ortopedik durumları raporun gerekçesinde belirtilmelidir.\n*   **Tedavi Şartı:** Raporun kabul edilebilmesi ve ödenmesi için, ayakta durmanın hastanın fonksiyonel iyileşmesine (kas tonusu, denge, kemik yoğunluğu vb.) katkı sağlayacağı klinik olarak gerekçelendirilmelidir. Genellikle nörolojik hasarlı hastalarda bu uygulama, yatak istirahatinin komplikasyonlarını önlemek ve mobilite kazanımı için şart koşul",
+          "metrics": {
+            "map": 0.2591,
+            "ndcg": 0.5,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 587.5316870212555,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Hangi tarihten itibaren faktör kullanımı için hastaya düzenlenecek ilk raporun üçüncü basamak resmi sağlık hizmeti sunucularında düzenlenmesi zorunluluğu getirilmiştir?",
+          "expected": "09/11/2024",
+          "source": "4.2",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.4188,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 0.0,
+            "latency": 438.70237588882446,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Pazopanib hangi kanser türlerinin tedavisinde kullanılabilir?",
+          "expected": "Renal hücreli karsinom ve metastatik sarkom.",
+          "source": "4.2",
+          "ai_answer": "Merhaba, ben bir SUT (Sağlık Uygulama Tebliği) uzmanıyım. Verdiğiniz araştırma sonuçlarını detaylıca inceledim ve sorunuza aşağıdaki şekilde yanıt veriyorum:\n\n**Araştırma Sonuçları Durumu:**\nVerilen araştırma sonuçlarında, **Pazopanib'in hangi kanser türlerinin tedavisinde kullanılacağına dair spesifik bilgi bulunmamaktadır.**\n*   **Adım 1 (lookup_kg_entity):** Bilgi tabanından Pazopanib için veri çekilememiştir (hata oluşmuştur).\n*   **Adım 2 (search_sut_chunks):** Bulunan kaynak (Kaynak 1), \"Kanser tedavisinde ilaç kullanım ilkeleri\" başlığı altında genel prensipleri (kemoterapi protokolleri, kür tanımları, hormon antagonistleri vb.) içermektedir. Ancak bu metin parçasında Pazopanib ismi veya spesifik onaylı kanser türleri yer almamaktadır.\n\n**Genel Bilgi ve Tıbbi Literatüre Dayalı Yanıt:**\nSonuçlarda soruyla ilgili bilgi olmadığı için, genel tıbbi literatür ve uluslararası kullanım kılavuzlarına dayalı olarak aşağıdaki bilgileri paylaşabilirim:\n\nPazopanib, bir **tirozin kinaz inhibitörü (TKİ)** grubunda yer alan ilaçtır. Genellikle aşağıdaki malignite türlerinde kullanılır:\n\n1.  **İleri Evre Böbrek Hücreli Karsinomu (RCC):** İlaç, metastatik böbrek kanserinin tedavisinde tek başına veya diğer ajanlarla kombinasyon halinde kullanımı yaygındır.\n2.  **İleri Evre Yumuşak Doku Sarkomları (STS):** Özellikle lenfoma olmayan bazı yumuşak doku sarkomu tiplerinde (örneğin leiomyosarkom) metastatik hastalarda kullanım endikasyonu vardır.\n\n**SUT ve Türkiye İçin Önemli Not:**\nTürkiye'de Sağlık Uygulama Tebliği (SUT) kapsamında bir ilacın kullanımı, **TİKA (Tıbbi İlaç Kullanım Kurulları)** veya ilgili sağlık kurullarının belirlediği listelere ve o anki güncel SUT kararlarına tabidir. Pazopanib'in Türkiye'de hangi spesifik kanser türlerinde \"kapsamlı\" olarak karşılanacağı veya hangi koşullarda (örneğin hastane bazlı, özel hastalık listesi vb.) uygulanabileceği, güncel SUT onay listelerine bakılarak teyit edilmelidir.\n\nÖzetle; araştırma sonuçlarında Pazopanib'in spesifik endikasyonları yer almamaktadır, ancak genel tıbbi bilgiye göre ilacın ana kullanım alanları Böbrek Kanseri ve Yumuşak Doku Sarkomlarıdır.",
+          "metrics": {
+            "map": 0.8875,
+            "ndcg": 0.9558,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 385.48440313339233,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "Bosentan kullanımında, tedaviye başlanabilmesi için gerekli olan minimum dijital ülser sayısı kaçtır ve bu ülserlerden kaç tanesi kardinal ülser olmalıdır?",
+          "expected": "En az 4 adet dijital ülser ve en az 1 tanesi kardinal ülser olmalıdır.",
+          "source": "4.2",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak, sağladığınız araştırma sonuçlarını detaylıca inceledim ve sorunuza aşağıdaki şekilde yanıt veriyorum:\n\n**Araştırma Sonuçları Değerlendirmesi:**\nMevcut arama sonuçlarında (Adım 1, Adım 2 ve Adım 5), **Bosentan kullanımında tedaviye başlanabilmesi için gerekli olan minimum dijital ülser sayısı** ile **kardinal ülser şartı** ile ilgili spesifik sayısal veriler açıkça belirtilmemiştir.\n\nAraştırma sonuçlarının metin içerikleri (Adım 1 ve Adım 2), SUT'ün **4.2.43** maddesi kapsamında \"Dijital ülseri olan sistemik skleroz hastalarında ilaç kullanım ilkeleri\" başlığı altında Bosentan kullanımına dair genel çerçeveyi sunmaktadır. Ancak metin bu",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 559.1100001335144,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Yurt dışında tedavi giderleri Kurumun ödediği tutarları aşarsa, aşan kısım kim tarafından karşılanır?",
+          "expected": "İşverenlerce karşılanır.",
+          "source": "2.5",
+          "ai_answer": "Sağlanan araştırma sonuçları (SUT metin parçaları), yurt dışında tedavi giderlerinin Kurum tarafından ödenen tutarı aşması durumunda bu \"aşan kısım\"ın kim tarafından karşılanacağına dair spesifik bir hüküm veya maddeyi içermemektedir. Sunulan içerikler daha çok ilaç bedellerinin ödenmesi (4.5 maddesi) ve yurt dışında tedavi başlıkları (2.5 maddesi) üzerine odaklanmaktadır ancak aşan kısımın karşılanmasından doğrudan bahseden net hüküm metni parça sonuçlarında yer almamaktadır.\n\nBu nedenle, SUT uzmanı olarak genel geçer prensipler ve ilgili mevzuatın genel mantığı çerçevesinde aşağıdaki bilgileri sunuyorum:\n\n**Genel Bilgi ve Uzman Görüşü:**\n\nSağlık Uygulama Tebliği (SUT) kapsamında yurt dışında tedavi gören hastalar için öngörülen genel kurallar şunlardır:\n\n1.  **Karşılanabilir Tutar Sınırı:** Sosyal Güvenlik Kurumu (SGK), yurt dışında sağlanan hizmetler için SUT'da tanımlanan fiyat listeleri, anlaşmalı kurum tarifeleri veya özel izinlerle belirlenen \"Kurum Tarafından Karşılanabilir Tutar\" limitlerini öder.\n2.  **Aşan Kısımın Sorumluluğu:** Eğer tedavi giderleri, Kurumun ödediği (veya karşıladığı) tutarı aşarsa; bu aşan kısım genellikle Sosyal Güvenlik Kurumu tarafından karşılanmaz. Bu durumda aşan kısım, tedaviyi alan hastanın kendi sorumluluğunda kalır.\n3.  **Özel Durumlar:** Bazı özel durumlar (örneğin acil müdahaleler veya belirli hastalık programları) hariç tutulabilir ancak genel kural olarak SUT dışı giderler hastaya düşer. Hastalar, yurt dışında tedavi görebilmek için önceden yazılı izin almaları ve tedavinin SUT hükümlerine uygun olması şarttır.\n4.  **Sigorta Poliçesi:** Eğer hasta özel sağlık sigortası yaptırmışsa, bu aşan kısımın karşılanması ilgili sigorta poliçesinin kapsamına bağlıdır; ancak SGK'nın ödediği tutarın üzerindeki farkı genellikle kurum karşılamaz.\n\n**Özetle:** Araştırma sonuçlarında doğrudan \"aşan kısım\" ifadesine dair metin bulunmamaktadır. Genel SUT uygulamasında ise, yurt dışında yapılan tedavilerde SGK'nın ödediği tutarın üzerindeki aşan giderler, hastanın sorumluluğunda kalır.",
+          "metrics": {
+            "map": 0.5974,
+            "ndcg": 0.7123,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 1.0,
+            "latency": 418.15280628204346,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Kişinin 16 yaşında olması durumunda, gözlük camı ve çerçevesinin miat süresi ne kadardır ve hangi durumda bu süre dolmadan yenilenebilir?",
+          "expected": "2 yıldır. Kırma kusurunun 0,5 diyoptrilik değişiklik göstermesi halinde süresinden önce yenilenebilir.",
+          "source": "3.3",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) kapsamında sunulan araştırma sonuçları incelendiğinde, **16 yaşındaki bir birey için gözlük camı ve çerçevesinin spesifik miat süresinin veya bu süre dolmadan yenilenebilmesi koşullarının detaylı olarak belirtilmediği** görülmektedir. Sunulan metin parçalarında (3.3.3.A maddesi kapsamında) sadece reçete düzenleme yetkisi ve optisyenlik kanunu referansı yer almaktadır.\n\nAncak, SUT uzmanı perspektifiyle mevcut sonuçlardaki bilgiler ışığında genel geçer kurallar ve ilgili mevzuat çerçevesinde aşağıdaki bilgilendirme yapılabilir:\n\n### 1. Araştırma Sonuçlarında Bulunan Bilgiler\n*   **Reçete Yetkisi:** Gözlük camı ve çerçevesinin temininde, göz sağlığı ve hastalıkları uzman hekimleri ile bu dalda ihtisas yapan asistan hekimler tarafından düzenlenen reçeteye/e-reçeteye dayanılarak işlem yapılması gerekmektedir.\n*   **Acil Durum Kısıtlaması:** Acil polikliniklerinde yazılan gözlük cam ve çerçeve reçeteleri SUT kapsamında bedelleri karşılanmamaktadır.\n*   **Yasal Dayanak:** Gözlük cam ve çerçeveleri, 5193 sayılı Optisyenlik Hakkında Kanun hükümlerine uygun olarak faaliyet gösteren optisyenler tarafından temin edilmektedir.\n\n### 2. Genel Bilgi ve Uygulama Pratiği (Miat Süresi ve Yenileme)\nSunulan sonuçlarda doğrudan \"16 yaş\" veya \"miat süresi\" sayıları geçmemekle birlikte, SUT genel prensipleri ve reçete yönetmeliğine göre şu bilgiler geçerlidir:\n\n*   **Genel Miat Süresi:** Gözlük reçeteleri (tıbbi cihaz olarak kabul edilen gözlük camları için) genellikle **1 yıl** süreyle geçerli sayılır. Bu süre, reçetenin düzenlendiği tarihten itibaren başlar.\n*   **Yenileme Koşulları:** Miat süresi dolmadan yenileme işlemi, SUT kapsamında standart olarak desteklenmez. Yeni bir gözlük için genellikle yeni bir muayene ve yeni bir reçete gereklidir.\n*   **İstisnai Durumlar:** Eğer hastanın görme durumu ani bir şekilde değişmişse veya tıbbi bir gerekçe (örneğin; miyopun hızlı ilerlemesi, astigmatın artması vb.) uzman hekim tarafından raporlanarak reçetede belirtilmişse, bu durum değerlendirilebilir. Ancak bu durumda da genellikle yeni bir muayene ve e-reçete düzenlenmesi beklenir.\n*   **Yaş Faktörü:** 16 yaş gibi ergenlik dönemi, SUT metinlerinde doğrudan \"miat süresini kısaltan\" veya \"yenilemeyi kolaylaştıran\" özel bir madde olarak belirtilmemiştir. Bu nedenle, 16 yaşındaki bireyler için de geçerli olan genel reçete süresi (genellikle 1 yıl) uygulanır.\n\n**Özetle:** Sunulan SUT sonuçlarında 16 yaş grubuna özel miat süresi veya erken yenileme koşulu yer almamaktadır. Gözlük temininde uzman hekim onaylı e-reçete şarttır ve acil poliklinik reçeteleri karşılanmaz. Miat süresinin dolması durumunda yeni bir muayene ve reçete ile yenilenme işlemi yapılmalıdır.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.5,
+            "latency": 507.25539469718933,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Tofacitinib veya upadasitinib reçetesi hangi uzman hekimler tarafından yazılabilir?",
+          "expected": "Romatoloji uzman hekimleri veya iç hastalıkları uzman hekimleri.",
+          "source": "4.2",
+          "ai_answer": "Verilen araştırma sonuçları incelendiğinde, **Tofacitinib** veya **Upadacitinib** isimli ilaçların reçete yetkisiyle ilgili doğrudan ve spesifik bir bilgi bulunmamaktadır.\n\n*   **Kaynak 1**, Osteoporoz, Sudek Atrofisi ve Paget Hastalığı bağlamında \"Endokrinoloji uzman hekimi\" raporuna atıfta bulunmaktadır; ancak bu madde Tofacitinib veya Upadacitinib isimli ilaçları doğrudan kapsamamaktadır.\n*   **Kaynak 2**, Akromegali başlığı altında kalmakta ve içerik detayı sağlanmamıştır.\n\nBu nedenle, araştırma sonuçları soruyu doğrudan cevaplayacak şekilde bilgi vermemektedir. Ancak **SUT (Sağlık Uygulama Tebliği)** uzmanı olarak genel bilgi ve uygulama ilkeleri çerçevesinde aşağıdaki bilgileri paylaşabilirim:\n\n**Genel SUT Bilgisi:**\nTofacitinib ve Upadacitinib, JAK inhibitörü sınıfına giren ve genellikle romatolojik (Romatoid Artrit, Psoriatik Artrit) veya gastroenterolojik (Ülseratif Kolit) hastalıkların tedavisinde kullanılan **özel ilaçlar**dır.\n\n1.  **Reçete Yetkisi:** Bu ilaçların reçetesi, ilgili hastalığın uzman hekimleri tarafından yazılabilir. Örneğin; Romatoid Artrit için genellikle **Romatoloji Uzmanı**, Ülseratif Kolit için ise **Gastroenteroloji Uzmanı** tarafından düzenlenir.\n2.  **Uzman Hekim Raporu:** SUT kapsamında bu tür özel ilaçlar (JAK inhibitörleri) çoğu durumda bir **\"Uzman Hekim Raporu\"** gerektirmektedir. İlaç, ilgili hastalığın uzman hekiminin düzenlediği rapor doğrultusunda ve belirli süreler için (genellikle 1 yıl veya rapor süresi) reçete edilebilir.\n3.  **Yetki",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 442.55239605903625,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "Romatoid artritli erişkin hastalarda anti-TNF ilaçlara başlanabilmesi için Hastalık Aktivite Skoru (DAS) 28 değeri kaçın üzerinde olmalıdır?",
+          "expected": "5,1",
+          "source": "4.2",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 0.0,
+            "latency": 417.51442408561707,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "Sağlık hizmeti sunucuları faturalarını düzenlerken, hasta takip numarası/provizyon alınan kişilere sunulan sağlık hizmetleri hangi numara ile takip edilir?",
+          "expected": "Provizyon Aktivasyon ve Sağlık Sistemi (YUPASS) numarası ile.",
+          "source": "5.2",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.6667,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 565.5422761440277,
+            "tool_steps": 4
+          }
+        },
+        {
+          "question": "Ekstrakorporeal fotoferez tedavisi hangi durumlarda uygulandığında Kurumca karşılanır?",
+          "expected": "Kutanöz T hücreli lenfomalarda, Graft Versus Host Hastalığı, Sezary Sendromu, Pemfigus Vulgaris, Psöriasis ve solid organ nakillerinde doku reddinin önlenmesi (kalp, akciğer, böbrek nakillerinde) nedenleriyle uygulandığında.",
+          "source": "2.4",
+          "ai_answer": "Merhaba, SUT (Sağlık Uygulama Tebliği) uzmanı olarak sorunuza aşağıda detaylıca yanıt veriyorum.\n\nVerilen araştırma sonuçlarına (RG-25/08/2022 tarihli ve 31934 sayılı Resmi Gazete'de yayımlanan değişiklikler dahil) dayanarak, **Ekstrakorporeal Fotoferez tedavisinin Kurumca karşılanma koşulları** başlıca idari ve yapısal gereklilikler üzerinden tanımlanmaktadır. Ancak sağlanan metin parçasında, tedavinin hangi spesifik tıbbi hastalık durumlarında (örneğin; Kemik İliği/Organ Nakli sonrası Graft-versus-Host Hastalığı veya Cilt T Hücreli Lenfoma gibi spesifik tanıların) uygulanacağına dair detaylı liste doğrudan yer almamaktadır.\n\nBu nedenle, sorunuzun \"hangi durumlarda\" kısmına dair tıbbi endikasyonlar verilmemiş olsa da, mevcut sonuçlarda bulunan **karşılanma koşulları ve prosedürel gereklilikler** aşağıdadır:\n\n### 1. Kurumca Karşılanma İçin Yapısal ve İdari Koşullar\nAraştırma sonuçlarına göre tedavi bedellerinin ödenebilmesi için şu şartların sağlanması zorunludur:\n\n*   **Sağlık Kurumu Seviyesi:** Tedavi, **üçüncü basamak sağlık hizmeti sunucularında** gerçekleştirilmelidir. (Not: Metinde bu madde 16/03/2023 tarihli ve 32134 sayılı RG ile mülga edilmiş olsa da, yürürlükteki düzenleme gerekliliklerini korumaktadır).\n*   **Kurumsal Ruhsat:** Tedavinin yapıldığı kurumun **\"Kemik İliği/Organ Nakil Merkezi\"** veya **\"Terapötik Aferez Merkezi\"** ruhsatına sahip olması gerekmektedir.\n*   **Sağlık Kurulu Raporu:** Tedavi bedellerinin ödenebilmesi için mutlaka bir **Sağlık Kurulu Raporu** düzenlenmesi zorunludur. Bu rapor, tedavinin tıbbi gerekliliğini ve uygunluğunu Kurumca kabul edilebilir kılar.\n\n### 2. Genel Bilgi ve Uzman Görüşü\nSonuçlarda açıkça belirtilmemiş olsa da, SUT kapsamında \"Ekstrakorporeal Fotoferez\" tedavisi genellikle Sağlık Bakanlığı'nın belirlediği spesifik hastalık endikasyonları (tıbbi durumlar) için karşılanır.\n\n*   **Tıbbi Gereklilik:** Tedavinin Kurumca karşılanması, sadece yapısal koşulları değil, aynı zamanda hastanın tıbbi durumunun da SUT kriterlerine uygunluğuna bağlıdır. Bu nedenle Sağlık Kurulu Raporu, tedavinin hangi spesifik hastalık durumunda (örneğin; belirli onkolojik veya hematolojik durumlarda) gerekli olduğunu belgeleyen en kritik belgedir.\n*   **Güncel Durum:** SUT hükümleri zamanla güncellenebilir. Tedavinin tam olarak hangi tanı kodları ve hastalık durumlarında karşılandığına dair en net bilgi, güncel \"Sağlık Uygulama Tebliği\"nin ilgili bölümünde (2.4.4.Ç maddesi) yer alan tablo veya liste ile Sağlık Bakanlığı'nın resmi mevzuatı üzerinden teyit edilmelidir.\n\n**Özetle:** Verilen sonuçlarda tedavinin hangi hastalıklarda uygulandığına dair spesifik liste bulunmamaktadır; ancak tedavi için **üçüncü basamak kurumda, ilgili ruhsata sahip merkezde ve Sağlık Kurulu Raporu ile** yapılması şarttır.",
+          "metrics": {
+            "map": 0.7,
+            "ndcg": 0.8503,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 405.60810589790344,
+            "tool_steps": 2
+          }
+        },
+        {
+          "question": "Aile hekimliği uzman hekimleri hangi ilaçları reçete edebilir?",
+          "expected": "Yetkilendirilen hekimler, aile hekimliği uzman hekiminin yazabildiği tüm ilaçları reçete edebilirler.",
+          "source": "4.1",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak, sunulan araştırma sonuçlarını ve SUT genel çerçevesini dikkate alarak sorunuza şu şekilde yanıt veriyorum:\n\n**Araştırma Sonuçları ile İlgili Durum:**\nSunulan araştırma sonuçları (Kaynak 1 ve Kaynak 2), aile hekimlerinin reçete edebileceği ilaçların **genel ve kapsamlı bir listesini içermemektedir.** Mevcut veriler, özellikle migren tedavisi kapsamında belirli ilaç grupları için uzmanlık sınırlamaları (nöroloji uzmanı gereklilikleri) vurgulamaktadır. Dolayısıyla, \"aile hekimlerinin reçete edebileceği tüm ilaçlar\" sorusunun tam bir cevabı bu sonuçlarda yer almamaktadır.\n\n**Sonuçlarda Bulunan Spesifik Kısıtlamalar:**\nMevcut verilerden çıkarılabilecek en net bilgi, aile hekimlerinin **reçete edemeyeceği (veya nöroloji uzmanına saklanan)** belirli ilaç gruplarıdır:\n*   **Triptanlar:** SUT düzenlemelerine göre triptan grubu ilaçlar nöroloji uzman hekimleri tarafından reçete edilmelidir. Aile hekimleri bu gruptaki ilaçları reçete etmemektedir (veya bu durum belirli bir kural gereği uzmanlık sınırlamasıdır).\n*   **Topiramat:** Migren profilaktik tedavisi kapsamında, diğer ilaçların etkisiz kaldığı durumlarda topiramat tedavisi de nöroloji uzman hekimince düzenlenmektedir.\n\n**SUT Çerçevesinde Genel Bilgi ve Yetki Sınırları:**\nAraştırma sonuçlarında yer almasa da, Sağlık Uygulama Tebliği genel prensipleri ve tıbbi uygulama standartları ışığında aile hekimlerinin reçete yetkisi şu şekilde özetlenebilir:\n\n1.  **Genel Reçete Yetkisi:** Aile hekimleri, temel sağlık hizmetleri kapsamında (örneğin; hipertansiyon, diyabet, enfeksiyonlar için antibiyotikler, ağrı kesiciler vb.) reçete edebilecekleri geniş bir ilaç yelpazesine sahiptir.\n2.  **Özel Hastalıklar ve İlaç Kullanımı:** SUT'un \"Bazı özel hastalıklara ve ilaç kullanımına ilişkin düzenlemeler\" (4.2 maddesi) bölümü, belirli durumlarda (migren gibi) reçete yetkisinin uzman hekimlere (nöroloji vb.) devredildiğini belirtir. Bu tür spesifik kısıtlamalar dışında kalan ilaçlar genellikle aile hekimlerinin yetki alanı içindedir.\n3.  **Kontrollü Maddeler ve Özel Durumlar:** Aile hekimleri, SUT kapsamında belirli kontrollerin (örneğin; reçete sayıları, doz sınırları) altında bazı ilaçları reçete edebilirken, uzmanlık gerektiren veya yüksek riskli ilaç grupları için ilgili branş uzmanına yönlendirme yapılması beklenir.\n\n**Özetle:**\nSunulan sonuçlar aile hekimlerinin reçete edebileceği **olumlu bir ilaç listesini vermemektedir**, ancak **negatif bir örnek (kısıtlama)** sunmaktadır",
+          "metrics": {
+            "map": 0.0,
+            "ndcg": 0.0,
+            "recall": 0.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 545.316440820694,
+            "tool_steps": 3
+          }
+        },
+        {
+          "question": "Yoğun bakım tedavisi için özel sağlık hizmeti sunucularına sevk hangi koşulda yapılabilir?",
+          "expected": "Resmi sağlık hizmeti sunucularında uygun yoğun bakım yatağının bulunmaması ve hasta naklinin 112 Komuta Kontrol Merkezi koordinasyonunda gerçekleştirilmesi koşuluyla.",
+          "source": "1.5",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) hükümlerine göre, yoğun bakım tedavisi için özel sağlık hizmeti sunucularına sevk işleminin yapılabilmesi için aşağıdaki koşulların birlikte sağlanması gerekmektedir:\n\n1.  **Resmi Sağlık Kuruluşlarında Yatak Bulunmaması:** Sevk işlemi ancak resmi sağlık hizmeti sunucularında (devlet hastaneleri vb.) uygun yoğun bakım yatağının bulunmaması durumunda gerçekleştirilebilir.\n2.  **112 Koordinasyonu:** Hasta nakli, mutlaka **112 Komuta Kontrol Merkezi** koordinasyonunda organize edilmelidir.\n\nÖzetle; resmi sağlık kuruluşlarında yoğun bakım kapasitesi yetersiz kaldığında ve bu durum 112 Acil Çağrı Merkezi tarafından yönetildiğinde, hasta özel sağlık hizmeti sunucularına sevk edilebilir. Bu süreçte naklin 112 Komuta Kontrol Merkezi koordinasyonunda gerçekleştiği teblihte açıkça belirtilmiştir.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 296.80720376968384,
+            "tool_steps": 2
+          }
+        },
+        {
+          "question": "Kırma kusurunda kaç diyoptrilik değişiklik olması halinde gözlük camı süresinden önce yenilenebilir?",
+          "expected": "0,5 diyoptrilik.",
+          "source": "3.3",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) uzmanı olarak sunulan araştırma sonuçlarını incelediğimde, **kırma kusurunda gözlük camının yenilenmesi için gereken spesifik diyoptrilik değişiklik miktarına dair doğrudan bir sayısal değer (örneğin kaç diyoptri değişimi gerektiği) bu metinlerde yer almamaktadır.**\n\nSunulan sonuçlar (3.3.3.A maddesi kapsamında), gözlük cam ve çerçevesinin temini ile ilgili **genel esasları** şu şekilde belirtmektedir:\n\n1.  **Reçete Yetkisi:** Gözlük camı temininde işlem, göz sağlığı ve hastalıkları uzman hekimleri ile bu dalda ihtisas yapan asistan hekimler tarafından düzenlenen reçeteye/e-reçeteye dayanılarak yapılır.\n2.  **Acil Poliklinik Kısıtlaması:** Acil polikliniklerinde yazılan gözlük cam ve çerçeve reçeteleri bedelleri karşılamaz.\n3.  **Yasal Uyumluluk:** Gözlük cam ve çerçeveleri, 5193 sayılı Optisyenlik Hakkında Kanun hükümlerine uygun olarak faaliyet gösteren optisyenler tarafından temin edilir.\n\n**Genel Bilgi ve SUT Bağlamı:**\nSUT'un ilgili maddelerinin (özellikle 3.3.3.A maddesinin devamında yer alan detaylı koşullarda) genel çerçevesi şöyledir:\n*   **Geçerlilik Süresi:** Gözlük camları için genellikle bir geçerlilik süresi (genellikle 1 yıl) tanımlanır. Bu süre içinde yeni bir reçete olmadan yenileme yapılamaz.\n*   **Erken Yenileme Koşulu:** Süre dolmadan yenilenme yapılabilmesi için, mevcut kırma kusurunda belirgin bir değişiklik olması gerekir. SUT'un tam metninde bu \"belirgin değişiklik\" genellikle belirli bir diyoptrilik eşiği (pratikte ve güncel uygulamalarda sıkça **+2.00 veya -2.00 diyoptri** gibi değişkenlikler) ile tanımlanır, ancak bu spesifik sayı verdiğiniz sonuçların özetlerinde yer almamaktadır.\n*   **Yeni Reçete Zorunluluğu:** Erken yenileme için mutlaka güncel bir muayene ve yeni reçete şarttır; eski reçetenin süresi dolmamış olsa bile kırma kusurunda ciddi değişiklik varsa, bu durumla ilgili yeni bir tıbbi gerekçe (reçete) ile yenileme talep edilebilir.\n\n**Özetle:** Verdiğiniz sonuçlar diyoptrilik değişiminin sayısal eşiğini içermemektedir. Kesin ve güncel diyoptrilik değişiklik sınırını öğrenmek için SUT'un 3.3.3.A maddesinin tam metnini incelemek veya SGK'nın güncel açıklamalarını (genellikle \"",
+          "metrics": {
+            "map": 0.7957,
+            "ndcg": 0.9047,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.5,
+            "latency": 455.9741361141205,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "6197 sayılı kanun kapsamında serbest faaliyet gösteren eczaneler, hangi tür sağlık hizmeti sunucuları içerisinde değerlendirilir?",
+          "expected": "Birinci basamak özel sağlık hizmeti sunucuları",
+          "source": "1.3",
+          "ai_answer": "6197 sayılı Kanun kapsamında serbest faaliyet gösteren eczaneler, **Birinci basamak özel sağlık hizmeti sunucuları** kategorisi içerisinde değerlendirilir.\n\nAçıklama:\n- SUT sisteminde sağlık hizmeti sunucuları genel hükümler altında sınıflandırılmıştır.\n- Eczaneler, 18/12/1953 tarihli ve 6197 sayılı Eczacılar ve Eczaneler Hakkında Kanun kapsamında serbest faaliyet gösteren kuruluşlar olarak tanımlanmıştır.\n- Bu kuruluşlar, birinci basamak sağlık hizmeti sunucuları alt başlığındaki özel sağlık hizmeti sunucuları grubuna dahil edilmiştir.\n\nKAYNAKLAR:\n<KAYNAKLAR>\n<KAYNAK baslik=\"1.4.1.B - Birinci basamak özel sağlık hizmeti sunucuları\">Genel Hükümler > 1.4 - Sağlık hizmeti sunucuları > 1.4.1 - Birinci basamak sağlık hizmeti sunucuları > 1.4.1.B - Birinci basamak özel sağlık hizmeti sunucuları kapsamında; 5) 18/12/1953 tarihli ve 6197 sayılı Eczacılar ve Eczaneler Hakkında Kanun kapsamında serbest faaliyet gösteren eczaneler listelenmiştir.</KAYNAK>\n</KAYNAKLAR>",
+          "metrics": {
+            "map": 0.0,
+            "ndcg": 0.0,
+            "recall": 0.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 229.9272861480713,
+            "tool_steps": 4
+          }
+        },
+        {
+          "question": "Azasitidin hangi uzman hekimler tarafından reçete edilebilir?",
+          "expected": "Hematoloji uzman hekimleri tarafından.",
+          "source": "4.2",
+          "ai_answer": "Sağlık Uygulama Tebliği (SUT) veritabanı aramaları ve sağlanan araştırma sonuçları incelendiğinde, **\"Azasitidin\"** adlı ilacın reçete edilebilir uzman hekimlerle ilgili spesifik bir madde veya düzenleme bu sonuçlarda yer almamaktadır.\n\n**Araştırma Sonuçlarının Değerlendirmesi:**\n1.  **Kaynak 1 ve Kaynak 2 (Paget Hastalığı & Akromegali):** Bu sonuçlar, Osteoporoz, Sudek Atrofisi ve Paget Hastalığı ile ilgili düzenlemeleri (4.2.17) veya Akromegaliyi (4.2.37) kapsamaktadır. Bu bölümlerdeki \"Endokrinoloji uzman hekimi tarafından düzenlenen rapor\" ifadesi, Azasitidin gibi sitostatik ilaçlar için geçerli değildir; bu düzenleme kemik hastalıkları ve endokrinolojik durumlar içindir.\n2.  **Kaynak 4 (Kanser Tedavisi):** Bu sonuçta \"4.2.14 - Kanser tedavisinde ilaç kullanım ilkeleri\" başlığı altında Fotemustin gibi bir ilaca değinilse de, metin içinde Azasitidin'in ismi veya reçete yetkisi açıkça belirtilmemiştir.\n\n**Genel Bilgi ve SUT Uzmanı Görüşü:**\nAraştırma sonuçlarında doğrudan bilgi bulunmamasına rağmen, genel sağlık sistem bilgileri ve SUT'un kanser tedavisi ile ilgili genel ilkeleri (4.2.14 maddesi) çerçevesinde Azasitidin hakkında şu bilgiler verilebilir:\n\n*   **İlaç Kategorisi:** Azasitidin, antineoplastik (sitostatik) bir ilaç grubuna aittir ve genellikle Miyelodisplastik Sendromlar (MDS) veya Akut Miyeloid Lösemi (AML) gibi hematolojik malign hastalıkların tedavisinde kullanılır.\n*   **Reçete Yetkisi:** SUT genel ilkelerine göre, sitostatik ilaçların reçetesi genellikle **Hematoloji Onkoloji** uzman hekimleri tarafından düzenlenir. Bazı durumlarda, ilacın yüksek maliyeti ve risk profili nedeniyle, ilacı reçete eden hekimin ilgili hastalığın uzmanlık alanına sahip olması (Hematoloji veya İmmünoloji) gerekebilir.\n*   **Rapor Gerekliliği:** Bazı özel kanser ilaçları için SUT kapsamında \"Uzman Hekim Raporu\" istenebilmektedir. Azasitidin gibi spesifik sitostatikler, genellikle hastanın durumunun değerlendirildiği ve tedavi planının uzman hekim tarafından onaylandığı durumlarda (örneğin 4.2.14 maddesi kapsamında) uygulanır.\n\n**Özetle:** Sunulan araştırma sonuçları Azasitidin için doğrudan bir reçete yetkisi belirtmemektedir. Ancak genel SUT ve ilaç kullanım ilkeleri gereği, bu tür sitostatik ilaçlar **Hematoloji Onkoloji uzman hekimleri** tarafından reçete edilmeli ve tedavi süreci ilgili bölümün (Kanser Tedavisi) özel düzenlemelerine uygun olmalıdır.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 1.0,
+            "relevance": 1.0,
+            "latency": 415.9276478290558,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Sağlık Bakanlığı dışındaki resmi sağlık hizmeti sunucularına yapılan hemodiyaliz amaçlı sevkler ne kadar süreyle geçerlidir?",
+          "expected": "3 ay",
+          "source": "1.5",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 1.0,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 448.2989339828491,
+            "tool_steps": 6
+          }
+        },
+        {
+          "question": "Sitogenetik tetkiklerde, hekimin istem formunda belirttiği bilgilerin bir örneği nereye eklenmelidir?",
+          "expected": "Faturaya.",
+          "source": "2.4",
+          "ai_answer": "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı.",
+          "metrics": {
+            "map": 0.6667,
+            "ndcg": 1.0,
+            "recall": 1.0,
+            "faithfulness": 0.0,
+            "relevance": 0.0,
+            "latency": 467.7911128997803,
+            "tool_steps": 3
+          }
+        }
+      ]
+    }
+  }
+}

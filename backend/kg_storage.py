@@ -11,7 +11,9 @@ from collections import deque
 
 
 def get_conn():
-    url = os.getenv("LOCAL_DATABASE_URL") or os.getenv("DATABASE_URL")
+    # Prefer DATABASE_URL (usually 'db' host in Docker). 
+    # Use LOCAL_DATABASE_URL as fallback for dev outside Docker.
+    url = os.getenv("DATABASE_URL") or os.getenv("LOCAL_DATABASE_URL")
     return psycopg2.connect(url, cursor_factory=psycopg2.extras.DictCursor)
 
 

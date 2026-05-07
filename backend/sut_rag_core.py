@@ -152,9 +152,9 @@ class SUT_RAG_Engine:
 
     def load_database(self) -> bool:
         try:
-            # Use LOCAL_DATABASE_URL when running from the terminal (outside Docker).
-            # Docker containers use DATABASE_URL (with 'db' hostname).
-            db_url = os.getenv("LOCAL_DATABASE_URL") or os.getenv("DATABASE_URL")
+            # Prefer DATABASE_URL (usually 'db' host in Docker).
+            # Use LOCAL_DATABASE_URL as fallback for dev outside Docker.
+            db_url = os.getenv("DATABASE_URL") or os.getenv("LOCAL_DATABASE_URL")
             self.conn = psycopg2.connect(db_url)
             cur = self.conn.cursor()
             cur.execute("SELECT EXISTS (SELECT FROM pg_tables WHERE schemaname='public' AND tablename='chunks')")
@@ -266,6 +266,24 @@ Eğer yanıt %100 doğruysa sadece "TAMAM" yaz.
 Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın düzeltmesini iste.
 """
 
+    @staticmethod
+    def _iter_answer_deltas(text: str, chunk_size: int = 28) -> Generator[Dict, None, None]:
+        """Split completed answer into SSE chunks for progressive UI (word-aware where possible)."""
+        if not text:
+            return
+        i = 0
+        n = len(text)
+        while i < n:
+            end = min(i + chunk_size, n)
+            if end < n:
+                look = text.rfind(" ", i, min(end + 16, n))
+                if look > i:
+                    end = look + 1
+            piece = text[i:end]
+            if piece:
+                yield {"answer_delta": piece}
+            i = end
+
     # ─── Main Agentic Stream ─────────────────────────────────────────────────
 
     def query_agentic_rag_stream(
@@ -282,10 +300,20 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
             yield {"error": "LLM not initialized."}
             return
 
-        history_str = "\n".join(
-            f"{'Kullanıcı' if m['role'] == 'user' else 'Asistan'}: {m['content'][:300]}"
-            for m in chat_history[-6:]
-        )
+        if isinstance(chat_history, str):
+            history_str = chat_history
+        else:
+            lines = []
+            for m in chat_history[-6:]:
+                if not isinstance(m, dict):
+                    continue
+                msg_role = m.get("role", "")
+                content = m.get("content", "")
+                if not isinstance(content, str):
+                    content = str(content)
+                label = "Kullanıcı" if msg_role == "user" else "Asistan"
+                lines.append(f"{label}: {content[:300]}")
+            history_str = "\n".join(lines)
 
         observations: List[Dict] = []   # list of {tool, args, result}
         agent_steps: List[Dict] = []    # for frontend trace
@@ -304,7 +332,23 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
             "PATIENT": {
                 "name": "Vatandaş / Hasta",
                 "desc": "Tıbbi ve hukuki terimleri anlamayabilecek bir vatandaş. Sade Türkçe kullan, 'Ödenir mi?', 'Ne kadar ödenir?' sorularına net odaklan."
-            }
+            },
+            "ECZACI": {
+                "name": "Eczacı",
+                "desc": "Reçete kuralları, muadil ilaç, katılım payı ve eczane uygulamalarına odaklan. ATC ve doz bilgisini doğru kullan."
+            },
+            "PHARMACIST": {
+                "name": "Eczacı",
+                "desc": "Reçete kuralları, muadil ilaç, katılım payı ve eczane uygulamalarına odaklan."
+            },
+            "HASTANE_YONETICISI": {
+                "name": "Hastane Yöneticisi",
+                "desc": "Hastane bütçesi, SUT uyumu, faturalandırma ve idari süreçlere odaklan. Özet ve tablo kullan."
+            },
+            "HOSPITAL_MANAGER": {
+                "name": "Hastane Yöneticisi",
+                "desc": "Kurumsal SUT uyumu, maliyet ve idari süreçlere odaklan."
+            },
         }.get(role.upper(), {"name": "SUT Uzmanı", "desc": "Genel SUT uzmanı."})
 
         search_tool_names = {"search_sut_chunks", "search_sut_fulltext", "lookup_kg_entity", "explore_kg_path"}
@@ -417,6 +461,7 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
                     })
                     yield {"agent_step": agent_steps[-1]}
                     yield {"agent_steps_complete": agent_steps}
+                    yield from self._iter_answer_deltas(final_answer)
                     yield {"final_answer": final_answer}
                     return
                 else:
@@ -451,6 +496,7 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
         yield {"status": "Yanıt oluşturuluyor..."}
         fallback_answer = self._generate_fallback_answer(user_query, observations, chat_history)
         yield {"agent_steps_complete": agent_steps}
+        yield from self._iter_answer_deltas(fallback_answer)
         yield {"final_answer": fallback_answer}
 
     def _run_tool(self, tool_name: str, args: Dict, default_k: int) -> str:

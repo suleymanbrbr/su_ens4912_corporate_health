@@ -13,6 +13,10 @@ function Profile({ user, onLogout }) {
   const [pwdMsg, setPwdMsg] = useState('')
 
   useEffect(() => {
+    document.title = 'Profil — SUT Asistanı'
+  }, [])
+
+  useEffect(() => {
     fetch('/api/history', {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     })

@@ -38,17 +38,25 @@
 ---
 ## 2. Generation (Üretim) Kalite Metrikleri
 
-Bu bölüm, 49 soru üzerinde yapılan uçtan uca pipeline değerlendirmesini kapsamaktadır.
+Bu bölüm, farklı LLM modellerinin 50 soru üzerindeki RAG performansını ve üretim kalitesini karşılaştırmaktadır.
 
-| Metrik | Yeni Sistem (gemini-2.0-flash) |
-|--------|-------------------------------|
-| ROUGE-L (ort.) | 0.0416 |
-| Fuzzy-F1 (ort.) | 0.0454 |
-| Exact Match | 0.0000 |
-| Faithfulness (LLM-judge) | 0.9041 |
-| Answer Relevance | 1.0000 |
-| Hallucination Rate | 0.0204 |
-| Avg Latency | 0.959s |
+### Model Karşılaştırma Tablosu
+
+| Model | Sağlayıcı | Faithfulness | Answer Relevance | Avg MAP | Avg NDCG | Avg Latency |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
+| **Gemini 2.5 Pro** | Google | 0.520 | 0.755 | 0.716 | 0.782 | 80.4s |
+| **Gemini 3.1 Pro** | Google | 0.495 | 0.605 | 0.762 | 0.833 | 98.0s |
+| **Qwen 3.5-9B** | Local (Ollama) | 0.460 | 0.450 | 0.738 | 0.830 | 514.9s |
+| **Llama 3 8B** | Local (LM Studio) | 0.260 | 0.560 | 0.568 | 0.610 | 182.3s |
+| **Gemini 2.0 Flash*** | Google | 0.904 | 1.000 | - | - | 0.9s |
+
+> **Not (*):** Gemini 2.0 Flash sonuçları önceki bir değerlendirme setinden alınmıştır ve karşılaştırmalı metrikler (MAP/NDCG) henüz bu model için hesaplanmamıştır.
+
+### Bulgular ve Analiz
+- **En İyi Performans:** Gemini 3.1 Pro, MAP (0.762) ve NDCG (0.833) değerlerinde en yüksek başarıyı göstermiştir.
+- **Yerel Model Başarısı:** Qwen 3.5-9B, yerel bir model olmasına rağmen NDCG (0.830) skorunda Gemini 3.1 Pro'ya çok yaklaşmıştır, ancak işlem süresi (514s) bulut modellerine göre oldukça yüksektir.
+- **Doğruluk (Faithfulness):** Tüm modellerde faithfulness skorları 0.50 civarında seyretmektedir. Bu durum, karmaşık SUT maddelerinin yorumlanmasında modellerin hala zorlandığını veya değerlendirme yargıcının (LLM-judge) oldukça katı olduğunu göstermektedir.
+- **Hız:** Google Gemini modelleri, yerel modellere göre ortalama 2-5 kat daha hızlı yanıt üretmektedir.
 
 ---
 ## 3. Grafik Karşılaştırma

@@ -1,0 +1,72 @@
+[
+  {
+    "id": "q001",
+    "question": "İbuprofen SUT kapsamında ödenir mi?",
+    "expected_keywords": ["ibuprofen", "ödenir", "SUT"],
+    "expected_context_contains": ["ibuprofen", "antienflamatuar"],
+    "category": "drug_coverage"
+  },
+  {
+    "id": "q002",
+    "question": "Kanser tedavisinde hangi uzman raporu gereklidir?",
+    "expected_keywords": ["onkoloji", "uzman", "rapor"],
+    "expected_context_contains": ["onkoloji", "kanser"],
+    "category": "specialist_report"
+  },
+  {
+    "id": "q003",
+    "question": "Fizik tedavi kaç seans ödenir?",
+    "expected_keywords": ["fizik tedavi", "seans", "limit"],
+    "expected_context_contains": ["fizik", "seans"],
+    "category": "session_limit"
+  },
+  {
+    "id": "q004",
+    "question": "Diyabet ilaçları için endikasyon şartları nelerdir?",
+    "expected_keywords": ["diyabet", "endikasyon", "metformin"],
+    "expected_context_contains": ["diyabet"],
+    "category": "drug_coverage"
+  },
+  {
+    "id": "q005",
+    "question": "İşitme cihazı için hangi uzman raporu gerekiyor?",
+    "expected_keywords": ["işitme", "KBB", "cihaz"],
+    "expected_context_contains": ["işitme", "odyoloji"],
+    "category": "device_coverage"
+  },
+  {
+    "id": "q006",
+    "question": "MS hastalığı için biyolojik ilaç kullanma koşulları?",
+    "expected_keywords": ["multipl skleroz", "biyolojik", "nöroloji"],
+    "expected_context_contains": ["MS", "multipl skleroz"],
+    "category": "drug_coverage"
+  },
+  {
+    "id": "q007",
+    "question": "Kronik böbrek hastasına hangi ilaçlar ödeniyor?",
+    "expected_keywords": ["böbrek", "kronik", "diyaliz"],
+    "expected_context_contains": ["böbrek", "renal"],
+    "category": "drug_coverage"
+  },
+  {
+    "id": "q008",
+    "question": "Çocuklarda büyüme hormonu tedavisi için şartlar nelerdir?",
+    "expected_keywords": ["büyüme hormonu", "çocuk", "pediatri"],
+    "expected_context_contains": ["büyüme", "hormon"],
+    "category": "age_restricted"
+  },
+  {
+    "id": "q009",
+    "question": "Ortopedik protez temin şartları nelerdir?",
+    "expected_keywords": ["protez", "ortopedi", "temin"],
+    "expected_context_contains": ["protez", "ortopedik"],
+    "category": "device_coverage"
+  },
+  {
+    "id": "q010",
+    "question": "Psikiyatri ilaçları için hangi şartlar var?",
+    "expected_keywords": ["psikiyatri", "antidepresan", "rapor"],
+    "expected_context_contains": ["psikiyatri"],
+    "category": "drug_coverage"
+  }
+]

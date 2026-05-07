@@ -5,7 +5,6 @@ import {
   Activity, UserMinus, UserPlus, Megaphone, Clock, TrendingUp,
   BarChart2, BookOpen, Trash2, CheckCircle, List, Settings, Share2, RefreshCw
 } from 'lucide-react'
-import ThemeToggle from './ThemeToggle'
 import EvalDashboard from './EvalDashboard'
 
 const API_HEADERS = () => ({ 'Authorization': `Bearer ${localStorage.getItem('token')}` })
@@ -14,6 +13,8 @@ const API_HEADERS = () => ({ 'Authorization': `Bearer ${localStorage.getItem('to
 function TabButton({ active, onClick, icon, label }) {
   return (
     <button
+      type="button"
+      aria-current={active ? 'page' : undefined}
       onClick={onClick}
       style={{
         display: 'flex', alignItems: 'center', gap: '0.5rem',
@@ -21,7 +22,8 @@ function TabButton({ active, onClick, icon, label }) {
         background: active ? 'var(--primary)' : 'transparent',
         color: active ? 'white' : 'var(--text-muted)',
         fontWeight: active ? 700 : 500, cursor: 'pointer', fontSize: '0.9rem',
-        transition: 'all 0.2s'
+        transition: 'all 0.2s',
+        borderBottom: active ? '2px solid var(--accent)' : '2px solid transparent',
       }}
     >
       {icon} {label}
@@ -61,18 +63,22 @@ function AdminPanel({ user, onLogout }) {
   const navigate = useNavigate()
 
   useEffect(() => {
+    document.title = 'Admin Paneli — SUT Asistanı'
+  }, [])
+
+  useEffect(() => {
     fetchOverview()
   }, [])
 
   useEffect(() => {
-    if (tab === 'activity') {
+    if (tab === 'monitoring') {
       fetchActivity()
+      fetchAuditLogs()
       activityTimer.current = setInterval(fetchActivity, 30000)
     } else {
       clearInterval(activityTimer.current)
     }
     if (tab === 'analytics') fetchAnalytics()
-    if (tab === 'audit') fetchAuditLogs()
     if (tab === 'kg') fetchKgStats()
     return () => clearInterval(activityTimer.current)
   }, [tab])
@@ -243,9 +249,6 @@ function AdminPanel({ user, onLogout }) {
               <Settings size={14} /> Ayarlar
             </Link>
           </div>
-          <div style={{ marginBottom: '1rem' }}>
-            <ThemeToggle />
-          </div>
         </nav>
         <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'transparent', color: '#ef4444', border: 'none', cursor: 'pointer', padding: '0.75rem', borderRadius: '8px', fontWeight: 600 }}>
           <LogOut size={16} /> Çıkış Yap
@@ -257,11 +260,10 @@ function AdminPanel({ user, onLogout }) {
         {/* Tab Bar */}
         <div style={{ padding: '1.5rem 2rem 0', borderBottom: '1px solid var(--border)', background: 'var(--card-bg)', display: 'flex', gap: '0.5rem' }}>
           <TabButton active={tab === 'overview'} onClick={() => setTab('overview')} icon={<LayoutDashboard size={16} />} label="Genel Bakış" />
-          <TabButton active={tab === 'activity'} onClick={() => setTab('activity')} icon={<Activity size={16} />} label="Canlı Aktivite" />
+          <TabButton active={tab === 'monitoring'} onClick={() => setTab('monitoring')} icon={<Activity size={16} />} label="İzleme" />
           <TabButton active={tab === 'analytics'} onClick={() => setTab('analytics')} icon={<TrendingUp size={16} />} label="Analitik" />
           <TabButton active={tab === 'kg'} onClick={() => setTab('kg')} icon={<Share2 size={16} />} label="Bilgi Grafiği" />
           <TabButton active={tab === 'eval'} onClick={() => setTab('eval')} icon={<BarChart2 size={16} />} label="Değerlendirme" />
-          <TabButton active={tab === 'audit'} onClick={() => setTab('audit')} icon={<List size={16} />} label="Sistem Logları" />
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '2rem' }}>
@@ -394,8 +396,8 @@ function AdminPanel({ user, onLogout }) {
                 </>
               )}
 
-              {/* ACTIVITY TAB */}
-              {tab === 'activity' && (
+              {/* MONITORING: activity + audit */}
+              {tab === 'monitoring' && (
                 <>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Canlı Kullanıcı Aktivitesi</h1>
@@ -423,6 +425,54 @@ function AdminPanel({ user, onLogout }) {
                         </div>
                       </div>
                     ))}
+                  </div>
+
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '2rem 0 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <List size={18} /> Sistem Logları
+                  </h2>
+                  <div className="premium-card" style={{ padding: 0, overflow: 'hidden' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                      <thead style={{ background: '#f8fafc', borderBottom: '1px solid var(--border)' }}>
+                        <tr>
+                          <th style={{ padding: '1rem 1.5rem' }}>Tarih</th>
+                          <th style={{ padding: '1rem 1.5rem' }}>Kullanıcı</th>
+                          <th style={{ padding: '1rem 1.5rem' }}>Aksiyon</th>
+                          <th style={{ padding: '1rem 1.5rem' }}>Hedef / Detay</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {auditLogs.map((log) => (
+                          <tr key={log.log_id} style={{ borderBottom: '1px solid var(--border)' }}>
+                            <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                              {new Date(log.created_at + 'Z').toLocaleString('tr-TR')}
+                            </td>
+                            <td style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>
+                              {log.user_name || <span style={{ color: 'var(--text-muted)' }}>Sistem</span>}
+                            </td>
+                            <td style={{ padding: '1rem 1.5rem' }}>
+                              <span style={{ padding: '0.2rem 0.6rem', background: '#e0f2fe', color: '#0284c7', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700 }}>
+                                {log.action_type.toUpperCase()}
+                              </span>
+                            </td>
+                            <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem' }}>
+                              {log.entity_type && (
+                                <span style={{ fontWeight: 600, marginRight: '0.5rem', color: 'var(--primary)' }}>
+                                  [{log.entity_type}]
+                                </span>
+                              )}
+                              {log.details && (
+                                <pre style={{ display: 'inline', background: '#f1f5f9', padding: '0.2rem 0.4rem', borderRadius: '4px', fontSize: '0.75rem' }}>
+                                  {JSON.stringify(log.details)}
+                                </pre>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {auditLogs.length === 0 && (
+                      <p style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Kayıt bulunamadı.</p>
+                    )}
                   </div>
                 </>
               )}
@@ -563,56 +613,6 @@ function AdminPanel({ user, onLogout }) {
                 <EvalDashboard />
               )}
 
-              {/* AUDIT LOGS TAB */}
-              {tab === 'audit' && (
-                <>
-                  <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>Denetim İzleri (Audit Logs)</h1>
-                  <div className="premium-card" style={{ padding: 0, overflow: 'hidden' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                      <thead style={{ background: '#f8fafc', borderBottom: '1px solid var(--border)' }}>
-                        <tr>
-                          <th style={{ padding: '1rem 1.5rem' }}>Tarih</th>
-                          <th style={{ padding: '1rem 1.5rem' }}>Kullanıcı</th>
-                          <th style={{ padding: '1rem 1.5rem' }}>Aksiyon</th>
-                          <th style={{ padding: '1rem 1.5rem' }}>Hedef / Detay</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {auditLogs.map((log) => (
-                          <tr key={log.log_id} style={{ borderBottom: '1px solid var(--border)' }}>
-                            <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                              {new Date(log.created_at + 'Z').toLocaleString('tr-TR')}
-                            </td>
-                            <td style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>
-                              {log.user_name || <span style={{ color: 'var(--text-muted)' }}>Sistem</span>}
-                            </td>
-                            <td style={{ padding: '1rem 1.5rem' }}>
-                              <span style={{ padding: '0.2rem 0.6rem', background: '#e0f2fe', color: '#0284c7', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700 }}>
-                                {log.action_type.toUpperCase()}
-                              </span>
-                            </td>
-                            <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem' }}>
-                              {log.entity_type && (
-                                <span style={{ fontWeight: 600, marginRight: '0.5rem', color: 'var(--primary)' }}>
-                                  [{log.entity_type}]
-                                </span>
-                              )}
-                              {log.details && (
-                                <pre style={{ display: 'inline', background: '#f1f5f9', padding: '0.2rem 0.4rem', borderRadius: '4px', fontSize: '0.75rem' }}>
-                                  {JSON.stringify(log.details)}
-                                </pre>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    {auditLogs.length === 0 && (
-                      <p style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Kayıt bulunamadı.</p>
-                    )}
-                  </div>
-                </>
-              )}
             </>
           )}
         </div>

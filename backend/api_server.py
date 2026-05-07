@@ -139,6 +139,8 @@ def init_system_tables():
     """)
     # --- Conversation Summary (Phase 1.1) ---
     cur.execute("ALTER TABLE query_history ADD COLUMN IF NOT EXISTS summary TEXT")
+    # --- File Metadata (Phase 1.2) ---
+    cur.execute("ALTER TABLE query_history ADD COLUMN IF NOT EXISTS file_metadata JSONB")
 
     # --- Knowledge Graph Tables (Phase 2) ---
     cur.execute("""
@@ -153,6 +155,19 @@ def init_system_tables():
         )
     """)
     cur.execute("CREATE INDEX IF NOT EXISTS idx_user_docs_user_conv ON user_documents(user_id, conversation_id)")
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS conversations (
+            conversation_id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            title TEXT,
+            favorited INTEGER DEFAULT 0,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES users(id)
+        )
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_conversations_user_updated ON conversations(user_id, updated_at DESC)")
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS kg_nodes (
@@ -393,15 +408,44 @@ def get_chat_history(user_id: str, conversation_id: str):
             history.append({"role": "assistant", "content": row["response"]})
     return history
 
-def save_query_history(user_id: str, conversation_id: str, query: str, response: str, file_metadata: dict = None):
+def save_query_history(user_id: str, conversation_id: str, query: str, response: str, file_metadata: dict = None, query_id: str = None):
     """Save a new query and response pair to the history."""
-    query_id = str(uuid.uuid4())
+    qid = query_id or str(uuid.uuid4())
     conn = get_db_conn()
     cur = conn.cursor()
     cur.execute("""
         INSERT INTO query_history (id, user_id, conversation_id, query, response, file_metadata)
         VALUES (%s, %s, %s, %s, %s, %s)
-    """, (query_id, user_id, conversation_id, query, response, json.dumps(file_metadata) if file_metadata else None))
+    """, (qid, user_id, conversation_id, query, response, json.dumps(file_metadata) if file_metadata else None))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+def ensure_conversation_row(user_id: str, conversation_id: str, title_hint: str):
+    """Ensure conversations row exists; set title from first message if new."""
+    if not conversation_id:
+        return
+    title = (title_hint or "Sohbet")[:80]
+    conn = get_db_conn()
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT conversation_id FROM conversations WHERE conversation_id = %s AND user_id = %s",
+        (conversation_id, user_id),
+    )
+    if cur.fetchone():
+        cur.execute(
+            "UPDATE conversations SET updated_at = CURRENT_TIMESTAMP WHERE conversation_id = %s AND user_id = %s",
+            (conversation_id, user_id),
+        )
+    else:
+        cur.execute(
+            """
+            INSERT INTO conversations (conversation_id, user_id, title, favorited)
+            VALUES (%s, %s, %s, 0)
+            """,
+            (conversation_id, user_id, title),
+        )
     conn.commit()
     cur.close()
     conn.close()
@@ -412,6 +456,7 @@ class ChatQuery(BaseModel):
     query: str
     conversation_id: Optional[str] = None
     role: Optional[str] = "PATIENT"  # Default to PATIENT if not provided
+    k: Optional[int] = None  # RAG top-k; defaults handled in engine if None
 
 class PasswordChange(BaseModel):
     old_password: str
@@ -432,18 +477,38 @@ class FeedbackCreate(BaseModel):
     feedback_text: str = ""
     is_accurate: bool = True
 
+
+class FeedbackReportCreate(BaseModel):
+    message_id: str
+    category: str = "other"  # wrong_info | missing_source | other
+    feedback_text: str = ""
+
+
+class ConversationPatch(BaseModel):
+    title: str
+
+
+class FavoriteBody(BaseModel):
+    favorited: bool = True
+
 # --- Chat ---
 @app.post("/api/chat/query")
 async def chat_query(q: ChatQuery, current_user: dict = Depends(get_current_user)):
     """Main Agentic RAG chat endpoint (streaming)."""
-    
+    effective_conv_id = q.conversation_id or str(uuid.uuid4())
+    outbound_query_id = str(uuid.uuid4())
+    rag_k = q.k if q.k is not None else 5
+
     # 1. Fetch user documents for this conversation to provide context
     user_docs_context = ""
     active_file_metadata = None
     try:
         conn = get_db_conn()
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute("SELECT filename, content FROM user_documents WHERE user_id = %s AND conversation_id = %s", (current_user["id"], q.conversation_id))
+        cur.execute(
+            "SELECT filename, content FROM user_documents WHERE user_id = %s AND conversation_id = %s",
+            (current_user["id"], effective_conv_id),
+        )
         rows = cur.fetchall()
         if rows:
             user_docs_context = "\n\n--- KULLANICI DÖKÜMANLARI ---\n" + "\n".join([r["content"] for r in rows])
@@ -458,19 +523,41 @@ async def chat_query(q: ChatQuery, current_user: dict = Depends(get_current_user
         full_query = f"{user_docs_context}\n\nKullanıcı Sorusu: {q.query}"
 
     # 2. Get history
-    history = []
-    if q.conversation_id:
-        history = get_chat_history(current_user["id"], q.conversation_id)
-        # Summarize if too long
-        if len(history) > 10:
-            history = await _summarize_history(history)
+    history = get_chat_history(current_user["id"], effective_conv_id)
+    if len(history) > 10:
+        summary_text = _summarize_history(history)
+        # Engine expects List[{"role","content"}], not a bare summary string.
+        history = [
+            {
+                "role": "user",
+                "content": f"Önceki konuşmanın özeti (bağlam):\n{summary_text}",
+            }
+        ]
 
     async def generate():
-        # Pass the selected role to the engine for personalization
-        for chunk in engine.query_agentic_rag_stream(full_query, chat_history=history, role=q.role):
+        meta = {
+            "meta": {
+                "conversation_id": effective_conv_id,
+                "query_id": outbound_query_id,
+            }
+        }
+        yield f"data: {json.dumps(meta, ensure_ascii=False)}\n\n"
+        for chunk in engine.query_agentic_rag_stream(
+            full_query,
+            chat_history=history,
+            role=q.role or "PATIENT",
+            k=rag_k,
+        ):
             if "final_answer" in chunk:
-                # Save to DB when finished
-                save_query_history(current_user["id"], q.conversation_id, q.query, chunk["final_answer"], file_metadata=active_file_metadata)
+                ensure_conversation_row(current_user["id"], effective_conv_id, q.query)
+                save_query_history(
+                    current_user["id"],
+                    effective_conv_id,
+                    q.query,
+                    chunk["final_answer"],
+                    file_metadata=active_file_metadata,
+                    query_id=outbound_query_id,
+                )
             yield f"data: {json.dumps(chunk, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(generate(), media_type="text/event-stream")
@@ -577,6 +664,140 @@ async def save_response(data: SaveResponse, current_user: dict = Depends(get_cur
     conn.commit()
     conn.close()
     return {"message": "Yanıt kaydedildi."}
+
+
+@app.get("/api/config")
+async def get_app_config(current_user: dict = Depends(get_current_user)):
+    """Lightweight client config (model label for topbar)."""
+    display = (
+        os.getenv("SUT_MODEL_DISPLAY")
+        or os.getenv("GEMINI_MODEL_NAME")
+        or "Gemini 2.0 Flash"
+    )
+    return {
+        "model_display_name": display,
+        "provider": os.getenv("LLM_PROVIDER", "google"),
+    }
+
+
+@app.get("/api/conversations")
+async def list_conversations(limit: int = 10, current_user: dict = Depends(get_current_user)):
+    conn = get_db_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute(
+        """
+        SELECT conversation_id, title, favorited, updated_at, created_at
+        FROM conversations
+        WHERE user_id = %s
+        ORDER BY updated_at DESC
+        LIMIT %s
+        """,
+        (current_user["id"], min(limit, 50)),
+    )
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return {"conversations": [dict(r) for r in rows]}
+
+
+@app.get("/api/conversations/search")
+async def search_conversations(q: str = "", limit: int = 20, current_user: dict = Depends(get_current_user)):
+    if not q.strip():
+        return {"conversations": []}
+    conn = get_db_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute(
+        """
+        SELECT DISTINCT c.conversation_id, c.title, c.favorited, c.updated_at
+        FROM conversations c
+        LEFT JOIN query_history qh ON qh.conversation_id = c.conversation_id AND qh.user_id = c.user_id
+        WHERE c.user_id = %s AND (
+            c.title ILIKE %s OR qh.query ILIKE %s OR qh.response ILIKE %s
+        )
+        ORDER BY c.updated_at DESC
+        LIMIT %s
+        """,
+        (current_user["id"], f"%{q}%", f"%{q}%", f"%{q}%", min(limit, 50)),
+    )
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return {"conversations": [dict(r) for r in rows]}
+
+
+@app.patch("/api/conversations/{conversation_id}")
+async def patch_conversation(conversation_id: str, data: ConversationPatch, current_user: dict = Depends(get_current_user)):
+    conn = get_db_conn()
+    cur = db_execute(
+        conn,
+        "UPDATE conversations SET title = %s, updated_at = CURRENT_TIMESTAMP WHERE conversation_id = %s AND user_id = %s",
+        (data.title[:200], conversation_id, current_user["id"]),
+    )
+    if cur.rowcount == 0:
+        cur.close()
+        conn.close()
+        raise HTTPException(status_code=404, detail="Konuşma bulunamadı.")
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"message": "Başlık güncellendi.", "conversation_id": conversation_id}
+
+
+@app.delete("/api/conversations/{conversation_id}")
+async def delete_conversation(conversation_id: str, current_user: dict = Depends(get_current_user)):
+    conn = get_db_conn()
+    db_execute(
+        conn,
+        """DELETE FROM agent_runs WHERE trigger_message_id IN
+           (SELECT id FROM query_history WHERE conversation_id = %s AND user_id = %s)""",
+        (conversation_id, current_user["id"]),
+    )
+    db_execute(
+        conn,
+        """DELETE FROM user_feedback WHERE message_id IN
+           (SELECT id FROM query_history WHERE conversation_id = %s AND user_id = %s)""",
+        (conversation_id, current_user["id"]),
+    )
+    db_execute(conn, "DELETE FROM query_history WHERE conversation_id = %s AND user_id = %s", (conversation_id, current_user["id"]))
+    db_execute(conn, "DELETE FROM user_documents WHERE conversation_id = %s AND user_id = %s", (conversation_id, current_user["id"]))
+    db_execute(conn, "DELETE FROM conversations WHERE conversation_id = %s AND user_id = %s", (conversation_id, current_user["id"]))
+    conn.commit()
+    conn.close()
+    return {"message": "Konuşma silindi."}
+
+
+@app.put("/api/conversations/{conversation_id}/favorite")
+async def favorite_conversation(conversation_id: str, body: FavoriteBody = Body(...), current_user: dict = Depends(get_current_user)):
+    conn = get_db_conn()
+    cur = db_execute(
+        conn,
+        "UPDATE conversations SET favorited = %s, updated_at = CURRENT_TIMESTAMP WHERE conversation_id = %s AND user_id = %s",
+        (1 if body.favorited else 0, conversation_id, current_user["id"]),
+    )
+    if cur.rowcount == 0:
+        cur.close()
+        conn.close()
+        raise HTTPException(status_code=404, detail="Konuşma bulunamadı.")
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"message": "Güncellendi.", "favorited": body.favorited}
+
+
+@app.post("/api/feedback/report")
+async def submit_feedback_report(data: FeedbackReportCreate, current_user: dict = Depends(get_current_user)):
+    """Structured issue report for admin evaluation pipeline."""
+    prefix = f"[{data.category}] "
+    text = prefix + (data.feedback_text or "").strip()
+    conn = get_db_conn()
+    db_execute(
+        conn,
+        "INSERT INTO user_feedback (feedback_id, message_id, rating, feedback_text, is_accurate) VALUES (%s, %s, %s, %s, %s)",
+        (str(uuid.uuid4()), data.message_id, -1, text, 0),
+    )
+    conn.commit()
+    conn.close()
+    return {"message": "Hata bildirimi kaydedildi. Teşekkürler!"}
 
 # --- Admin Endpoints ---
 
@@ -685,28 +906,147 @@ async def get_admin_analytics(admin: dict = Depends(get_current_admin)):
         "total_users": total_users
     }
 
+def _chunk_row_to_result(c) -> dict:
+    meta = c["metadata_json"] if isinstance(c["metadata_json"], dict) else (json.loads(c["metadata_json"]) if c["metadata_json"] else {})
+    title = " > ".join([v for k, v in meta.items() if k.startswith("Header")])
+    return {
+        "id": c["chunk_id"],
+        "title": title or "Başlıksız Bölüm",
+        "excerpt": c["text_content"][:300],
+        "full_text": c["text_content"],
+        "metadata": meta,
+    }
+
+
+def _policy_query_token(raw: str) -> str:
+    """Keep letters, digits, Turkish chars; min length 2 after strip."""
+    t = re.sub(r"[^\wğüşıöçĞÜŞİÖÇ0-9]+", " ", raw, flags=re.I).strip()
+    return t[:120] if len(t) >= 2 else ""
+
+
+def _search_policy_chunks(conn, q: str, q_mode: str, limit: int, offset: int):
+    """
+    Full-text + ILIKE fallback.
+    q_mode: phrase | and | or
+    If ``q`` contains a comma: OR across comma-separated groups; within each group,
+    tokens (whitespace) are combined with AND (stronger matches).
+    """
+    fts_col = "to_tsvector('turkish', COALESCE(header_text,'') || ' ' || text_content)"
+    mode = (q_mode or "phrase").lower()
+    if mode not in ("phrase", "and", "or"):
+        mode = "phrase"
+
+    def run_sql(sql: str, params: tuple):
+        cur = db_execute(conn, sql, params)
+        rows = cur.fetchall()
+        cur.close()
+        return rows
+
+    if "," in q:
+        groups = [g.strip() for g in q.split(",") if g.strip()]
+        or_ts, or_like, params_ts, params_like = [], [], [], []
+        for g in groups:
+            tokens = [_policy_query_token(w) for w in g.split()]
+            tokens = [t for t in tokens if t]
+            if not tokens:
+                continue
+            and_ts = " AND ".join([f"{fts_col} @@ plainto_tsquery('turkish', %s)" for _ in tokens])
+            or_ts.append(f"({and_ts})")
+            params_ts.extend(tokens)
+            and_li = " AND ".join(["text_content ILIKE %s" for _ in tokens])
+            or_like.append(f"({and_li})")
+            params_like.extend([f"%{t}%" for t in tokens])
+        if not or_ts:
+            return []
+        sql_ts = f"""
+            SELECT chunk_id, text_content, metadata_json FROM chunks
+            WHERE ({' OR '.join(or_ts)})
+            LIMIT %s OFFSET %s
+        """
+        rows = run_sql(sql_ts, tuple(params_ts + [limit, offset]))
+        if rows:
+            return rows
+        sql_li = f"""
+            SELECT chunk_id, text_content, metadata_json FROM chunks
+            WHERE ({' OR '.join(or_like)})
+            LIMIT %s OFFSET %s
+        """
+        return run_sql(sql_li, tuple(params_like + [limit, offset]))
+
+    tokens = [_policy_query_token(w) for w in q.split()]
+    tokens = [t for t in tokens if t]
+
+    if mode == "phrase" or len(tokens) <= 1:
+        phrase = q.strip()
+        rows = run_sql(
+            f"""
+            SELECT chunk_id, text_content, metadata_json FROM chunks
+            WHERE {fts_col} @@ plainto_tsquery('turkish', %s)
+            LIMIT %s OFFSET %s
+            """,
+            (phrase, limit, offset),
+        )
+        if rows:
+            return rows
+        return run_sql(
+            """
+            SELECT chunk_id, text_content, metadata_json FROM chunks
+            WHERE text_content ILIKE %s LIMIT %s OFFSET %s
+            """,
+            (f"%{phrase}%", limit, offset),
+        )
+
+    joiner = " AND " if mode == "and" else " OR "
+    fts_clause = joiner.join([f"{fts_col} @@ plainto_tsquery('turkish', %s)" for _ in tokens])
+    rows = run_sql(
+        f"""
+        SELECT chunk_id, text_content, metadata_json FROM chunks
+        WHERE ({fts_clause})
+        LIMIT %s OFFSET %s
+        """,
+        tuple(tokens + [limit, offset]),
+    )
+    if rows:
+        return rows
+    like_clause = joiner.join(["text_content ILIKE %s" for _ in tokens])
+    like_params = [f"%{t}%" for t in tokens]
+    return run_sql(
+        f"""
+        SELECT chunk_id, text_content, metadata_json FROM chunks
+        WHERE ({like_clause})
+        LIMIT %s OFFSET %s
+        """,
+        tuple(like_params + [limit, offset]),
+    )
+
+
 @app.get("/api/policies")
-async def search_policies(q: str = "", section: str = "", limit: int = 20, offset: int = 0, admin: dict = Depends(get_current_admin)):
+async def search_policies(
+    q: str = "",
+    section: str = "",
+    chunk_id: str = "",
+    limit: int = 20,
+    offset: int = 0,
+    date_from: str = "",
+    date_to: str = "",
+    status_filter: str = "",
+    q_mode: str = "phrase",
+    current_user: dict = Depends(get_current_user),
+):
     conn = get_db_conn()
     try:
-        if q:
-            # PostgreSQL Full-Text Search with tsquery
-            cur = db_execute(conn, """
-                SELECT chunk_id, text_content, metadata_json
-                FROM chunks
-                WHERE to_tsvector('turkish', COALESCE(header_text,'') || ' ' || text_content) @@ plainto_tsquery('turkish', %s)
-                LIMIT %s OFFSET %s
-            """, (q, limit, offset))
-            chunks = cur.fetchall()
+        chunks = []
+        if chunk_id:
+            cur = db_execute(
+                conn,
+                "SELECT chunk_id, text_content, metadata_json FROM chunks WHERE chunk_id = %s",
+                (chunk_id,),
+            )
+            row = cur.fetchone()
             cur.close()
-            if not chunks:
-                # Fallback: ILIKE search
-                cur = db_execute(conn,
-                    "SELECT chunk_id, text_content, metadata_json FROM chunks WHERE text_content ILIKE %s LIMIT %s OFFSET %s",
-                    (f"%{q}%", limit, offset)
-                )
-                chunks = cur.fetchall()
-                cur.close()
+            chunks = [row] if row else []
+        elif q:
+            chunks = _search_policy_chunks(conn, q, q_mode, limit, offset)
         else:
             cur = db_execute(conn,
                 "SELECT chunk_id, text_content, metadata_json FROM chunks LIMIT %s OFFSET %s",
@@ -717,17 +1057,21 @@ async def search_policies(q: str = "", section: str = "", limit: int = 20, offse
 
         results = []
         for c in chunks:
-            meta = c["metadata_json"] if isinstance(c["metadata_json"], dict) else (json.loads(c["metadata_json"]) if c["metadata_json"] else {})
-            title = " > ".join([v for k, v in meta.items() if k.startswith("Header")])
-            if section and section.upper() not in title.upper():
+            item = _chunk_row_to_result(c)
+            meta_raw = json.dumps(item["metadata"], ensure_ascii=False) if item["metadata"] else ""
+            text_blob = item["full_text"] + meta_raw
+            if section and section.upper() not in item["title"].upper():
                 continue
-            results.append({
-                "id": c["chunk_id"],
-                "title": title or "Başlıksız Bölüm",
-                "excerpt": c["text_content"][:300],
-                "full_text": c["text_content"],
-                "metadata": meta
-            })
+            if date_from and date_from not in text_blob:
+                continue
+            if date_to and date_to not in text_blob:
+                continue
+            if status_filter:
+                st = (item["metadata"].get("status") or item["metadata"].get("durum") or "").lower()
+                if status_filter.lower() not in st and status_filter.lower() not in text_blob.lower():
+                    continue
+            results.append(item)
+
         cur = db_execute(conn, "SELECT COUNT(*) FROM chunks")
         total = cur.fetchone()[0]
         cur.close()
@@ -753,8 +1097,25 @@ async def delete_user(user_id: str, admin: dict = Depends(get_current_admin)):
     if user_id == admin["id"]:
         raise HTTPException(status_code=400, detail="Kendi hesabınızı silemezsiniz.")
     conn = get_db_conn()
+    # 1. Delete feedback linked to user's queries
+    db_execute(conn, """
+        DELETE FROM user_feedback WHERE message_id IN (
+            SELECT id FROM query_history WHERE user_id = %s
+        )
+    """, (user_id,))
+    # 2. Delete agent runs linked to user's queries
+    db_execute(conn, """
+        DELETE FROM agent_runs WHERE trigger_message_id IN (
+            SELECT id FROM query_history WHERE user_id = %s
+        )
+    """, (user_id,))
+    # 3. Delete user's documents and history
+    db_execute(conn, "DELETE FROM user_documents WHERE user_id = %s", (user_id,))
     db_execute(conn, "DELETE FROM query_history WHERE user_id = %s", (user_id,))
     db_execute(conn, "DELETE FROM saved_responses WHERE user_id = %s", (user_id,))
+    # 4. Delete user's own audit logs (or nullify, but delete is safer for clean tests)
+    db_execute(conn, "DELETE FROM audit_logs WHERE user_id = %s", (user_id,))
+    # 5. Finally delete the user
     db_execute(conn, "DELETE FROM users WHERE id = %s", (user_id,))
     log_audit(conn, "user_deleted", user_id=admin["id"], entity_type="user", entity_id=user_id)
     conn.commit()
@@ -841,13 +1202,20 @@ async def deactivate_announcement(ann_id: str, admin: dict = Depends(get_current
 # --- Knowledge Graph API (Postgres-backed) ---
 
 from kg_storage import KG_Storage_Manager
-_kg = KG_Storage_Manager()
+_kg = None
+
+def _get_kg() -> KG_Storage_Manager:
+    """Lazy-initialize KG_Storage_Manager so it connects AFTER the DB is ready."""
+    global _kg
+    if _kg is None:
+        _kg = KG_Storage_Manager()
+    return _kg
 
 @app.get("/api/kg/stats")
 async def get_kg_stats(current_user: dict = Depends(get_current_user)):
     """Return node/edge counts by type/relation."""
     try:
-        return _kg.get_stats()
+        return _get_kg().get_stats()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -862,8 +1230,8 @@ async def search_kg_nodes(
     try:
         type_filter = type.upper() if type else None
         if q:
-            exact = _kg.find_nodes_by_label(q, k=limit, type_filter=type_filter)
-            semantic = _kg.find_nodes_semantic(q, k=limit, type_filter=type_filter)
+            exact = _get_kg().find_nodes_by_label(q, k=limit, type_filter=type_filter)
+            semantic = _get_kg().find_nodes_semantic(q, k=limit, type_filter=type_filter)
             seen = {r["node_id"] for r in exact}
             merged = exact + [r for r in semantic if r["node_id"] not in seen]
             return {"nodes": merged[:limit]}
@@ -884,16 +1252,16 @@ async def search_kg_nodes(
 @app.get("/api/kg/node/{node_id}")
 async def get_kg_node(node_id: str, current_user: dict = Depends(get_current_user)):
     """Get a single node with all its neighbors."""
-    node = _kg.get_node(node_id)
+    node = _get_kg().get_node(node_id)
     if not node:
         raise HTTPException(status_code=404, detail="Node not found")
-    neighbors = _kg.get_neighbors(node_id, limit=20)
+    neighbors = _get_kg().get_neighbors(node_id, limit=20)
     return {"node": node, "neighbors": neighbors}
 
 @app.get("/api/kg/subgraph/{rule_id}")
 async def get_kg_subgraph(rule_id: str, current_user: dict = Depends(get_current_user)):
     """Get the subgraph for a RULE node (all related nodes & edges)."""
-    return _kg.get_rule_subgraph(rule_id)
+    return _get_kg().get_rule_subgraph(rule_id)
 
 @app.get("/api/kg/path")
 async def find_kg_path(
@@ -903,7 +1271,7 @@ async def find_kg_path(
     current_user: dict = Depends(get_current_user)
 ):
     """Find shortest path between two nodes."""
-    path = _kg.find_path(from_id, to_id, max_hops=max_hops)
+    path = _get_kg().find_path(from_id, to_id, max_hops=max_hops)
     return {"path": path, "found": len(path) > 0}
 
 @app.post("/api/admin/kg/rebuild")
@@ -930,7 +1298,7 @@ async def rebuild_kg(background_tasks: BackgroundTasks, admin: dict = Depends(ge
 @app.get("/api/admin/kg/stats")
 async def get_admin_kg_stats(admin: dict = Depends(get_current_admin)):
     try:
-        return _kg.get_stats()
+        return _get_kg().get_stats()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -963,9 +1331,9 @@ async def run_kg_benchmark(admin: dict = Depends(get_current_admin)):
     hits = 0
     for item in QUESTIONS:
         try:
-            nodes = _kg.find_nodes_by_label(item["q"][:40], k=5)
+            nodes = _get_kg().find_nodes_by_label(item["q"][:40], k=5)
             if not nodes:
-                nodes = _kg.find_nodes_semantic(item["q"], k=5)
+                nodes = _get_kg().find_nodes_semantic(item["q"], k=5)
             found_types = {n["type"] for n in nodes}
             hit = bool(found_types & set(item["expected"]))
             if hit:
