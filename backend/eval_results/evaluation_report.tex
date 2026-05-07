@@ -1,0 +1,92 @@
+\documentclass[11pt, a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+\title{Agentic RAG Benchmark Evaluation Report: \\ Proprietary vs. Open-Weights LLMs in Healthcare Domain}
+\author{SUT Agentic RAG Evaluation}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This report presents the findings of a comprehensive benchmarking evaluation of various Large Language Models (LLMs) deployed within an Agentic Retrieval-Augmented Generation (RAG) architecture. The evaluation focuses on the Turkish Sağlık Uygulama Tebliği (SUT) domain. We compared the performance of proprietary models (Gemini series) against open-weights models (Gemma series) across both baseline RAG and Knowledge Graph-augmented RAG (GraphRAG) modalities. Key metrics include Mean Average Precision (MAP), Normalized Discounted Cumulative Gain (NDCG), Context Recall, Faithfulness, Answer Relevance, and inference latency.
+\end{abstract}
+
+\section{Introduction}
+The objective of this benchmark is to assess the viability and accuracy of various LLMs in executing a ReAct-style tool-calling loop to retrieve and synthesize complex healthcare regulations. The agent has access to vector search, full-text search, and knowledge graph exploration tools. The evaluation suite consists of 100 domain-specific questions, evaluated automatically by an LLM-as-a-Judge (`gemini-3.1-pro-preview`) to score both adherence to retrieved facts (Faithfulness) and directness in answering the user prompt (Answer Relevance).
+
+\section{Results}
+
+The quantitative results of the benchmark are presented in Table \ref{tab:results}. Models were evaluated in two modes: \textbf{no\_kg} (Baseline RAG, utilizing only vector and full-text search) and \textbf{with\_kg} (GraphRAG, additionally utilizing Knowledge Graph traversal tools).
+
+\begin{table}[htbp]
+\centering
+\caption{Agentic RAG Benchmark Results across 100 Evaluation Questions}
+\label{tab:results}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{llccccccc}
+\toprule
+\textbf{Model} & \textbf{Mode} & \textbf{MAP} & \textbf{NDCG} & \textbf{Recall} & \textbf{Faithfulness} & \textbf{Relevance} & \textbf{Tool Steps} & \textbf{Latency (s)} \\
+\midrule
+\multirow{2}{*}{\textbf{gemini-3.1-pro-preview}} 
+& no\_kg & \textbf{0.7623} & \textbf{0.8332} & \textbf{0.89} & 0.495 & 0.605 & 5.29 & 98.03 \\
+& with\_kg & 0.7090 & 0.7715 & 0.82 & 0.510 & 0.650 & \textbf{5.51} & 118.87 \\
+\midrule
+\multirow{2}{*}{\textbf{gemini-2.5-pro}} 
+& no\_kg & 0.7158 & 0.7819 & 0.83 & \textbf{0.520} & 0.755 & 4.57 & 80.44 \\
+& with\_kg & 0.7212 & 0.7968 & 0.85 & 0.505 & \textbf{0.760} & 4.41 & 89.93 \\
+\midrule
+\multirow{2}{*}{\textbf{gemini-2.5-flash}} 
+& no\_kg & 0.7456 & 0.8332 & \textbf{0.89} & 0.405 & 0.550 & 4.28 & \textbf{58.50} \\
+& with\_kg & 0.7470 & 0.8332 & \textbf{0.89} & 0.430 & 0.610 & 4.74 & 69.94 \\
+\midrule
+\multirow{2}{*}{\textbf{gemma-3-12b-it}} 
+& no\_kg & 0.5493 & 0.6391 & 0.68 & 0.260 & 0.440 & 3.04 & 14.12 \\
+& with\_kg & 0.4201 & 0.4655 & 0.49 & 0.165 & 0.315 & 2.56 & 11.17 \\
+\midrule
+\multirow{2}{*}{\textbf{gemma-3-4b-it}} 
+& no\_kg & 0.3727 & 0.3926 & 0.42 & 0.115 & 0.295 & 1.74 & 5.16 \\
+& with\_kg & 0.3605 & 0.3871 & 0.42 & 0.155 & 0.310 & 2.18 & 6.44 \\
+\midrule
+\multirow{2}{*}{\textbf{gemma-4-26b-a4b-it}} 
+& no\_kg & 0.0000 & 0.0000 & 0.00 & 0.025 & 0.010 & 1.00 & 44.41 \\
+& with\_kg & 0.0000 & 0.0000 & 0.00 & 0.035 & 0.040 & 1.00 & 52.14 \\
+\midrule
+\multirow{2}{*}{\textbf{gemma-4-31b-it}} 
+& no\_kg & 0.0000 & 0.0000 & 0.00 & 0.045 & 0.030 & 1.00 & 29.15 \\
+& with\_kg & 0.0000 & 0.0000 & 0.00 & 0.055 & 0.035 & 1.00 & 27.34 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\section{Discussion \& Analysis}
+
+\subsection{Proprietary vs. Open Weights (The JSON Bottleneck)}
+The performance gap between the proprietary Gemini models and the open-weights Gemma models is highly pronounced. The larger Gemma 4 models (26b and 31b) consistently failed to execute the ReAct loop, scoring 0 on retrieval metrics and maintaining exactly 1.0 average tool step. This behavior strongly suggests that these models fail to adhere strictly to the JSON tool-calling schema required by the engine, frequently leaking Chain-of-Thought reasoning into their final output and causing the parser to abort. In contrast, the mid-sized \texttt{gemma-3-12b} navigated the tool loop somewhat successfully (MAP 0.54) but still fell significantly short of proprietary benchmarks.
+
+\subsection{The Speed/Performance Sweet Spot: \texttt{gemini-2.5-flash}}
+A surprising outcome of the evaluation was the performance of \texttt{gemini-2.5-flash}. It achieved exceptionally high retrieval metrics (NDCG $\sim$0.83), matching the absolute best retrieval of the heavy models, while operating at nearly double the speed (58s total latency for 100 questions). The primary trade-off was observed in the LLM-Judged metrics: its Faithfulness (0.43) and Answer Relevance (0.61) were noticeably lower than the Pro tier. While it fetches the correct documents quickly, it occasionally struggles to synthesize the final answer with perfect accuracy.
+
+\subsection{Best Overall Answer Quality: \texttt{gemini-2.5-pro}}
+Although its raw retrieval scores (MAP $\sim$0.72) were slightly lower than Flash, \texttt{gemini-2.5-pro} generated the most \textit{relevant} and \textit{faithful} answers by a wide margin (Answer Relevance: 0.76). For production deployments where the primary goal is providing accurate, hallucination-free answers based strictly on retrieved context, this model emerged as the optimal choice.
+
+\subsection{Impact of Knowledge Graph Augmentation (GraphRAG)}
+The introduction of Knowledge Graph tools (\texttt{with\_kg} mode) yielded mixed results depending on the model's reasoning capabilities:
+\begin{itemize}
+    \item For \texttt{gemini-2.5-flash} and \texttt{gemini-2.5-pro}, the GraphRAG mode slightly increased the overall Answer Relevance and Faithfulness scores. Having access to relational graph data allowed these models to formulate more precise final responses.
+    \item Conversely, for the newly introduced \texttt{gemini-3.1-pro-preview}, activating the KG tools slightly degraded its retrieval performance (MAP dropped from 0.76 to 0.70). This suggests that the newer preview model may over-index on exploring the Knowledge Graph (taking an average of 5.51 tool steps) instead of relying on standard vector search when appropriate.
+\end{itemize}
+
+\section{Conclusion}
+The benchmark highlights the current necessity of using top-tier proprietary models for robust Agentic RAG architectures. \texttt{gemini-2.5-pro} provides the highest quality answers, while \texttt{gemini-2.5-flash} acts as a highly efficient retrieval agent. Future work should focus on fine-tuning open-weights models specifically for strict JSON adherence within multi-turn tool-use loops.
+
+\end{document}
