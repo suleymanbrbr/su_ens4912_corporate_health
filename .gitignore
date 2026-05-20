@@ -224,3 +224,6 @@ build/
 model_cache/
 sut_converted_temp.md
 data/
+
+# Pandoc installer pkg (excluded — use apt-get pandoc instead)
+backend/pandoc-*.pkg
