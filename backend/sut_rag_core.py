@@ -75,7 +75,7 @@ MAX_AGENT_ITERATIONS = 8   # safety hard-stop
 MIN_SEARCHES_BEFORE_FINISH = 1  # agent must call at least 1 search tool
 
 class SUT_RAG_Engine:
-    def __init__(self, llm_provider: str = "google", model_name: str = "gemini-2.0-flash"):
+    def __init__(self, llm_provider: str = "google", model_name: str = "gemini-2.5-flash-lite"):
         self.embeddings_model = self._initialize_embeddings()
         print("[INIT] Loading Reranker Model...")
         self.reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2', device='cpu')
@@ -97,7 +97,7 @@ class SUT_RAG_Engine:
         elif llm_provider == "local":
             self._init_local_llm(model_name)
         else:
-            self._init_google_llm("gemini-2.0-flash")
+            self._init_google_llm("gemini-2.5-flash-lite")
 
         print(f"[INIT] SUT Engine Initialized. Provider: '{llm_provider}', Model: '{model_name}'")
 
@@ -121,7 +121,7 @@ class SUT_RAG_Engine:
         provider = (user_provider or "gemini").lower()
         try:
             if provider == "gemini":
-                model_name = self.default_model_name if self.default_model_name.startswith("gemini") else "gemini-2.0-flash"
+                model_name = self.default_model_name if self.default_model_name.startswith("gemini") else "gemini-2.5-flash-lite"
                 if model_name.startswith("gemma"):
                     return _NativeGemmaWrapper(model_name, user_api_key)
                 return ChatGoogleGenerativeAI(

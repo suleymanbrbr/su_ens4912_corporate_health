@@ -401,7 +401,7 @@ def _summarize_history(history: list) -> str:
         from langchain_google_genai import ChatGoogleGenerativeAI
         from langchain_core.messages import HumanMessage
         summarizer = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash-lite",
             google_api_key=os.getenv("GEMINI_API_KEY"),
             temperature=0
         )
@@ -1067,7 +1067,7 @@ async def test_user_api_key(
         if data.provider == "gemini":
             import google.generativeai as gg
             gg.configure(api_key=api_key)
-            model = gg.GenerativeModel("gemini-1.5-flash")
+            model = gg.GenerativeModel("gemini-2.5-flash-lite")
             # Use generation_config to limit tokens — cheapest possible probe.
             model.generate_content(
                 "ping",
