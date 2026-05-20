@@ -952,8 +952,30 @@ function ChatDashboard({ user, onLogout }) {
             <>
               {chatError && (
                 <div role="alert" style={{ padding: '0.65rem 1rem', background: '#fef2f2', color: '#991b1b', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, gap: '1rem' }}>
-                  <span>{chatError}</span>
-                  <button type="button" aria-label="Kapat" onClick={() => setChatError(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}>×</button>
+                  <span style={{ flex: 1, minWidth: 0 }}>{chatError}</span>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                    {(() => {
+                      const lastUser = [...messages].reverse().find(m => m.role === 'user')
+                      if (!lastUser || loading) return null
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setChatError(null)
+                            setInput(lastUser.content)
+                            // Defer to give state a tick
+                            setTimeout(() => {
+                              document.querySelector('.chat-send-form')?.requestSubmit?.()
+                            }, 0)
+                          }}
+                          style={{ background: 'transparent', border: '1px solid #b91c1c', color: '#991b1b', borderRadius: 6, padding: '0.25rem 0.6rem', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}
+                        >
+                          Yeniden dene
+                        </button>
+                      )
+                    })()}
+                    <button type="button" aria-label="Hata mesajını kapat" onClick={() => setChatError(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.1rem', lineHeight: 1, color: '#991b1b' }}>×</button>
+                  </div>
                 </div>
               )}
               {activeTab === 'chat' && messages.length > 0 && (

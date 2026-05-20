@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import FocusTrap from 'focus-trap-react'
 import { useNavigate } from 'react-router-dom'
-import { Sparkles, Users, Key, ChevronRight, ChevronLeft } from 'lucide-react'
+import { Sparkles, Users, Key, ChevronRight, ChevronLeft, X } from 'lucide-react'
 
 /**
  * Three-step onboarding wizard shown once after login.
@@ -15,6 +15,16 @@ import { Sparkles, Users, Key, ChevronRight, ChevronLeft } from 'lucide-react'
 export default function WelcomeModal({ open, username, onDismiss }) {
   const [step, setStep] = useState(0)
   const navigate = useNavigate()
+
+  // ESC key closes the modal (and counts as a dismissal so onboarding
+  // won't reopen on next visit). FocusTrap also intercepts ESC, but we
+  // explicitly persist the dismissal here.
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e) => { if (e.key === 'Escape') onDismiss() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open, onDismiss])
 
   if (!open) return null
 
@@ -71,9 +81,21 @@ export default function WelcomeModal({ open, username, onDismiss }) {
       >
         <div
           className="premium-card"
-          style={{ maxWidth: '460px', width: '100%', padding: '1.75rem' }}
+          style={{ maxWidth: '460px', width: '100%', padding: '1.75rem', position: 'relative' }}
           onClick={e => e.stopPropagation()}
         >
+          <button
+            type="button"
+            aria-label="Karşılama mesajını kapat"
+            onClick={onDismiss}
+            style={{
+              position: 'absolute', top: '0.5rem', right: '0.5rem',
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              color: 'var(--text-muted)', padding: '0.4rem', borderRadius: 6,
+            }}
+          >
+            <X size={16} aria-hidden />
+          </button>
           <StepDots />
 
           {step === 0 && (

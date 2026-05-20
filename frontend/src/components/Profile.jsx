@@ -120,7 +120,12 @@ function Profile({ user, onLogout }) {
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '1.2rem' }}>
                 <Clock size={20} color="#f59e0b" /> Son Aramalarınız
               </h3>
-              {loading ? <p>Yükleniyor...</p> : history.length === 0 ? <p style={{ color: 'var(--text-muted)' }}>Henüz arama yapmadınız.</p> : (
+              {loading ? <p>Yükleniyor...</p> : history.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '1.5rem 0', color: 'var(--text-muted)' }}>
+                  <p style={{ marginBottom: '0.75rem' }}>Henüz arama yapmadınız.</p>
+                  <Link to="/" className="btn-primary" style={{ display: 'inline-block', textDecoration: 'none' }}>Sohbete Başla</Link>
+                </div>
+              ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '500px', overflowY: 'auto', paddingRight: '0.5rem' }}>
                   {history.map((h) => (
                     <div key={h.id ?? `${h.query}-${h.created_at}`} style={{ padding: '1rem', background: 'var(--bg-elev)', borderRadius: '8px', borderLeft: '3px solid var(--accent)' }}>
