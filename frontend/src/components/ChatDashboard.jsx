@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import toast, { Toaster } from 'react-hot-toast'
-import { 
-  MessageSquare, Send, BookOpen, Clock, Settings, LogOut, User, Search, 
-  HelpCircle, Shield, Bot, Bookmark, ThumbsUp, ThumbsDown, 
+import {
+  MessageSquare, Send, BookOpen, Clock, Settings, LogOut, User, Search,
+  HelpCircle, Shield, Bot, Bookmark, ThumbsUp, ThumbsDown,
   Network, FileText, Book, X, Megaphone, Menu, Copy, Flag, Bell, Cpu, MoreHorizontal, Pencil, Star, Trash2
 } from 'lucide-react'
-import KnowledgeGraph from './KnowledgeGraph'
+// KnowledgeGraph pulls in react-force-graph-2d (heavy). Lazy-load so the
+// chat path doesn't pay for it on every initial visit.
+const KnowledgeGraph = lazy(() => import('./KnowledgeGraph'))
 import MarkdownBody from './MarkdownBody'
 import { extractSourceRefs } from '../utils/sourceRefs'
 import { CommandPalette } from './CommandPalette'
@@ -946,7 +948,11 @@ function ChatDashboard({ user, onLogout }) {
 
           {activeTab === 'graph' ? (
             <div style={{ flex: 1, position: 'relative' }}>
-              <KnowledgeGraph />
+              <Suspense fallback={
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)' }}>Bilgi grafiği yükleniyor…</div>
+              }>
+                <KnowledgeGraph />
+              </Suspense>
             </div>
           ) : (
             <>

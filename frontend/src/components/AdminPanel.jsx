@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import {
   Users, LayoutDashboard, LogOut, ArrowLeft, Shield, Database,
   Activity, UserMinus, UserPlus, Megaphone, Clock, TrendingUp,
   BarChart2, BookOpen, Trash2, CheckCircle, List, Settings, Share2, RefreshCw
 } from 'lucide-react'
-import EvalDashboard from './EvalDashboard'
+// Eval tab is rarely opened; load on demand.
+const EvalDashboard = lazy(() => import('./EvalDashboard'))
 
 const API_HEADERS = () => ({ 'Authorization': `Bearer ${localStorage.getItem('token')}` })
 
@@ -610,7 +611,9 @@ function AdminPanel({ user, onLogout }) {
 
               {/* EVAL DASHBOARD TAB */}
               {tab === 'eval' && (
-                <EvalDashboard />
+                <Suspense fallback={<div style={{ color: 'var(--text-muted)' }}>Yükleniyor…</div>}>
+                  <EvalDashboard />
+                </Suspense>
               )}
 
             </>
