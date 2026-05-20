@@ -8,6 +8,9 @@ import {
 import { SkeletonLine } from './Skeleton'
 // Eval tab is rarely opened; load on demand.
 const EvalDashboard = lazy(() => import('./EvalDashboard'))
+// Audit log tab pulls its own data — code-split so the default Overview
+// tab stays as light as possible.
+const AuditLogViewer = lazy(() => import('./AuditLogViewer'))
 
 const API_HEADERS = () => ({ 'Authorization': `Bearer ${localStorage.getItem('token')}` })
 
@@ -265,6 +268,7 @@ function AdminPanel({ user, onLogout }) {
           <TabButton active={tab === 'monitoring'} onClick={() => setTab('monitoring')} icon={<Activity size={16} />} label="İzleme" />
           <TabButton active={tab === 'analytics'} onClick={() => setTab('analytics')} icon={<TrendingUp size={16} />} label="Analitik" />
           <TabButton active={tab === 'kg'} onClick={() => setTab('kg')} icon={<Share2 size={16} />} label="Bilgi Grafiği" />
+          <TabButton active={tab === 'audit'} onClick={() => setTab('audit')} icon={<List size={16} />} label="Denetim Kayıtları" />
           <TabButton active={tab === 'eval'} onClick={() => setTab('eval')} icon={<BarChart2 size={16} />} label="Değerlendirme" />
         </div>
 
@@ -622,6 +626,13 @@ function AdminPanel({ user, onLogout }) {
                     )}
                   </div>
                 </>
+              )}
+
+              {/* AUDIT LOG VIEWER TAB */}
+              {tab === 'audit' && (
+                <Suspense fallback={<div style={{ color: 'var(--text-muted)' }}>Yükleniyor…</div>}>
+                  <AuditLogViewer />
+                </Suspense>
               )}
 
               {/* EVAL DASHBOARD TAB */}
