@@ -3,6 +3,6 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://YOUR_HF_SPACE.hf.space/api/:path*" }
+    { "source": "/api/:path*", "destination": "https://suleyman42-mahiks-tr.hf.space/api/:path*" }
   ]
 }
