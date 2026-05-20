@@ -72,12 +72,26 @@ input {
   padding: 0.75rem 1rem;
   width: 100%;
   transition: var(--transition);
+  background: var(--card-bg);
+  color: var(--text-main);
 }
 
-input:focus {
+/* Reset width/padding/border for radio + checkbox so they render as the
+   native control instead of stretching to fill their flex parent. */
+input[type="radio"],
+input[type="checkbox"],
+input[type="range"],
+input[type="file"] {
+  width: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+input:focus-visible {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 .glass {
