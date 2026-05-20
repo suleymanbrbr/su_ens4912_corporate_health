@@ -1,0 +1,99 @@
+# =============================================================================
+# DEPLOYMENT WORKFLOW — DISABLED
+# =============================================================================
+# This file has the `.disabled` extension so GitHub Actions will NOT pick it up.
+# To enable, rename to `deploy.yml` AFTER you have added all the required
+# secrets to the repository (Settings -> Secrets and variables -> Actions):
+#
+#   - VERCEL_TOKEN       — personal token from https://vercel.com/account/tokens
+#   - VERCEL_ORG_ID      — `vercel link` output / Vercel project settings
+#   - VERCEL_PROJECT_ID  — `vercel link` output / Vercel project settings
+#   - HF_TOKEN           — write-scope token from https://huggingface.co/settings/tokens
+#   - HF_USERNAME        — your HF account username (e.g. `suleyman42`)
+#   - HF_SPACE_NAME      — the Space repo name (e.g. `mahiks-tr`)
+#
+# Until those secrets exist, leaving the workflow enabled would cause every
+# push to main to fail noisily — hence the `.disabled` guard.
+# =============================================================================
+
+name: Deploy (frontend + HF Space)
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # ───────────────────────────────────────────────────────────────────────────
+  # Frontend → Vercel production
+  # ───────────────────────────────────────────────────────────────────────────
+  deploy-frontend:
+    name: Deploy frontend to Vercel
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel project settings
+        working-directory: frontend
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
+
+      - name: Build (Vercel)
+        working-directory: frontend
+        run: vercel build --prod --token="${{ secrets.VERCEL_TOKEN }}"
+
+      - name: Deploy prebuilt artifact to Vercel
+        working-directory: frontend
+        run: vercel deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}"
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Backend → Hugging Face Space (push the hf-deploy branch)
+  # ───────────────────────────────────────────────────────────────────────────
+  deploy-hf-space:
+    name: Push hf-deploy branch to HF Space
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout repository (full history, LFS)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Push hf-deploy branch to HF Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: ${{ secrets.HF_USERNAME }}
+          HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
+        run: |
+          set -euo pipefail
+          # Fast-forward hf-deploy from main, then force-push to the Space.
+          # The orphan branch already exists on origin; we just refresh it.
+          git fetch origin hf-deploy
+          git checkout hf-deploy
+          # If the deployment branch needs main's content, uncomment:
+          # git merge --no-edit -X theirs origin/main || true
+          REMOTE="https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}"
+          git push --force "${REMOTE}" hf-deploy:main
