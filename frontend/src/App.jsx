@@ -4,6 +4,7 @@ import Login from './components/Login'
 import Signup from './components/Signup'
 import ChatDashboard from './components/ChatDashboard'
 import ErrorBoundary from './components/ErrorBoundary'
+import QuickTour from './components/QuickTour'
 
 // Heavier / less-frequently-visited views split into their own chunks so the
 // first paint on the auth + chat path stays lean.
@@ -73,6 +74,9 @@ function App() {
             <Route path="/policies" element={user ? <PolicyBrowser user={user} /> : <Navigate to="/" />} />
           </Routes>
         </Suspense>
+        {/* First-login onboarding — only for authenticated users, after
+            the initial /api/auth/me check resolves (loading === false). */}
+        {user && <QuickTour user={user} />}
       </Router>
     </ErrorBoundary>
   )
