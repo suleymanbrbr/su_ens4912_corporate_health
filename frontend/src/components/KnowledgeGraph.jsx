@@ -222,7 +222,7 @@ function KnowledgeGraph() {
         }, 450);
       }
     } catch (err) {
-      console.error('Multi-node selection error:', err);
+      if (import.meta.env.DEV) console.error('Multi-node selection error:', err);
     }
   }, [selectedNodes]);
 

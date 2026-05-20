@@ -92,12 +92,12 @@ function AdminPanel({ user, onLogout }) {
       ])
       
       if (usersRes.ok) setUsers(await usersRes.json())
-      else console.error('Failed to fetch users:', await usersRes.text())
-      
+      else if (import.meta.env.DEV) console.error('Failed to fetch users:', await usersRes.text())
+
       if (metricsRes.ok) setMetrics(await metricsRes.json())
-      else console.error('Failed to fetch metrics:', await metricsRes.text())
-      
-    } catch (e) { console.error('Overview fetch error:', e) }
+      else if (import.meta.env.DEV) console.error('Failed to fetch metrics:', await metricsRes.text())
+
+    } catch (e) { if (import.meta.env.DEV) console.error('Overview fetch error:', e) }
     finally { setLoading(false) }
   }
 
@@ -116,14 +116,14 @@ function AdminPanel({ user, onLogout }) {
     try {
       const res = await fetch('/api/admin/activity', { headers: API_HEADERS() })
       if (res.ok) setActivity(await res.json())
-    } catch (e) { console.error(e) }
+    } catch (e) { if (import.meta.env.DEV) console.error(e) }
   }
 
   const fetchAnalytics = async () => {
     try {
       const res = await fetch('/api/admin/analytics', { headers: API_HEADERS() })
       if (res.ok) setAnalytics(await res.json())
-    } catch (e) { console.error(e) }
+    } catch (e) { if (import.meta.env.DEV) console.error(e) }
   }
 
   const fetchAuditLogs = async () => {
@@ -133,14 +133,14 @@ function AdminPanel({ user, onLogout }) {
         const data = await res.json()
         setAuditLogs(data.logs)
       }
-    } catch (e) { console.error(e) }
+    } catch (e) { if (import.meta.env.DEV) console.error(e) }
   }
 
   const fetchKgStats = async () => {
     try {
       const r = await fetch('/api/admin/kg/stats', { headers: API_HEADERS() })
       if (r.ok) setKgStats(await r.json())
-    } catch (e) { console.error(e) }
+    } catch (e) { if (import.meta.env.DEV) console.error(e) }
   }
 
   const handleRebuildKG = async () => {

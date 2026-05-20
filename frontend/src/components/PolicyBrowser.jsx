@@ -175,7 +175,7 @@ function PolicyBrowser({ user }) {
         setOffset(LIMIT)
       }
     } catch (e) {
-      console.error(e)
+      if (import.meta.env.DEV) console.error(e)
     } finally {
       setLoading(false)
     }
@@ -232,7 +232,7 @@ function PolicyBrowser({ user }) {
         setOffset(newOffset + LIMIT)
       }
     } catch (e) {
-      console.error(e)
+      if (import.meta.env.DEV) console.error(e)
     } finally {
       setLoading(false)
     }

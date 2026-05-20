@@ -197,6 +197,12 @@ function ChatDashboard({ user, onLogout }) {
         fetch('/api/conversations?limit=12', { headers: AUTH_HEADER() }),
         fetch('/api/config', { headers: AUTH_HEADER() }),
       ])
+      // If session lapsed, bounce to login once instead of spamming network calls.
+      if (hRes.status === 401 || cRes.status === 401 || cfgRes.status === 401) {
+        try { localStorage.removeItem('token') } catch (_) {}
+        navigate('/login')
+        return
+      }
       if (hRes.ok) {
         const data = await hRes.json()
         setHistoryRows((data.history || []).filter(x => x.response))
@@ -210,9 +216,9 @@ function ChatDashboard({ user, onLogout }) {
         setModelLabel(cfg.model_display_name || '')
       }
     } catch (e) {
-      console.error(e)
+      if (import.meta.env.DEV) console.error(e)
     }
-  }, [])
+  }, [navigate])
 
   useEffect(() => {
     refreshData()
@@ -236,7 +242,7 @@ function ChatDashboard({ user, onLogout }) {
         const data = await res.json()
         if (data.id) setAnnouncement(data)
       }
-    } catch (e) { console.error(e) }
+    } catch (e) { if (import.meta.env.DEV) console.error(e) }
   }
 
   const handleLogout = () => {
@@ -311,7 +317,7 @@ function ChatDashboard({ user, onLogout }) {
       if (res.ok) {
         setMessages(prev => prev.map(m => m.id === msgId && m.role === 'assistant' ? { ...m, feedbackSubmitted: true } : m))
       }
-    } catch (e) { console.error(e) }
+    } catch (e) { if (import.meta.env.DEV) console.error(e) }
   }
 
   const loadConversation = (convId) => {
@@ -981,10 +987,16 @@ function ChatDashboard({ user, onLogout }) {
                   </div>
                 )}
 
-                {messages.map((msg, i) => (
+                {messages.map((msg, i) => {
+                  const isAssistant = msg.role === 'assistant'
+                  // Compute once per message render instead of twice.
+                  const refs = isAssistant && msg.content
+                    ? extractSourceRefs(msg.content.replace(/<KAYNAKLAR>[\s\S]*$/i, ''))
+                    : []
+                  return (
                   <div key={msg.id || `m-${i}`} style={{ marginBottom: '2.5rem', animation: 'fadeIn 0.5s ease' }}>
                     <div style={{ display: 'flex', gap: '1rem', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
-                      {msg.role === 'assistant' && (
+                      {isAssistant && (
                         <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0 }} aria-hidden>
                           <Bot size={18} />
                         </div>
@@ -997,11 +1009,11 @@ function ChatDashboard({ user, onLogout }) {
                             renderMessageContent(msg.content)
                           )}
 
-                          {msg.role === 'assistant' && msg.content && extractSourceRefs(msg.content.replace(/<KAYNAKLAR>[\s\S]*$/i, '')).length > 0 && (
+                          {isAssistant && refs.length > 0 && (
                             <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px dashed var(--border)' }}>
                               <p style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Kaynaklar</p>
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-                                {extractSourceRefs(msg.content.replace(/<KAYNAKLAR>[\s\S]*$/i, '')).map(ref => (
+                                {refs.map(ref => (
                                   <Link
                                     key={ref.label}
                                     to={`/policies?highlight=${encodeURIComponent(ref.hrefQuery)}`}
@@ -1069,7 +1081,8 @@ function ChatDashboard({ user, onLogout }) {
                       )}
                     </div>
                   </div>
-                ))}
+                  )
+                })}
 
                 {loading && !streamStarted && (
                   <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }} aria-busy="true" aria-live="polite">
@@ -1122,11 +1135,12 @@ function ChatDashboard({ user, onLogout }) {
                     value={input}
                     onChange={e => setInput(e.target.value)}
                     placeholder="SUT mevzuatı hakkında soru sorun veya rapor yükleyin..."
+                    aria-label="Sohbet mesajı"
                     style={{ paddingRight: '4rem', height: '56px', fontSize: '1rem', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)' }}
                     disabled={loading}
                   />
-                  <button type="submit" disabled={loading || !input.trim()} style={{ position: 'absolute', right: '8px', top: '8px', bottom: '8px', width: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: input.trim() ? 'var(--accent)' : '#e2e8f0', color: 'white', border: 'none', cursor: 'pointer' }}>
-                    <Send size={20} />
+                  <button type="submit" aria-label="Gönder" disabled={loading || !input.trim()} style={{ position: 'absolute', right: '8px', top: '8px', bottom: '8px', width: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: input.trim() ? 'var(--accent)' : 'var(--border)', color: 'white', border: 'none', cursor: input.trim() ? 'pointer' : 'not-allowed' }}>
+                    <Send size={20} aria-hidden />
                   </button>
                 </form>
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '0.75rem' }}>
@@ -1139,10 +1153,31 @@ function ChatDashboard({ user, onLogout }) {
       </div>
 
       <nav className="mobile-tab-bar no-print" aria-label="Mobil navigasyon">
-        <Link to="/" className={activeTab === 'chat' && location.pathname === '/' ? 'active' : ''} onClick={() => setActiveTab('chat')} style={{ flex: 1, textAlign: 'center', padding: '0.65rem', textDecoration: 'none', color: location.pathname === '/' && activeTab === 'chat' ? 'var(--primary)' : 'var(--text-muted)', fontSize: '0.72rem', fontWeight: 600 }}>Sohbet</Link>
-        <Link to="/policies" className={location.pathname === '/policies' ? 'active' : ''} style={{ flex: 1, textAlign: 'center', padding: '0.65rem', textDecoration: 'none', color: location.pathname === '/policies' ? 'var(--primary)' : 'var(--text-muted)', fontSize: '0.72rem', fontWeight: 600 }}>Tarayıcı</Link>
-        <Link to="/profile" className={location.pathname === '/profile' ? 'active' : ''} style={{ flex: 1, textAlign: 'center', padding: '0.65rem', textDecoration: 'none', color: location.pathname === '/profile' ? 'var(--primary)' : 'var(--text-muted)', fontSize: '0.72rem', fontWeight: 600 }}>Geçmiş</Link>
-        <Link to="/settings" className={location.pathname === '/settings' ? 'active' : ''} style={{ flex: 1, textAlign: 'center', padding: '0.65rem', textDecoration: 'none', color: location.pathname === '/settings' ? 'var(--primary)' : 'var(--text-muted)', fontSize: '0.72rem', fontWeight: 600 }}>Ayarlar</Link>
+        <Link
+          to="/"
+          aria-current={location.pathname === '/' ? 'page' : undefined}
+          className={location.pathname === '/' ? 'active' : ''}
+          onClick={() => setActiveTab('chat')}
+          style={{ flex: 1, textAlign: 'center', padding: '0.65rem', textDecoration: 'none', color: location.pathname === '/' ? 'var(--primary)' : 'var(--text-muted)', fontSize: '0.72rem', fontWeight: 600 }}
+        >Sohbet</Link>
+        <Link
+          to="/policies"
+          aria-current={location.pathname === '/policies' ? 'page' : undefined}
+          className={location.pathname === '/policies' ? 'active' : ''}
+          style={{ flex: 1, textAlign: 'center', padding: '0.65rem', textDecoration: 'none', color: location.pathname === '/policies' ? 'var(--primary)' : 'var(--text-muted)', fontSize: '0.72rem', fontWeight: 600 }}
+        >Tarayıcı</Link>
+        <Link
+          to="/profile"
+          aria-current={location.pathname === '/profile' ? 'page' : undefined}
+          className={location.pathname === '/profile' ? 'active' : ''}
+          style={{ flex: 1, textAlign: 'center', padding: '0.65rem', textDecoration: 'none', color: location.pathname === '/profile' ? 'var(--primary)' : 'var(--text-muted)', fontSize: '0.72rem', fontWeight: 600 }}
+        >Geçmiş</Link>
+        <Link
+          to="/settings"
+          aria-current={location.pathname === '/settings' ? 'page' : undefined}
+          className={location.pathname === '/settings' ? 'active' : ''}
+          style={{ flex: 1, textAlign: 'center', padding: '0.65rem', textDecoration: 'none', color: location.pathname === '/settings' ? 'var(--primary)' : 'var(--text-muted)', fontSize: '0.72rem', fontWeight: 600 }}
+        >Ayarlar</Link>
       </nav>
 
       <WelcomeModal open={welcomeOpen} username={user?.username} onDismiss={dismissWelcome} />

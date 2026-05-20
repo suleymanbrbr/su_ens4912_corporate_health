@@ -347,14 +347,14 @@ export default function ApiKeyManager() {
         <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.85rem' }}>
           <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ fontWeight: 600, minWidth: 110 }}>Gemini:</span>
-            <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer"
+            <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer"
               style={{ color: 'var(--accent)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
               aistudio.google.com/apikey <ExternalLink size={13} />
             </a>
           </li>
           <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ fontWeight: 600, minWidth: 110 }}>OpenRouter:</span>
-            <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer"
+            <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer"
               style={{ color: 'var(--accent)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
               openrouter.ai/keys <ExternalLink size={13} />
             </a>
