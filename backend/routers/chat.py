@@ -17,6 +17,13 @@
 #
 # The chat endpoint pulls the live RAG engine via ``import api_server``
 # (lazy, inside the request) so tests can patch ``api_server.engine``.
+#
+# TODO: a dedicated /api/chat/regenerate endpoint is intentionally NOT
+# included. The current /api/chat/query streams + saves state during the
+# response, so a clean regenerate would require either substantial code
+# duplication or refactoring chat_query into a reusable inner helper. For
+# now the frontend regenerates by replaying the previous user message
+# through /api/chat/query.
 
 import json
 import logging
