@@ -2,12 +2,14 @@
 # Description: Query layer for the Postgres-native Knowledge Graph.
 # Used by both the agent (sut_rag_core.py) and the API (api_server.py).
 
+import logging
 import os
-import json
 import psycopg2
 import psycopg2.extras
 from typing import List, Dict, Optional
 from collections import deque
+
+logger = logging.getLogger(__name__)
 
 
 def get_conn():
@@ -74,7 +76,7 @@ class KG_Storage_Manager:
             vec = embed_query_retrieval(self._kg_sem_embed, self._kg_sem_model_name, query[:512])
             vec_str = "[" + ",".join(map(str, vec)) + "]"
         except Exception as e:
-            print(f"[KG_STORAGE] Embed failed: {e}")
+            logger.warning(f"KG semantic embed failed: {e}")
             return []
 
         conn = get_conn()

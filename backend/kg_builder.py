@@ -2,6 +2,7 @@
 # Description: Full KG extraction from the chunks Postgres table via Gemini.
 # Replaces the old kg.py. Stores results directly in kg_nodes and kg_edges tables.
 
+import logging
 import os
 import json
 import uuid
@@ -11,6 +12,8 @@ import psycopg2.extras
 from typing import List, Dict, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 # NOTE: Using langchain_google_genai (already pinned in requirements) to avoid
 # version conflicts with direct google-generativeai. ChatGoogleGenerativeAI
@@ -201,16 +204,16 @@ class KG_Builder:
                     except json.JSONDecodeError:
                         pass
 
-                print(f"  [WARN] Could not parse JSON (len={len(raw)}). Start of response: {raw[:150]}...")
+                logger.warning(f"Could not parse JSON (len={len(raw)}). Start of response: {raw[:150]}...")
                 return None
             except Exception as e:
                 err = str(e)
                 if "429" in err or "quota" in err.lower() or "rate" in err.lower():
                     wait = (attempt + 1) * 15
-                    print(f"  [QUOTA] Rate limited. Waiting {wait}s... (attempt {attempt+1}/{MAX_RETRIES})")
+                    logger.warning(f"Rate limited. Waiting {wait}s... (attempt {attempt+1}/{MAX_RETRIES})")
                     time.sleep(wait)
                 else:
-                    print(f"  [ERROR] Extraction failed: {err[:200]}")
+                    logger.error(f"Extraction failed: {err[:200]}")
                     return None
         return None
 
@@ -274,7 +277,7 @@ class KG_Builder:
             """, (edge_id, source_id, target_id, relation, float(confidence), source_rule))
             self._edges_created += 1
         except Exception as e:
-            print(f"  [WARN] Edge insert failed ({source_id}→{target_id}): {e}")
+            logger.warning(f"Edge insert failed ({source_id}→{target_id}): {e}")
 
     # ─── Main build pipeline ──────────────────────────────────────────────────
     def build(self, clear_existing: bool = True, resume: bool = False, workers: int = 5):
@@ -287,7 +290,7 @@ class KG_Builder:
 
         try:
             if clear_existing and not resume:
-                print("[KG_BUILD] Clearing existing KG data...")
+                logger.info("Clearing existing KG data...")
                 cur = conn.cursor()
                 cur.execute("DELETE FROM kg_edges")
                 cur.execute("DELETE FROM kg_nodes")
@@ -295,7 +298,7 @@ class KG_Builder:
                 cur.close()
                 self.node_id_set.clear()
             elif resume:
-                print("[KG_BUILD] Resume mode: loading existing node IDs from DB...")
+                logger.info("Resume mode: loading existing node IDs from DB...")
                 cur = conn.cursor()
                 cur.execute("SELECT node_id FROM kg_nodes")
                 self.node_id_set = {row[0] for row in cur.fetchall()}
@@ -311,7 +314,7 @@ class KG_Builder:
             chunks = cur.fetchall()
             cur.close()
             total = len(chunks)
-            print(f"[KG_BUILD] Starting PARALLEL extraction (workers={workers}) over {total} chunks...")
+            logger.info(f"Starting PARALLEL extraction (workers={workers}) over {total} chunks...")
 
             with ThreadPoolExecutor(max_workers=workers) as executor:
                 futures = {
@@ -322,16 +325,19 @@ class KG_Builder:
                     try:
                         future.result()
                     except Exception as e:
-                        print(f"  [CRITICAL_THREAD_ERROR] {e}")
+                        logger.error(f"CRITICAL_THREAD_ERROR: {e}")
 
             # Build pgvector index on kg_nodes if enough nodes
             self._create_vector_index(conn)
 
             self._finish_log(conn, status="done")
-            print(f"[KG_BUILD] ✅ Complete. Nodes: {self._nodes_created}, Edges: {self._edges_created}, Chunks: {self._chunks_processed}")
+            logger.info(
+                f"KG build complete. Nodes: {self._nodes_created}, "
+                f"Edges: {self._edges_created}, Chunks: {self._chunks_processed}"
+            )
 
         except Exception as e:
-            print(f"[KG_BUILD] ❌ Error: {e}")
+            logger.exception(f"KG build error: {e}")
             self._finish_log(conn, status="error", error=str(e))
         finally:
             conn.close()
@@ -364,7 +370,7 @@ class KG_Builder:
                 if already_done:
                     return
 
-            print(f"  [{i}/{total}] Processing: {header[:50]}...")
+            logger.info(f"[{i}/{total}] Processing: {header[:50]}...")
             data = self._extract_chunk(header, text)
 
             if data:
@@ -395,7 +401,7 @@ class KG_Builder:
                 cur.close()
                 self._chunks_processed += 1
         except Exception as e:
-            print(f"  [{i}/{total}] Error processing chunk: {e}")
+            logger.error(f"[{i}/{total}] Error processing chunk: {e}")
         finally:
             conn.close()
 
@@ -424,9 +430,9 @@ class KG_Builder:
                 """)
                 conn.commit()
                 cur.close()
-                print(f"[KG_BUILD] pgvector index created on kg_nodes ({count} nodes).")
+                logger.info(f"pgvector index created on kg_nodes ({count} nodes).")
             except Exception as e:
-                print(f"[KG_BUILD] Vector index creation skipped: {e}")
+                logger.warning(f"Vector index creation skipped: {e}")
 
 
 # ─── Enrichment pass: ATC + ICD codes ────────────────────────────────────────
@@ -467,7 +473,7 @@ class KG_Enricher:
         cur.execute("SELECT node_id, label FROM kg_nodes WHERE type='DRUG' AND (atc_code='' OR atc_code IS NULL) LIMIT 100")
         drugs = cur.fetchall()
         cur.close()
-        print(f"[KG_ENRICH] Enriching {len(drugs)} DRUG nodes with ATC codes...")
+        logger.info(f"Enriching {len(drugs)} DRUG nodes with ATC codes...")
         for node in drugs:
             code = self._lookup_code(node["label"], "ATC")
             if code:
@@ -482,7 +488,7 @@ class KG_Enricher:
         cur.execute("SELECT node_id, label FROM kg_nodes WHERE type='DIAGNOSIS' AND (icd_code='' OR icd_code IS NULL) LIMIT 100")
         diagnoses = cur.fetchall()
         cur.close()
-        print(f"[KG_ENRICH] Enriching {len(diagnoses)} DIAGNOSIS nodes with ICD-10 codes...")
+        logger.info(f"Enriching {len(diagnoses)} DIAGNOSIS nodes with ICD-10 codes...")
         for node in diagnoses:
             code = self._lookup_code(node["label"], "ICD-10")
             if code:
@@ -493,7 +499,7 @@ class KG_Enricher:
             time.sleep(0.5)
 
         conn.close()
-        print("[KG_ENRICH] ✅ Enrichment complete.")
+        logger.info("Enrichment complete.")
 
 
 # ─── CLI entry point ──────────────────────────────────────────────────────────
@@ -511,7 +517,7 @@ if __name__ == "__main__":
         enricher.enrich()
     elif args.resume:
         # Resume: don't clear, just pick up where we left off
-        print(f"[KG_BUILD] Resuming from checkpoint with {args.workers} workers...")
+        logger.info(f"Resuming from checkpoint with {args.workers} workers...")
         builder = KG_Builder()
         builder.build(clear_existing=False, resume=True, workers=args.workers)
         enricher = KG_Enricher()
