@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './components/Login'
 import Signup from './components/Signup'
 import ChatDashboard from './components/ChatDashboard'
+import ErrorBoundary from './components/ErrorBoundary'
 
 // Heavier / less-frequently-visited views split into their own chunks so the
 // first paint on the auth + chat path stays lean.
@@ -57,21 +58,23 @@ function App() {
   if (loading) return <div className="loading">Yükleniyor...</div>
 
   return (
-    <Router>
-      <Suspense fallback={<RouteFallback />}>
-        <Routes>
-          <Route path="/login" element={user ? <Navigate to="/" /> : <Login onLogin={setUser} />} />
-          <Route path="/signup" element={user ? <Navigate to="/" /> : <Signup />} />
+    <ErrorBoundary>
+      <Router>
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
+            <Route path="/login" element={user ? <Navigate to="/" /> : <Login onLogin={setUser} />} />
+            <Route path="/signup" element={user ? <Navigate to="/" /> : <Signup />} />
 
-          {/* Protected routes */}
-          <Route path="/" element={user ? <ChatDashboard user={user} onLogout={() => setUser(null)} /> : <Navigate to="/login" />} />
-          <Route path="/profile" element={user ? <Profile user={user} onLogout={() => setUser(null)} /> : <Navigate to="/login" />} />
-          <Route path="/settings" element={user ? <Settings user={user} onLogout={() => setUser(null)} /> : <Navigate to="/login" />} />
-          <Route path="/admin" element={user?.role === 'admin' ? <AdminPanel user={user} onLogout={() => setUser(null)} /> : <Navigate to="/" />} />
-          <Route path="/policies" element={user ? <PolicyBrowser user={user} /> : <Navigate to="/" />} />
-        </Routes>
-      </Suspense>
-    </Router>
+            {/* Protected routes */}
+            <Route path="/" element={user ? <ChatDashboard user={user} onLogout={() => setUser(null)} /> : <Navigate to="/login" />} />
+            <Route path="/profile" element={user ? <Profile user={user} onLogout={() => setUser(null)} /> : <Navigate to="/login" />} />
+            <Route path="/settings" element={user ? <Settings user={user} onLogout={() => setUser(null)} /> : <Navigate to="/login" />} />
+            <Route path="/admin" element={user?.role === 'admin' ? <AdminPanel user={user} onLogout={() => setUser(null)} /> : <Navigate to="/" />} />
+            <Route path="/policies" element={user ? <PolicyBrowser user={user} /> : <Navigate to="/" />} />
+          </Routes>
+        </Suspense>
+      </Router>
+    </ErrorBoundary>
   )
 }
 
