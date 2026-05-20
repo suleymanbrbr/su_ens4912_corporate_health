@@ -64,7 +64,7 @@ function Profile({ user, onLogout }) {
         </h2>
         
         <nav style={{ flex: 1 }}>
-          <Link to="/" style={{ textDecoration: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', borderRadius: '8px' }} onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+          <Link to="/" className="row-hover" style={{ textDecoration: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', borderRadius: '8px' }}>
             <ArrowLeft size={18} /> Sohbet Ekranı
           </Link>
         </nav>
@@ -122,8 +122,8 @@ function Profile({ user, onLogout }) {
               </h3>
               {loading ? <p>Yükleniyor...</p> : history.length === 0 ? <p style={{ color: 'var(--text-muted)' }}>Henüz arama yapmadınız.</p> : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '500px', overflowY: 'auto', paddingRight: '0.5rem' }}>
-                  {history.map((h, i) => (
-                    <div key={i} style={{ padding: '1rem', background: '#f8fafc', borderRadius: '8px', borderLeft: '3px solid var(--accent)' }}>
+                  {history.map((h) => (
+                    <div key={h.id ?? `${h.query}-${h.created_at}`} style={{ padding: '1rem', background: 'var(--bg-elev)', borderRadius: '8px', borderLeft: '3px solid var(--accent)' }}>
                       <p style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '0.25rem' }}>{h.query}</p>
                       <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{new Date(h.created_at).toLocaleString('tr-TR')}</p>
                     </div>

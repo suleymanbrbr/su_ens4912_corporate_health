@@ -29,7 +29,7 @@ function MetricBar({ label, newVal, oldVal, k }) {
       {/* New system */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
         <span style={{ width: 50, fontSize: '0.72rem', color: NEW_COLOR, fontWeight: 700, textAlign: 'right' }}>Yeni</span>
-        <div style={{ flex: 1, background: '#f1f5f9', borderRadius: 6, height: 10, overflow: 'hidden' }}>
+        <div style={{ flex: 1, background: 'var(--bg-elev)', borderRadius: 6, height: 10, overflow: 'hidden' }}>
           <div style={{ width: `${(newVal / max) * 100}%`, height: '100%', background: NEW_COLOR, borderRadius: 6, transition: 'width 0.6s ease' }} />
         </div>
         <span style={{ width: 40, fontSize: '0.72rem', color: NEW_COLOR, fontWeight: 600 }}>{pct(newVal)}</span>
@@ -37,7 +37,7 @@ function MetricBar({ label, newVal, oldVal, k }) {
       {/* Old system */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         <span style={{ width: 50, fontSize: '0.72rem', color: OLD_COLOR, fontWeight: 700, textAlign: 'right' }}>Eski</span>
-        <div style={{ flex: 1, background: '#f1f5f9', borderRadius: 6, height: 10, overflow: 'hidden' }}>
+        <div style={{ flex: 1, background: 'var(--bg-elev)', borderRadius: 6, height: 10, overflow: 'hidden' }}>
           <div style={{ width: `${(oldVal / max) * 100}%`, height: '100%', background: OLD_COLOR, borderRadius: 6, transition: 'width 0.6s ease' }} />
         </div>
         <span style={{ width: 40, fontSize: '0.72rem', color: OLD_COLOR, fontWeight: 600 }}>{pct(oldVal)}</span>
@@ -110,7 +110,7 @@ export default function EvalDashboard() {
           <div style={{ fontSize: '0.7rem', color: NEW_COLOR, fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.35rem' }}>Yeni Sistem</div>
           <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-main)' }}>{evalData.new_system.name}</div>
         </div>
-        <div style={{ padding: '1rem', background: '#f8fafc', border: '1px solid var(--border)', borderRadius: '12px' }}>
+        <div style={{ padding: '1rem', background: 'var(--bg-elev)', border: '1px solid var(--border)', borderRadius: '12px' }}>
           <div style={{ fontSize: '0.7rem', color: OLD_COLOR, fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.35rem' }}>Eski Sistem (Baseline)</div>
           <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-main)' }}>{evalData.old_system.name}</div>
         </div>
@@ -240,7 +240,7 @@ export default function EvalDashboard() {
         )}
         {benchmark && !benchmark.error && (
           <>
-            <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1rem', padding: '0.75rem 1rem', background: '#f8fafc', borderRadius: '10px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1rem', padding: '0.75rem 1rem', background: 'var(--bg-elev)', borderRadius: '10px', alignItems: 'center' }}>
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: '1.8rem', fontWeight: 800, color: benchmark.hit_rate >= 0.7 ? '#10b981' : benchmark.hit_rate >= 0.5 ? '#f59e0b' : '#ef4444' }}>
                   {(benchmark.hit_rate * 100).toFixed(0)}%

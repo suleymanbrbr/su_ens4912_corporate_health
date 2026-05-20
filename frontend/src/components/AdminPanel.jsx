@@ -238,14 +238,14 @@ function AdminPanel({ user, onLogout }) {
           <Shield size={22} /> Admin Paneli
         </h2>
         <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          <Link to="/" style={{ textDecoration: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', borderRadius: '8px', fontSize: '0.9rem' }} onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+          <Link to="/" className="row-hover" style={{ textDecoration: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', borderRadius: '8px', fontSize: '0.9rem' }}>
             <ArrowLeft size={16} /> Sohbet Ekranı
           </Link>
-          <Link to="/policies" style={{ textDecoration: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', borderRadius: '8px', fontSize: '0.9rem' }} onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+          <Link to="/policies" className="row-hover" style={{ textDecoration: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', borderRadius: '8px', fontSize: '0.9rem' }}>
             <BookOpen size={16} /> SUT Mevzuat Tarayıcısı
           </Link>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', marginBottom: '0.75rem' }}>
-            <Link to="/settings" style={{ textDecoration: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.5rem', borderRadius: '8px', fontSize: '0.85rem' }} onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+            <Link to="/settings" className="row-hover" style={{ textDecoration: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.5rem', borderRadius: '8px', fontSize: '0.85rem' }}>
               <Settings size={14} /> Ayarlar
             </Link>
           </div>
@@ -349,7 +349,7 @@ function AdminPanel({ user, onLogout }) {
                   <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>Kullanıcı Yönetimi ({users.length})</h2>
                   <div className="premium-card" style={{ padding: 0, overflow: 'hidden' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                      <thead style={{ background: '#f8fafc', borderBottom: '1px solid var(--border)' }}>
+                      <thead style={{ background: 'var(--bg-elev)', borderBottom: '1px solid var(--border)' }}>
                         <tr>
                           <th style={{ padding: '1rem 1.5rem' }}>Kullanıcı</th>
                           <th style={{ padding: '1rem 1.5rem' }}>Rol</th>
@@ -379,7 +379,7 @@ function AdminPanel({ user, onLogout }) {
                                       <CheckCircle size={16} />
                                     </button>
                                   )}
-                                  <button onClick={() => handleRoleChange(u.id, u.role)} style={{ background: '#f1f5f9', border: 'none', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }} title={u.role === 'admin' ? 'Kullanıcı Yap' : 'Admin Yap'}>
+                                  <button onClick={() => handleRoleChange(u.id, u.role)} style={{ background: 'var(--bg-elev)', color: 'var(--text-main)', border: 'none', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }} title={u.role === 'admin' ? 'Kullanıcı Yap' : 'Admin Yap'}>
                                     {u.role === 'admin' ? <UserMinus size={16} /> : <UserPlus size={16} />}
                                   </button>
                                   <button onClick={() => handleDeleteUser(u.id)} style={{ background: '#fef2f2', color: '#ef4444', border: 'none', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }} title="Sil">
@@ -401,7 +401,7 @@ function AdminPanel({ user, onLogout }) {
                 <>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Canlı Kullanıcı Aktivitesi</h1>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', background: '#f1f5f9', padding: '0.25rem 0.75rem', borderRadius: '20px' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', background: 'var(--bg-elev)', padding: '0.25rem 0.75rem', borderRadius: '20px' }}>
                       30 saniyede bir güncellenir
                     </span>
                   </div>
@@ -432,7 +432,7 @@ function AdminPanel({ user, onLogout }) {
                   </h2>
                   <div className="premium-card" style={{ padding: 0, overflow: 'hidden' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                      <thead style={{ background: '#f8fafc', borderBottom: '1px solid var(--border)' }}>
+                      <thead style={{ background: 'var(--bg-elev)', borderBottom: '1px solid var(--border)' }}>
                         <tr>
                           <th style={{ padding: '1rem 1.5rem' }}>Tarih</th>
                           <th style={{ padding: '1rem 1.5rem' }}>Kullanıcı</th>
@@ -461,7 +461,7 @@ function AdminPanel({ user, onLogout }) {
                                 </span>
                               )}
                               {log.details && (
-                                <pre style={{ display: 'inline', background: '#f1f5f9', padding: '0.2rem 0.4rem', borderRadius: '4px', fontSize: '0.75rem' }}>
+                                <pre style={{ display: 'inline', background: 'var(--bg-elev)', color: 'var(--text-main)', padding: '0.2rem 0.4rem', borderRadius: '4px', fontSize: '0.75rem' }}>
                                   {JSON.stringify(log.details)}
                                 </pre>
                               )}
@@ -515,7 +515,7 @@ function AdminPanel({ user, onLogout }) {
                                     <span style={{ fontWeight: 600, color: TYPE_COLORS[type] }}>{TYPE_TR[type] || type}</span>
                                     <span style={{ color: 'var(--text-muted)' }}>{count}</span>
                                   </div>
-                                  <div style={{ background: '#f1f5f9', borderRadius: '100px', height: '6px', overflow: 'hidden' }}>
+                                  <div style={{ background: 'var(--bg-elev)', borderRadius: '100px', height: '6px', overflow: 'hidden' }}>
                                     <div style={{ height: '100%', borderRadius: '100px', background: TYPE_COLORS[type], width: `${(count / maxCount) * 100}%`, transition: 'width 0.5s ease' }} />
                                   </div>
                                 </div>
@@ -576,7 +576,7 @@ function AdminPanel({ user, onLogout }) {
                           <span style={{ fontWeight: 600 }}>{kw.keyword}</span>
                           <span style={{ color: 'var(--text-muted)' }}>{kw.count} sorgu</span>
                         </div>
-                        <div style={{ background: '#f1f5f9', borderRadius: '100px', height: '8px', overflow: 'hidden' }}>
+                        <div style={{ background: 'var(--bg-elev)', borderRadius: '100px', height: '8px', overflow: 'hidden' }}>
                           <div style={{ height: '100%', borderRadius: '100px', background: `hsl(${220 + i * 15}, 70%, 55%)`, width: `${(kw.count / maxKeyword) * 100}%`, transition: 'width 0.5s ease' }} />
                         </div>
                       </div>

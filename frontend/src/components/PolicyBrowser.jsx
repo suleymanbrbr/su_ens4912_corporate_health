@@ -275,11 +275,11 @@ function PolicyBrowser({ user }) {
             <Filter size={12} /> Bölüm
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-            <button type="button" onClick={() => setSection('')} style={{ padding: '0.3rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '0.75rem', cursor: 'pointer', background: section === '' ? 'var(--primary)' : 'white', color: section === '' ? 'white' : 'var(--text-muted)', fontWeight: 600 }}>
+            <button type="button" onClick={() => setSection('')} style={{ padding: '0.3rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '0.75rem', cursor: 'pointer', background: section === '' ? 'var(--primary)' : 'var(--card-bg)', color: section === '' ? 'var(--card-bg)' : 'var(--text-muted)', fontWeight: 600 }}>
               Tümü
             </button>
             {sectionOptions.map(s => (
-              <button type="button" key={s} onClick={() => setSection(section === s ? '' : s)} style={{ padding: '0.3rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '0.75rem', cursor: 'pointer', background: section === s ? 'var(--accent)' : 'white', color: section === s ? 'white' : 'var(--text-muted)', fontWeight: 600 }}>
+              <button type="button" key={s} onClick={() => setSection(section === s ? '' : s)} style={{ padding: '0.3rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '0.75rem', cursor: 'pointer', background: section === s ? 'var(--accent)' : 'var(--card-bg)', color: section === s ? 'white' : 'var(--text-muted)', fontWeight: 600 }}>
                 {s}
               </button>
             ))}

@@ -41,7 +41,7 @@ function Settings({ user, onLogout }) {
         </h2>
         
         <nav style={{ flex: 1 }}>
-          <Link to="/" style={{ textDecoration: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', borderRadius: '8px' }} onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+          <Link to="/" className="row-hover" style={{ textDecoration: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', borderRadius: '8px' }}>
             <ArrowLeft size={18} /> Sohbet Ekranı
           </Link>
         </nav>

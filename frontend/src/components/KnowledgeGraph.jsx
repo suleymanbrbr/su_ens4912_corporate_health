@@ -304,9 +304,8 @@ function KnowledgeGraph() {
             <div style={{ marginTop: '0.5rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '8px', maxHeight: '200px', overflowY: 'auto' }}>
               {searchResults.map(n => (
                 <div key={n.node_id} onClick={() => selectNodes([n])}
-                  style={{ padding: '0.6rem 0.75rem', cursor: 'pointer', borderBottom: '1px solid var(--border)', transition: 'background 0.15s' }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  className="row-hover"
+                  style={{ padding: '0.6rem 0.75rem', cursor: 'pointer', borderBottom: '1px solid var(--border)' }}>
                   <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>{n.label}</div>
                   <Badge type={n.type} />
                 </div>
@@ -319,10 +318,10 @@ function KnowledgeGraph() {
         <div style={{ padding: '1rem', borderBottom: '1px solid var(--border)', background: 'rgba(0,0,0,0.02)' }}>
           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.5rem' }}>Tür Filtresi</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-            <button onClick={() => setFilterType('')} style={{ padding: '0.3rem 0.6rem', borderRadius: '20px', fontSize: '0.72rem', border: '1px solid var(--border)', background: filterType === '' ? 'var(--text-main)' : 'white', color: filterType === '' ? 'white' : 'var(--text-main)', cursor: 'pointer' }}>Tümü</button>
+            <button onClick={() => setFilterType('')} style={{ padding: '0.3rem 0.6rem', borderRadius: '20px', fontSize: '0.72rem', border: '1px solid var(--border)', background: filterType === '' ? 'var(--text-main)' : 'var(--card-bg)', color: filterType === '' ? 'var(--card-bg)' : 'var(--text-main)', cursor: 'pointer' }}>Tümü</button>
             {Object.entries(NODE_TYPE_TR).map(([key, label]) => (
               <button key={key} onClick={() => setFilterType(key)}
-                style={{ padding: '0.3rem 0.6rem', borderRadius: '20px', fontSize: '0.72rem', border: `1px solid ${filterType === key ? NODE_COLORS[key] : 'var(--border)'}`, background: filterType === key ? NODE_COLORS[key] : 'white', color: filterType === key ? 'white' : 'var(--text-main)', cursor: 'pointer' }}>
+                style={{ padding: '0.3rem 0.6rem', borderRadius: '20px', fontSize: '0.72rem', border: `1px solid ${filterType === key ? NODE_COLORS[key] : 'var(--border)'}`, background: filterType === key ? NODE_COLORS[key] : 'var(--card-bg)', color: filterType === key ? 'white' : 'var(--text-main)', cursor: 'pointer' }}>
                 {label}
               </button>
             ))}
@@ -381,13 +380,12 @@ function KnowledgeGraph() {
                 Tüm İlişkiler ({neighborData.reduce((acc, curr) => acc + (curr.neighbors?.length || 0), 0)})
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                {neighborData.flatMap((data, dIdx) => 
+                {neighborData.flatMap((data, dIdx) =>
                   (data.neighbors || []).map((nb, i) => (
                     <div key={`${dIdx}-${i}`}
                       onClick={() => selectNodes([{ ...nb.node, node_id: nb.node.node_id }])}
-                      style={{ padding: '0.5rem 0.75rem', background: '#f8fafc', borderRadius: '8px', cursor: 'pointer', borderLeft: `3px solid ${NODE_COLORS[nb.node?.type] || '#94a3b8'}`, transition: 'background 0.15s' }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
-                      onMouseLeave={e => e.currentTarget.style.background = '#f8fafc'}>
+                      className="row-hover"
+                      style={{ padding: '0.5rem 0.75rem', background: 'var(--bg-elev)', borderRadius: '8px', cursor: 'pointer', borderLeft: `3px solid ${NODE_COLORS[nb.node?.type] || '#94a3b8'}` }}>
                       <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 500 }}>
                         {data.node.label} →
                       </div>
@@ -408,7 +406,7 @@ function KnowledgeGraph() {
         {/* Path Finder */}
         <div style={{ padding: '1rem', borderTop: '1px solid var(--border)', background: 'var(--bg)', flexShrink: 0 }}>
           <button onClick={() => setPathMode(!pathMode)}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', padding: '0.6rem', borderRadius: '8px', border: `1px solid ${pathMode ? 'var(--primary)' : 'var(--border)'}`, background: pathMode ? 'var(--primary)' : 'white', color: pathMode ? 'white' : 'var(--text-main)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', padding: '0.6rem', borderRadius: '8px', border: `1px solid ${pathMode ? 'var(--primary)' : 'var(--border)'}`, background: pathMode ? 'var(--primary)' : 'var(--card-bg)', color: pathMode ? 'var(--card-bg)' : 'var(--text-main)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>
             <GitBranch size={14} /> Yol Bulucu
           </button>
           {pathMode && (
@@ -424,7 +422,7 @@ function KnowledgeGraph() {
                     style={{ width: '100%', padding: '0.4rem 0.5rem 0.4rem 1.75rem', fontSize: '0.75rem', borderRadius: '6px', border: '1px solid var(--border)' }}
                   />
                   {search && searchResults.length > 0 && (
-                    <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, background: 'white', border: '1px solid var(--border)', borderRadius: '6px', zIndex: 20, maxHeight: '150px', overflowY: 'auto', boxShadow: '0 -4px 6px -1px rgba(0,0,0,0.1)' }}>
+                    <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '6px', zIndex: 20, maxHeight: '150px', overflowY: 'auto', boxShadow: '0 -4px 6px -1px rgba(0,0,0,0.1)' }}>
                       {searchResults.map(n => (
                         <div key={n.node_id} onClick={() => { setPathFrom(n); setSearch(''); setSearchResults([]); }} style={{ padding: '0.4rem 0.6rem', cursor: 'pointer', borderBottom: '1px solid var(--border)', fontSize: '0.75rem' }}>{n.label}</div>
                       ))}
@@ -447,7 +445,7 @@ function KnowledgeGraph() {
                     style={{ width: '100%', padding: '0.4rem 0.5rem 0.4rem 1.75rem', fontSize: '0.75rem', borderRadius: '6px', border: '1px solid var(--border)' }}
                   />
                   {search && searchResults.length > 0 && (
-                    <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, background: 'white', border: '1px solid var(--border)', borderRadius: '6px', zIndex: 20, maxHeight: '150px', overflowY: 'auto', boxShadow: '0 -4px 6px -1px rgba(0,0,0,0.1)' }}>
+                    <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '6px', zIndex: 20, maxHeight: '150px', overflowY: 'auto', boxShadow: '0 -4px 6px -1px rgba(0,0,0,0.1)' }}>
                       {searchResults.map(n => (
                         <div key={n.node_id} onClick={() => { setPathTo(n); setSearch(''); setSearchResults([]); }} style={{ padding: '0.4rem 0.6rem', cursor: 'pointer', borderBottom: '1px solid var(--border)', fontSize: '0.75rem' }}>{n.label}</div>
                       ))}
@@ -468,9 +466,9 @@ function KnowledgeGraph() {
                 </button>
               )}
               {pathResult && (
-                <div style={{ fontSize: '0.78rem', background: 'white', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)', borderLeft: '4px solid var(--primary)' }}>
+                <div style={{ fontSize: '0.78rem', background: 'var(--card-bg)', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)', borderLeft: '4px solid var(--primary)' }}>
                   {pathResult.found
-                    ? <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem' }}>{pathResult.path.map((s, i) => <span key={i}>{i > 0 && <span style={{ color: '#94a3b8' }}> → </span>}<span style={{ background: '#f1f5f9', padding: '0.1rem 0.3rem', borderRadius: '4px' }}>{s}</span></span>)}</div>
+                    ? <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem' }}>{pathResult.path.map((s, i) => <span key={i}>{i > 0 && <span style={{ color: '#94a3b8' }}> → </span>}<span style={{ background: 'var(--bg-elev)', padding: '0.1rem 0.3rem', borderRadius: '4px' }}>{s}</span></span>)}</div>
                     : <span style={{ color: '#ef4444' }}>Yol bulunamadı.</span>
                   }
                 </div>
@@ -528,7 +526,9 @@ function KnowledgeGraph() {
               }
               if (globalScale > 1.2) {
                 ctx.font = `${Math.min(12 / globalScale, 10)}px Inter, sans-serif`;
-                ctx.fillStyle = '#1e293b';
+                // Follow theme: dark mode uses light label color for legibility.
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                ctx.fillStyle = isDark ? '#f8fafc' : '#1e293b';
                 ctx.textAlign = 'center';
                 ctx.fillText(node.label?.slice(0, 20) || '', node.x, node.y + r + 10);
               }
@@ -562,8 +562,8 @@ function KnowledgeGraph() {
         
         {/* Controls Overlay */}
         <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', flexDirection: 'column', gap: '0.5rem', zIndex: 10 }}>
-          <button onClick={() => fgRef.current?.zoomToFit(800, 50)} title="Sığdır"
-            style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'white', border: '1px solid var(--border)', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+          <button onClick={() => fgRef.current?.zoomToFit(800, 50)} title="Sığdır" aria-label="Grafiği ekrana sığdır"
+            style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'var(--card-bg)', border: '1px solid var(--border)', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
             <Share2 size={16} />
           </button>
         </div>

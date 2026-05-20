@@ -4,6 +4,9 @@
   --accent-hover: #2563eb;
   --bg: #f8fafc;
   --card-bg: #ffffff;
+  --bg-elev: #f1f5f9;      /* slightly darker than --bg for hover/table rows */
+  --bg-subtle: #f8fafc;    /* matches --bg in light mode */
+  --hover-bg: rgba(15, 23, 42, 0.05);
   --text-main: #1e293b;
   --text-muted: #64748b;
   --border: #e2e8f0;
@@ -20,6 +23,9 @@
   --accent-hover: #60a5fa;
   --bg: #0f172a;
   --card-bg: #1e293b;
+  --bg-elev: #283449;
+  --bg-subtle: #172033;
+  --hover-bg: rgba(255, 255, 255, 0.06);
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --border: #334155;
@@ -104,6 +110,43 @@ input:focus {
   background-color: var(--accent-hover);
   transform: translateY(-1px);
   box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.2);
+}
+
+.btn-primary:disabled,
+.btn-primary[disabled] {
+  background-color: var(--border);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+.btn-secondary {
+  background-color: var(--bg-elev);
+  color: var(--text-main);
+  padding: 0.65rem 1.25rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background-color: var(--hover-bg);
+  border-color: var(--accent);
+}
+
+.btn-secondary:disabled,
+.btn-secondary[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Row hover utility — replaces inline onMouseOver patterns so dark mode works. */
+.row-hover {
+  transition: background 0.15s ease;
+}
+.row-hover:hover {
+  background: var(--hover-bg) !important;
 }
 
 .text-gradient {
