@@ -12,15 +12,11 @@ function Settings({ user, onLogout }) {
 
   useEffect(() => {
     document.title = 'Ayarlar — SUT Asistanı'
-  }, [])
-
-  useEffect(() => {
+    // Initial load from localStorage (after first paint to avoid SSR-ish flashes).
     const savedTheme = localStorage.getItem('theme') || 'light'
     setTheme(savedTheme)
     setModel(localStorage.getItem('model') || 'gemini')
     setDepth(parseInt(localStorage.getItem('k_depth') || '5', 10))
-    // Apply saved theme on mount
-    document.documentElement.setAttribute('data-theme', savedTheme)
   }, [])
 
   // Apply theme to document and persist whenever it changes (instant feedback)
@@ -30,11 +26,9 @@ function Settings({ user, onLogout }) {
   }, [theme])
 
   const handleSave = () => {
-    localStorage.setItem('theme', theme)
+    // Theme already persisted via the effect above; persist the rest.
     localStorage.setItem('model', model)
     localStorage.setItem('k_depth', depth.toString())
-    document.documentElement.setAttribute('data-theme', theme)
-
     toast.success('Ayarlar kaydedildi.')
   }
 
