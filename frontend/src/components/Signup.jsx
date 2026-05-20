@@ -45,39 +45,50 @@ function Signup() {
         
         <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Kullanıcı Adı</label>
-            <input 
-              type="text" 
-              required 
+            <label htmlFor="signup-username" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Kullanıcı Adı</label>
+            <input
+              id="signup-username"
+              type="text"
+              required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="kullaniciadiniz"
+              autoComplete="username"
+              autoFocus
             />
           </div>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>E-posta</label>
-            <input 
-              type="email" 
-              required 
+            <label htmlFor="signup-email" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>E-posta</label>
+            <input
+              id="signup-email"
+              type="email"
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="ornek@posta.com"
+              autoComplete="email"
             />
           </div>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Şifre</label>
-            <input 
-              type="password" 
-              required 
+            <label htmlFor="signup-password" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Şifre</label>
+            <input
+              id="signup-password"
+              type="password"
+              required
               minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="En az 6 karakter"
+              autoComplete="new-password"
             />
           </div>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Rolünüz</label>
-            <select 
-              value={role} 
+            <label htmlFor="signup-role" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Rolünüz</label>
+            <select
+              id="signup-role"
+              value={role}
               onChange={(e) => setRole(e.target.value)}
-              style={{ width: '100%', padding: '0.8rem', borderRadius: '12px', border: '1px solid var(--border)', background: 'white', color: 'var(--text-main)', fontSize: '1rem', cursor: 'pointer' }}
+              style={{ width: '100%', padding: '0.8rem', borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--card-bg)', color: 'var(--text-main)', fontSize: '1rem', cursor: 'pointer' }}
             >
               <option value="user">Standart Kullanıcı (Doktor/Eczacı)</option>
               <option value="admin">Yönetici (Sistem Admini)</option>

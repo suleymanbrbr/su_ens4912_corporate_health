@@ -53,30 +53,35 @@ function Login({ onLogin }) {
         <h2 className="text-gradient" style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '2rem' }}>Tekrar Hoşgeldiniz</h2>
         <p style={{ color: 'var(--text-muted)', textAlign: 'center', marginBottom: '2rem' }}>SUT Kurumsal Sağlık Asistanına giriş yapın</p>
         
-        {error && <div style={{ color: '#ef4444', marginBottom: '1rem', textAlign: 'center', fontSize: '0.9rem' }}>{error}</div>}
-        
+        {error && <div role="alert" style={{ color: '#ef4444', marginBottom: '1rem', textAlign: 'center', fontSize: '0.9rem' }}>{error}</div>}
+
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Kullanıcı Adı</label>
-            <input 
-              type="text" 
-              required 
+            <label htmlFor="login-username" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Kullanıcı Adı</label>
+            <input
+              id="login-username"
+              type="text"
+              required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="kullaniciadiniz"
+              autoComplete="username"
+              autoFocus
             />
           </div>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Şifre</label>
-            <input 
-              type="password" 
-              required 
+            <label htmlFor="login-password" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Şifre</label>
+            <input
+              id="login-password"
+              type="password"
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
+              autoComplete="current-password"
             />
           </div>
-          <button type="submit" disabled={loading} className="btn-primary" style={{ marginTop: '1rem' }}>
+          <button type="submit" disabled={loading || !username.trim() || !password} className="btn-primary" style={{ marginTop: '1rem' }}>
             {loading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
           </button>
         </form>

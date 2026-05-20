@@ -159,6 +159,15 @@ function ChatDashboard({ user, onLogout }) {
   const chatEndRef = useRef(null)
   const fileInputRef = useRef(null)
   const pendingConvOpened = useRef(false)
+  const chatAbortRef = useRef(null)
+
+  // Abort any in-flight chat stream on unmount to prevent state updates on
+  // unmounted component + dangling reader.
+  useEffect(() => {
+    return () => {
+      try { chatAbortRef.current?.abort() } catch (_) {}
+    }
+  }, [])
 
   useEffect(() => {
     document.title = 'Sohbet — SUT Asistanı'
@@ -390,6 +399,11 @@ function ChatDashboard({ user, onLogout }) {
     let assistantMessage = ''
     let accumulatedSteps = []
 
+    // Abort previous stream if any, then create a fresh controller.
+    try { chatAbortRef.current?.abort() } catch (_) {}
+    const controller = new AbortController()
+    chatAbortRef.current = controller
+
     try {
       const kDepth = parseInt(localStorage.getItem('k_depth') || '5', 10)
       const response = await fetch('/api/chat/query', {
@@ -401,6 +415,7 @@ function ChatDashboard({ user, onLogout }) {
           role: selectedRole,
           k: kDepth,
         }),
+        signal: controller.signal,
       })
 
       if (response.status === 401) {
@@ -523,6 +538,8 @@ function ChatDashboard({ user, onLogout }) {
 
       if (queryId && assistantMessage) refreshData()
     } catch (err) {
+      // Quietly ignore user/route-change aborts.
+      if (err?.name === 'AbortError') return
       const msg = err?.message || 'Bilinmeyen hata'
       setChatError(msg)
       setMessages(prev => [...prev, {
@@ -531,6 +548,7 @@ function ChatDashboard({ user, onLogout }) {
       }])
       toast.error('Yanıt alınamadı')
     } finally {
+      if (chatAbortRef.current === controller) chatAbortRef.current = null
       setLoading(false)
       setLiveAgentSteps([])
       setCurrentAnalysis('')
@@ -572,15 +590,27 @@ function ChatDashboard({ user, onLogout }) {
   const handleFileUpload = async (e) => {
     const file = e.target.files[0]
     if (!file) return
-    if (!file.filename && !file.name.toLowerCase().endsWith('.pdf')) {
-      alert('Sadece PDF dosyaları yüklenebilir.')
+
+    // Strict client-side validation: filename + MIME + size
+    const isPdf =
+      file.name.toLowerCase().endsWith('.pdf') ||
+      file.type === 'application/pdf'
+    if (!isPdf) {
+      toast.error('Sadece PDF dosyaları yüklenebilir.')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+    const MAX_BYTES = 10 * 1024 * 1024 // 10 MB
+    if (file.size > MAX_BYTES) {
+      toast.error(`Dosya çok büyük (${(file.size / 1024 / 1024).toFixed(1)} MB). En fazla 10 MB.`)
+      if (fileInputRef.current) fileInputRef.current.value = ''
       return
     }
 
     setUploading(true)
     const formData = new FormData()
     formData.append('file', file)
-    
+
     // Auto-generate conversation ID if none active
     const convId = activeConversationId || `conv_${Date.now()}`
     if (!activeConversationId) setActiveConversationId(convId)
@@ -591,15 +621,20 @@ function ChatDashboard({ user, onLogout }) {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
         body: formData
       })
+      if (res.status === 401) {
+        toast.error('Oturumunuz sona erdi — tekrar giriş yapın.')
+        navigate('/login')
+        return
+      }
       if (res.ok) {
-        const data = await res.json()
         setMessages(prev => [...prev, { role: 'assistant', content: `📄 **${file.name}** başarıyla yüklendi ve analiz edildi. Artık bu döküman hakkında soru sorabilirsiniz.` }])
+        toast.success('PDF yüklendi.')
       } else {
-        const err = await res.json()
-        alert(`Yükleme hatası: ${err.detail || 'Bilinmeyen hata'}`)
+        const err = await res.json().catch(() => ({}))
+        toast.error(`Yükleme hatası: ${err.detail || 'Bilinmeyen hata'}`)
       }
     } catch (err) {
-      alert('Sunucuya bağlanılamadı.')
+      toast.error('Sunucuya bağlanılamadı.')
     } finally {
       setUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''

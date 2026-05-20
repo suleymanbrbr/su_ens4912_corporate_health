@@ -23,19 +23,28 @@ function App() {
     }
 
     const token = localStorage.getItem('token')
-    if (token) {
-      fetch('/api/auth/me', {
-        headers: { 'Authorization': `Bearer ${token}` }
+    if (!token) {
+      setLoading(false)
+      return
+    }
+    let cancelled = false
+    fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => {
+        if (cancelled) return null
+        if (res.status === 401) {
+          // Token expired/invalid — clear and fall through to login.
+          localStorage.removeItem('token')
+          return null
+        }
+        return res.ok ? res.json() : null
       })
-      .then(res => res.ok ? res.json() : null)
       .then(data => {
+        if (cancelled) return
         if (data) setUser(data)
         setLoading(false)
       })
-      .catch(() => setLoading(false))
-    } else {
-      setLoading(false)
-    }
+      .catch(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [])
 
   if (loading) return <div className="loading">Yükleniyor...</div>
