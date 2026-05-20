@@ -1,13 +1,13 @@
 # api_server.py
 # Description: Modern FastAPI Server for SUT Assistant. PostgreSQL Edition.
 
+import logging
 import os
 import uuid
 import json
-import asyncio
 import re
 from typing import List, Optional
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
 from collections import Counter
 
 import psycopg2
@@ -27,6 +27,13 @@ from secrets_utils import encrypt_api_key, decrypt_api_key, make_key_hint
 
 load_dotenv()
 
+# Structured logging — operators can grep for [api_server] in HF Space logs.
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO").upper(),
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+logger = logging.getLogger("api_server")
+
 # --- Startup validation: required env vars must be present ---
 # auth_utils raises on import if JWT_SECRET_KEY is missing; we also need
 # API_KEY_ENCRYPTION_KEY for per-user key storage to work at all.
@@ -39,10 +46,43 @@ if not os.getenv("API_KEY_ENCRYPTION_KEY"):
 # --- Global Engine Instance ---
 engine = None
 
+# --- Constants ---
+VALID_USER_ROLES = {"user", "admin"}
+MIN_PASSWORD_LENGTH = 8           # registration minimum (existing accounts not enforced)
+MAX_PDF_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MiB server-side cap on PDF uploads
+HISTORY_PAGE_LIMIT = 200
+
 # --- DB Helper ---
 def get_db_conn():
+    """Open a new psycopg2 connection. Callers MUST close it (use `db_session`)."""
     conn = psycopg2.connect(os.getenv("DATABASE_URL"), cursor_factory=psycopg2.extras.DictCursor)
     return conn
+
+
+@contextmanager
+def db_session():
+    """Context manager that yields a connection and guarantees `.close()`.
+
+    Always rolls back on exception so a failed query never leaves a connection
+    in an inconsistent state in the pool. Callers still call `.commit()`
+    explicitly on the happy path — this preserves the existing transaction
+    semantics across endpoints.
+    """
+    conn = get_db_conn()
+    try:
+        yield conn
+    except Exception:
+        try:
+            conn.rollback()
+        except Exception:  # noqa: BLE001
+            pass
+        raise
+    finally:
+        try:
+            conn.close()
+        except Exception:  # noqa: BLE001
+            pass
+
 
 def db_execute(conn, query, params=None):
     """Helper: run a query and return cursor."""
@@ -254,7 +294,7 @@ def log_audit(conn, action_type, user_id=None, entity_type=None, entity_id=None,
         )
         cur.close()
     except Exception as e:
-        print(f"[WARN] Failed to log audit: {e}")
+        logger.warning(f"Failed to log audit: {e}")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -262,7 +302,7 @@ async def lifespan(app: FastAPI):
     global engine
     engine = SUT_RAG_Engine()
     if not engine.load_database():
-        print("[WARN] SUT Database not loaded. Please populate it via Admin panel.")
+        logger.warning("SUT Database not loaded. Please populate it via Admin panel.")
     yield
     if engine and engine.conn:
         engine.conn.close()
@@ -307,14 +347,13 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     payload = decode_access_token(token)
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid token")
-    
+
     username: str = payload.get("sub")
-    conn = get_db_conn()
-    cur = db_execute(conn, "SELECT * FROM users WHERE username = %s", (username,))
-    user = cur.fetchone()
-    cur.close()
-    conn.close()
-    
+    with db_session() as conn:
+        cur = db_execute(conn, "SELECT * FROM users WHERE username = %s", (username,))
+        user = cur.fetchone()
+        cur.close()
+
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
     return dict(user)
@@ -328,23 +367,35 @@ async def get_current_admin(current_user: dict = Depends(get_current_user)):
 
 @app.post("/api/auth/register", response_model=UserResponse)
 async def register(user: UserRegister):
-    conn = get_db_conn()
-    try:
+    # Server-side password policy. The frontend also enforces this, but never
+    # trust the client.  We accept any 8+ char password (bcrypt then caps at
+    # 72 utf-8 bytes); existing accounts are not affected.
+    if len(user.password or "") < MIN_PASSWORD_LENGTH:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Şifre en az {MIN_PASSWORD_LENGTH} karakter olmalıdır.",
+        )
+
+    # Basic username hygiene — keep API response shape but avoid empty / whitespace.
+    if not user.username or not user.username.strip():
+        raise HTTPException(status_code=400, detail="Kullanıcı adı zorunludur.")
+
+    with db_session() as conn:
         cur = db_execute(conn, "SELECT id FROM users WHERE username = %s OR email = %s", (user.username, user.email))
         existing = cur.fetchone()
         cur.close()
         if existing:
             raise HTTPException(status_code=400, detail="User already exists")
-        
+
         user_id = str(uuid.uuid4())
         hashed_pwd = get_password_hash(user.password)
-        role = user.role if user.role in ["user", "admin"] else "user"
-        
+        role = user.role if user.role in VALID_USER_ROLES else "user"
+
         cur = db_execute(conn, "SELECT COUNT(*) FROM users")
         user_count = cur.fetchone()[0]
         cur.close()
         is_approved = 1 if user_count == 0 else 0
-        
+
         db_execute(conn,
             "INSERT INTO users (id, username, email, hashed_password, role, is_approved) VALUES (%s, %s, %s, %s, %s, %s)",
             (user_id, user.username, user.email, hashed_pwd, role, is_approved)
@@ -352,29 +403,26 @@ async def register(user: UserRegister):
         log_audit(conn, "register", user_id=user_id, entity_type="user", entity_id=user_id, details={"username": user.username, "roles": role})
         conn.commit()
         return {"id": user_id, "username": user.username, "email": user.email, "role": role, "is_approved": is_approved}
-    finally:
-        conn.close()
 
 @app.post("/api/auth/login", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    conn = get_db_conn()
-    cur = db_execute(conn, "SELECT * FROM users WHERE username = %s OR email = %s", (form_data.username, form_data.username))
-    user = cur.fetchone()
-    cur.close()
-    
-    if not user or not verify_password(form_data.password, user["hashed_password"]):
-        conn.close()
-        raise HTTPException(status_code=401, detail="Incorrect credentials")
-    
-    if user["is_approved"] == 0:
-        conn.close()
-        raise HTTPException(status_code=403, detail="Hesabınız henüz onaylanmamıştır.")
-    
-    log_audit(conn, "login", user_id=user["id"])
-    conn.commit()
-    conn.close()
-    
-    access_token = create_access_token(data={"sub": user["username"], "role": user["role"]})
+    with db_session() as conn:
+        cur = db_execute(conn, "SELECT * FROM users WHERE username = %s OR email = %s", (form_data.username, form_data.username))
+        user = cur.fetchone()
+        cur.close()
+
+        if not user or not verify_password(form_data.password, user["hashed_password"]):
+            raise HTTPException(status_code=401, detail="Incorrect credentials")
+
+        if user["is_approved"] == 0:
+            raise HTTPException(status_code=403, detail="Hesabınız henüz onaylanmamıştır.")
+
+        log_audit(conn, "login", user_id=user["id"])
+        conn.commit()
+        username = user["username"]
+        role = user["role"]
+
+    access_token = create_access_token(data={"sub": username, "role": role})
     return {"access_token": access_token, "token_type": "bearer"}
 
 @app.get("/api/auth/me", response_model=UserResponse)
@@ -383,11 +431,10 @@ async def me(current_user: dict = Depends(get_current_user)):
 
 @app.get("/api/admin/users", response_model=List[UserResponse])
 async def list_users(admin: dict = Depends(get_current_admin)):
-    conn = get_db_conn()
-    cur = db_execute(conn, "SELECT id, username, email, role, is_approved FROM users")
-    users = cur.fetchall()
-    cur.close()
-    conn.close()
+    with db_session() as conn:
+        cur = db_execute(conn, "SELECT id, username, email, role, is_approved FROM users")
+        users = cur.fetchall()
+        cur.close()
     return [dict(u) for u in users]
 
 # ─── Conversation Summarizer ──────────────────────────────────────────────────
@@ -419,6 +466,7 @@ def _summarize_history(history: list) -> str:
         resp = summarizer.invoke([HumanMessage(content=prompt)])
         return resp.content.strip()
     except Exception as e:
+        logger.warning(f"History summarisation failed, falling back to truncation: {e}")
         # Fallback: naive truncation summary
         lines = [f"{m['role']}: {m['content'][:200]}" for m in history[-3:]]
         return " | ".join(lines)
@@ -426,17 +474,16 @@ def _summarize_history(history: list) -> str:
 
 def get_chat_history(user_id: str, conversation_id: str):
     """Retrieve chat history for a session."""
-    conn = get_db_conn()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("""
-        SELECT query, response, file_metadata FROM query_history 
-        WHERE user_id = %s AND conversation_id = %s 
-        ORDER BY created_at ASC
-    """, (user_id, conversation_id))
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
-    
+    with db_session() as conn:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("""
+            SELECT query, response, file_metadata FROM query_history
+            WHERE user_id = %s AND conversation_id = %s
+            ORDER BY created_at ASC
+        """, (user_id, conversation_id))
+        rows = cur.fetchall()
+        cur.close()
+
     history = []
     for row in rows:
         history.append({"role": "user", "content": row["query"], "file_metadata": row["file_metadata"]})
@@ -447,15 +494,14 @@ def get_chat_history(user_id: str, conversation_id: str):
 def save_query_history(user_id: str, conversation_id: str, query: str, response: str, file_metadata: dict = None, query_id: str = None):
     """Save a new query and response pair to the history."""
     qid = query_id or str(uuid.uuid4())
-    conn = get_db_conn()
-    cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO query_history (id, user_id, conversation_id, query, response, file_metadata)
-        VALUES (%s, %s, %s, %s, %s, %s)
-    """, (qid, user_id, conversation_id, query, response, json.dumps(file_metadata) if file_metadata else None))
-    conn.commit()
-    cur.close()
-    conn.close()
+    with db_session() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO query_history (id, user_id, conversation_id, query, response, file_metadata)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (qid, user_id, conversation_id, query, response, json.dumps(file_metadata) if file_metadata else None))
+        conn.commit()
+        cur.close()
 
 
 def ensure_conversation_row(user_id: str, conversation_id: str, title_hint: str):
@@ -463,28 +509,27 @@ def ensure_conversation_row(user_id: str, conversation_id: str, title_hint: str)
     if not conversation_id:
         return
     title = (title_hint or "Sohbet")[:80]
-    conn = get_db_conn()
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT conversation_id FROM conversations WHERE conversation_id = %s AND user_id = %s",
-        (conversation_id, user_id),
-    )
-    if cur.fetchone():
+    with db_session() as conn:
+        cur = conn.cursor()
         cur.execute(
-            "UPDATE conversations SET updated_at = CURRENT_TIMESTAMP WHERE conversation_id = %s AND user_id = %s",
+            "SELECT conversation_id FROM conversations WHERE conversation_id = %s AND user_id = %s",
             (conversation_id, user_id),
         )
-    else:
-        cur.execute(
-            """
-            INSERT INTO conversations (conversation_id, user_id, title, favorited)
-            VALUES (%s, %s, %s, 0)
-            """,
-            (conversation_id, user_id, title),
-        )
-    conn.commit()
-    cur.close()
-    conn.close()
+        if cur.fetchone():
+            cur.execute(
+                "UPDATE conversations SET updated_at = CURRENT_TIMESTAMP WHERE conversation_id = %s AND user_id = %s",
+                (conversation_id, user_id),
+            )
+        else:
+            cur.execute(
+                """
+                INSERT INTO conversations (conversation_id, user_id, title, favorited)
+                VALUES (%s, %s, %s, 0)
+                """,
+                (conversation_id, user_id, title),
+            )
+        conn.commit()
+        cur.close()
 
 
 # --- Pydantic Models ---
@@ -553,8 +598,7 @@ def _fetch_user_api_key(user_id: str, requested_provider: Optional[str]):
       (most recently created if none has been used yet).
     Returns (None, None, None, None) if no active key is found.
     """
-    conn = get_db_conn()
-    try:
+    with db_session() as conn:
         cur = conn.cursor(cursor_factory=RealDictCursor)
         if requested_provider:
             cur.execute(
@@ -581,26 +625,31 @@ def _fetch_user_api_key(user_id: str, requested_provider: Optional[str]):
         cur.close()
         if not row:
             return None, None, None, None
-        plaintext = decrypt_api_key(row["encrypted_key"])
+        try:
+            plaintext = decrypt_api_key(row["encrypted_key"])
+        except Exception as e:  # InvalidToken / corrupted ciphertext
+            logger.error(f"Failed to decrypt API key id={row['id']} for user_id={user_id}: {e}")
+            # Map to 401 rather than 500 — the row is unusable for this user.
+            raise HTTPException(
+                status_code=401,
+                detail="Kayıtlı API anahtarı çözülemedi. Lütfen anahtarı yeniden ekleyin.",
+            )
         return row["provider"], plaintext, row["base_url"], row["id"]
-    finally:
-        conn.close()
 
 
 def _mark_api_key_used(key_id: int):
     """Best-effort update of last_used_at. Errors are swallowed."""
     try:
-        conn = get_db_conn()
-        cur = conn.cursor()
-        cur.execute(
-            "UPDATE user_api_keys SET last_used_at = NOW() WHERE id = %s",
-            (key_id,),
-        )
-        conn.commit()
-        cur.close()
-        conn.close()
+        with db_session() as conn:
+            cur = conn.cursor()
+            cur.execute(
+                "UPDATE user_api_keys SET last_used_at = NOW() WHERE id = %s",
+                (key_id,),
+            )
+            conn.commit()
+            cur.close()
     except Exception as e:
-        print(f"[WARN] Failed to update last_used_at for api_key {key_id}: {e}")
+        logger.warning(f"Failed to update last_used_at for api_key {key_id}: {e}")
 
 
 # --- Chat ---
@@ -625,20 +674,19 @@ async def chat_query(q: ChatQuery, current_user: dict = Depends(get_current_user
     user_docs_context = ""
     active_file_metadata = None
     try:
-        conn = get_db_conn()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute(
-            "SELECT filename, content FROM user_documents WHERE user_id = %s AND conversation_id = %s",
-            (current_user["id"], effective_conv_id),
-        )
-        rows = cur.fetchall()
-        if rows:
-            user_docs_context = "\n\n--- KULLANICI DÖKÜMANLARI ---\n" + "\n".join([r["content"] for r in rows])
-            active_file_metadata = {"filename": rows[0]["filename"], "type": "pdf"}
-        cur.close()
-        conn.close()
+        with db_session() as conn:
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+            cur.execute(
+                "SELECT filename, content FROM user_documents WHERE user_id = %s AND conversation_id = %s",
+                (current_user["id"], effective_conv_id),
+            )
+            rows = cur.fetchall()
+            if rows:
+                user_docs_context = "\n\n--- KULLANICI DÖKÜMANLARI ---\n" + "\n".join([r["content"] for r in rows])
+                active_file_metadata = {"filename": rows[0]["filename"], "type": "pdf"}
+            cur.close()
     except Exception as e:
-        print(f"Error fetching user docs: {e}")
+        logger.warning(f"Error fetching user docs: {e}")
 
     full_query = q.query
     if user_docs_context:
@@ -698,101 +746,123 @@ async def upload_document(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user)
 ):
-    """Upload a medical report PDF and extract its text."""
-    if not file.filename.lower().endswith(".pdf"):
+    """Upload a medical report PDF and extract its text.
+
+    Hardening:
+    - filename extension check (PDF only)
+    - server-side size cap (MAX_PDF_UPLOAD_BYTES)
+    - generic error to the client; full traceback only in server logs
+    """
+    if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Sadece PDF dosyaları yüklenebilir.")
-    
+
     try:
         import io
         from pypdf import PdfReader
-        
-        content = await file.read()
-        pdf = PdfReader(io.BytesIO(content))
-        text = ""
-        for page in pdf.pages:
-            text += page.extract_text() + "\n"
-        
+
+        # Enforce a server-side size limit before loading into memory.
+        # FastAPI `UploadFile.read()` has no built-in cap; an unbounded read
+        # on a 500 MB PDF would happily OOM the Space.
+        content = await file.read(MAX_PDF_UPLOAD_BYTES + 1)
+        if len(content) > MAX_PDF_UPLOAD_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail=f"Dosya boyutu çok büyük (maks {MAX_PDF_UPLOAD_BYTES // (1024*1024)} MB).",
+            )
+
+        try:
+            pdf = PdfReader(io.BytesIO(content))
+            text = "\n".join((page.extract_text() or "") for page in pdf.pages)
+        except Exception as e:
+            logger.warning(f"PDF parse failed for user={current_user.get('id')}: {e}")
+            raise HTTPException(status_code=400, detail="PDF dosyası okunamadı veya bozuk.")
+
         if not text.strip():
             raise HTTPException(status_code=400, detail="PDF'den metin çıkarılamadı.")
-        
+
         doc_id = str(uuid.uuid4())
-        conn = get_db_conn()
-        cur = conn.cursor()
-        cur.execute("""
-            INSERT INTO user_documents (id, user_id, conversation_id, filename, content)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (doc_id, current_user["id"], conversation_id, file.filename, text))
-        conn.commit()
-        cur.close()
-        conn.close()
-        
+        with db_session() as conn:
+            cur = conn.cursor()
+            cur.execute("""
+                INSERT INTO user_documents (id, user_id, conversation_id, filename, content)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (doc_id, current_user["id"], conversation_id, file.filename, text))
+            conn.commit()
+            cur.close()
+
         return {
             "message": "Belge başarıyla yüklendi ve işlendi.",
             "doc_id": doc_id,
             "filename": file.filename,
-            "char_count": len(text)
+            "char_count": len(text),
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Hata: {str(e)}")
+        # Never leak raw exception text — that has leaked stack frames before.
+        logger.exception(f"Upload failed for user={current_user.get('id')}: {e}")
+        raise HTTPException(status_code=500, detail="Dosya yüklenirken bir hata oluştu.")
 
 @app.post("/api/feedback")
 async def submit_feedback(data: FeedbackCreate, current_user: dict = Depends(get_current_user)):
-    conn = get_db_conn()
-    db_execute(conn,
-        "INSERT INTO user_feedback (feedback_id, message_id, rating, feedback_text, is_accurate) VALUES (%s, %s, %s, %s, %s)",
-        (str(uuid.uuid4()), data.message_id, data.rating, data.feedback_text, 1 if data.is_accurate else 0)
-    )
-    conn.commit()
-    conn.close()
+    with db_session() as conn:
+        db_execute(conn,
+            "INSERT INTO user_feedback (feedback_id, message_id, rating, feedback_text, is_accurate) VALUES (%s, %s, %s, %s, %s)",
+            (str(uuid.uuid4()), data.message_id, data.rating, data.feedback_text, 1 if data.is_accurate else 0)
+        )
+        conn.commit()
     return {"message": "Geri bildiriminiz kaydedildi. Teşekkürler!"}
 
 @app.put("/api/auth/password")
 async def change_password(data: PasswordChange, current_user: dict = Depends(get_current_user)):
-    conn = get_db_conn()
-    cur = db_execute(conn, "SELECT hashed_password FROM users WHERE id = %s", (current_user["id"],))
-    user = cur.fetchone()
-    cur.close()
-    if not user or not verify_password(data.old_password, user["hashed_password"]):
-        conn.close()
-        raise HTTPException(status_code=400, detail="Mevcut şifre yanlış")
-    
-    new_hashed = get_password_hash(data.new_password)
-    db_execute(conn, "UPDATE users SET hashed_password = %s WHERE id = %s", (new_hashed, current_user["id"]))
-    log_audit(conn, "password_change", user_id=current_user["id"])
-    conn.commit()
-    conn.close()
+    # Enforce the same min-length policy on password change.
+    if len(data.new_password or "") < MIN_PASSWORD_LENGTH:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Yeni şifre en az {MIN_PASSWORD_LENGTH} karakter olmalıdır.",
+        )
+
+    with db_session() as conn:
+        cur = db_execute(conn, "SELECT hashed_password FROM users WHERE id = %s", (current_user["id"],))
+        user = cur.fetchone()
+        cur.close()
+        if not user or not verify_password(data.old_password, user["hashed_password"]):
+            raise HTTPException(status_code=400, detail="Mevcut şifre yanlış")
+
+        new_hashed = get_password_hash(data.new_password)
+        db_execute(conn, "UPDATE users SET hashed_password = %s WHERE id = %s", (new_hashed, current_user["id"]))
+        log_audit(conn, "password_change", user_id=current_user["id"])
+        conn.commit()
     return {"message": "Şifre başarıyla güncellendi."}
 
 @app.get("/api/history")
 async def get_history(current_user: dict = Depends(get_current_user)):
-    conn = get_db_conn()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute(
-        "SELECT id, conversation_id, query, response, file_metadata, created_at FROM query_history WHERE user_id = %s ORDER BY created_at DESC LIMIT 200",
-        (current_user["id"],)
-    )
-    history = cur.fetchall()
-    cur.close()
-    
-    cur2 = conn.cursor(cursor_factory=RealDictCursor)
-    cur2.execute(
-        "SELECT query, response, created_at FROM saved_responses WHERE user_id = %s ORDER BY created_at DESC",
-        (current_user["id"],)
-    )
-    saved = cur2.fetchall()
-    cur2.close()
-    conn.close()
+    with db_session() as conn:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(
+            "SELECT id, conversation_id, query, response, file_metadata, created_at FROM query_history WHERE user_id = %s ORDER BY created_at DESC LIMIT %s",
+            (current_user["id"], HISTORY_PAGE_LIMIT),
+        )
+        history = cur.fetchall()
+        cur.close()
+
+        cur2 = conn.cursor(cursor_factory=RealDictCursor)
+        cur2.execute(
+            "SELECT query, response, created_at FROM saved_responses WHERE user_id = %s ORDER BY created_at DESC",
+            (current_user["id"],)
+        )
+        saved = cur2.fetchall()
+        cur2.close()
     return {"history": [dict(h) for h in history], "saved": [dict(s) for s in saved]}
 
 @app.post("/api/history/save")
 async def save_response(data: SaveResponse, current_user: dict = Depends(get_current_user)):
-    conn = get_db_conn()
-    db_execute(conn,
-        "INSERT INTO saved_responses (id, user_id, query, response) VALUES (%s, %s, %s, %s)",
-        (str(uuid.uuid4()), current_user["id"], data.query, data.response)
-    )
-    conn.commit()
-    conn.close()
+    with db_session() as conn:
+        db_execute(conn,
+            "INSERT INTO saved_responses (id, user_id, query, response) VALUES (%s, %s, %s, %s)",
+            (str(uuid.uuid4()), current_user["id"], data.query, data.response)
+        )
+        conn.commit()
     return {"message": "Yanıt kaydedildi."}
 
 
@@ -812,21 +882,21 @@ async def get_app_config(current_user: dict = Depends(get_current_user)):
 
 @app.get("/api/conversations")
 async def list_conversations(limit: int = 10, current_user: dict = Depends(get_current_user)):
-    conn = get_db_conn()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute(
-        """
-        SELECT conversation_id, title, favorited, updated_at, created_at
-        FROM conversations
-        WHERE user_id = %s
-        ORDER BY updated_at DESC
-        LIMIT %s
-        """,
-        (current_user["id"], min(limit, 50)),
-    )
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
+    safe_limit = max(1, min(int(limit or 10), 50))
+    with db_session() as conn:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(
+            """
+            SELECT conversation_id, title, favorited, updated_at, created_at
+            FROM conversations
+            WHERE user_id = %s
+            ORDER BY updated_at DESC
+            LIMIT %s
+            """,
+            (current_user["id"], safe_limit),
+        )
+        rows = cur.fetchall()
+        cur.close()
     return {"conversations": [dict(r) for r in rows]}
 
 
@@ -834,83 +904,78 @@ async def list_conversations(limit: int = 10, current_user: dict = Depends(get_c
 async def search_conversations(q: str = "", limit: int = 20, current_user: dict = Depends(get_current_user)):
     if not q.strip():
         return {"conversations": []}
-    conn = get_db_conn()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute(
-        """
-        SELECT DISTINCT c.conversation_id, c.title, c.favorited, c.updated_at
-        FROM conversations c
-        LEFT JOIN query_history qh ON qh.conversation_id = c.conversation_id AND qh.user_id = c.user_id
-        WHERE c.user_id = %s AND (
-            c.title ILIKE %s OR qh.query ILIKE %s OR qh.response ILIKE %s
+    safe_limit = max(1, min(int(limit or 20), 50))
+    with db_session() as conn:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(
+            """
+            SELECT DISTINCT c.conversation_id, c.title, c.favorited, c.updated_at
+            FROM conversations c
+            LEFT JOIN query_history qh ON qh.conversation_id = c.conversation_id AND qh.user_id = c.user_id
+            WHERE c.user_id = %s AND (
+                c.title ILIKE %s OR qh.query ILIKE %s OR qh.response ILIKE %s
+            )
+            ORDER BY c.updated_at DESC
+            LIMIT %s
+            """,
+            (current_user["id"], f"%{q}%", f"%{q}%", f"%{q}%", safe_limit),
         )
-        ORDER BY c.updated_at DESC
-        LIMIT %s
-        """,
-        (current_user["id"], f"%{q}%", f"%{q}%", f"%{q}%", min(limit, 50)),
-    )
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
+        rows = cur.fetchall()
+        cur.close()
     return {"conversations": [dict(r) for r in rows]}
 
 
 @app.patch("/api/conversations/{conversation_id}")
 async def patch_conversation(conversation_id: str, data: ConversationPatch, current_user: dict = Depends(get_current_user)):
-    conn = get_db_conn()
-    cur = db_execute(
-        conn,
-        "UPDATE conversations SET title = %s, updated_at = CURRENT_TIMESTAMP WHERE conversation_id = %s AND user_id = %s",
-        (data.title[:200], conversation_id, current_user["id"]),
-    )
-    if cur.rowcount == 0:
+    with db_session() as conn:
+        cur = db_execute(
+            conn,
+            "UPDATE conversations SET title = %s, updated_at = CURRENT_TIMESTAMP WHERE conversation_id = %s AND user_id = %s",
+            (data.title[:200], conversation_id, current_user["id"]),
+        )
+        if cur.rowcount == 0:
+            cur.close()
+            raise HTTPException(status_code=404, detail="Konuşma bulunamadı.")
+        conn.commit()
         cur.close()
-        conn.close()
-        raise HTTPException(status_code=404, detail="Konuşma bulunamadı.")
-    conn.commit()
-    cur.close()
-    conn.close()
     return {"message": "Başlık güncellendi.", "conversation_id": conversation_id}
 
 
 @app.delete("/api/conversations/{conversation_id}")
 async def delete_conversation(conversation_id: str, current_user: dict = Depends(get_current_user)):
-    conn = get_db_conn()
-    db_execute(
-        conn,
-        """DELETE FROM agent_runs WHERE trigger_message_id IN
-           (SELECT id FROM query_history WHERE conversation_id = %s AND user_id = %s)""",
-        (conversation_id, current_user["id"]),
-    )
-    db_execute(
-        conn,
-        """DELETE FROM user_feedback WHERE message_id IN
-           (SELECT id FROM query_history WHERE conversation_id = %s AND user_id = %s)""",
-        (conversation_id, current_user["id"]),
-    )
-    db_execute(conn, "DELETE FROM query_history WHERE conversation_id = %s AND user_id = %s", (conversation_id, current_user["id"]))
-    db_execute(conn, "DELETE FROM user_documents WHERE conversation_id = %s AND user_id = %s", (conversation_id, current_user["id"]))
-    db_execute(conn, "DELETE FROM conversations WHERE conversation_id = %s AND user_id = %s", (conversation_id, current_user["id"]))
-    conn.commit()
-    conn.close()
+    with db_session() as conn:
+        db_execute(
+            conn,
+            """DELETE FROM agent_runs WHERE trigger_message_id IN
+               (SELECT id FROM query_history WHERE conversation_id = %s AND user_id = %s)""",
+            (conversation_id, current_user["id"]),
+        )
+        db_execute(
+            conn,
+            """DELETE FROM user_feedback WHERE message_id IN
+               (SELECT id FROM query_history WHERE conversation_id = %s AND user_id = %s)""",
+            (conversation_id, current_user["id"]),
+        )
+        db_execute(conn, "DELETE FROM query_history WHERE conversation_id = %s AND user_id = %s", (conversation_id, current_user["id"]))
+        db_execute(conn, "DELETE FROM user_documents WHERE conversation_id = %s AND user_id = %s", (conversation_id, current_user["id"]))
+        db_execute(conn, "DELETE FROM conversations WHERE conversation_id = %s AND user_id = %s", (conversation_id, current_user["id"]))
+        conn.commit()
     return {"message": "Konuşma silindi."}
 
 
 @app.put("/api/conversations/{conversation_id}/favorite")
 async def favorite_conversation(conversation_id: str, body: FavoriteBody = Body(...), current_user: dict = Depends(get_current_user)):
-    conn = get_db_conn()
-    cur = db_execute(
-        conn,
-        "UPDATE conversations SET favorited = %s, updated_at = CURRENT_TIMESTAMP WHERE conversation_id = %s AND user_id = %s",
-        (1 if body.favorited else 0, conversation_id, current_user["id"]),
-    )
-    if cur.rowcount == 0:
+    with db_session() as conn:
+        cur = db_execute(
+            conn,
+            "UPDATE conversations SET favorited = %s, updated_at = CURRENT_TIMESTAMP WHERE conversation_id = %s AND user_id = %s",
+            (1 if body.favorited else 0, conversation_id, current_user["id"]),
+        )
+        if cur.rowcount == 0:
+            cur.close()
+            raise HTTPException(status_code=404, detail="Konuşma bulunamadı.")
+        conn.commit()
         cur.close()
-        conn.close()
-        raise HTTPException(status_code=404, detail="Konuşma bulunamadı.")
-    conn.commit()
-    cur.close()
-    conn.close()
     return {"message": "Güncellendi.", "favorited": body.favorited}
 
 
@@ -919,14 +984,13 @@ async def submit_feedback_report(data: FeedbackReportCreate, current_user: dict 
     """Structured issue report for admin evaluation pipeline."""
     prefix = f"[{data.category}] "
     text = prefix + (data.feedback_text or "").strip()
-    conn = get_db_conn()
-    db_execute(
-        conn,
-        "INSERT INTO user_feedback (feedback_id, message_id, rating, feedback_text, is_accurate) VALUES (%s, %s, %s, %s, %s)",
-        (str(uuid.uuid4()), data.message_id, -1, text, 0),
-    )
-    conn.commit()
-    conn.close()
+    with db_session() as conn:
+        db_execute(
+            conn,
+            "INSERT INTO user_feedback (feedback_id, message_id, rating, feedback_text, is_accurate) VALUES (%s, %s, %s, %s, %s)",
+            (str(uuid.uuid4()), data.message_id, -1, text, 0),
+        )
+        conn.commit()
     return {"message": "Hata bildirimi kaydedildi. Teşekkürler!"}
 
 # --- Per-User API Key Management ---
@@ -945,8 +1009,7 @@ async def create_or_update_user_api_key(
     encrypted = encrypt_api_key(data.api_key.strip())
     hint = make_key_hint(data.api_key.strip())
 
-    conn = get_db_conn()
-    try:
+    with db_session() as conn:
         cur = conn.cursor(cursor_factory=RealDictCursor)
         # Upsert: replace existing (user_id, provider) row.
         cur.execute(
@@ -980,15 +1043,12 @@ async def create_or_update_user_api_key(
             "key_hint": row["key_hint"],
             "created_at": row["created_at"].isoformat() if row["created_at"] else None,
         }
-    finally:
-        conn.close()
 
 
 @app.get("/api/user/api-keys")
 async def list_user_api_keys(current_user: dict = Depends(get_current_user)):
     """List the user's stored API keys. Never returns decrypted keys."""
-    conn = get_db_conn()
-    try:
+    with db_session() as conn:
         cur = conn.cursor(cursor_factory=RealDictCursor)
         cur.execute(
             """
@@ -1001,19 +1061,17 @@ async def list_user_api_keys(current_user: dict = Depends(get_current_user)):
         )
         rows = cur.fetchall()
         cur.close()
-        return [
-            {
-                "id": r["id"],
-                "provider": r["provider"],
-                "key_hint": r["key_hint"],
-                "is_active": r["is_active"],
-                "last_used_at": r["last_used_at"].isoformat() if r["last_used_at"] else None,
-                "created_at": r["created_at"].isoformat() if r["created_at"] else None,
-            }
-            for r in rows
-        ]
-    finally:
-        conn.close()
+    return [
+        {
+            "id": r["id"],
+            "provider": r["provider"],
+            "key_hint": r["key_hint"],
+            "is_active": r["is_active"],
+            "last_used_at": r["last_used_at"].isoformat() if r["last_used_at"] else None,
+            "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+        }
+        for r in rows
+    ]
 
 
 @app.delete("/api/user/api-keys/{provider}", status_code=204)
@@ -1023,9 +1081,8 @@ async def delete_user_api_key(
 ):
     """Delete the user's API key for a given provider. Returns 204 No Content."""
     if provider not in _VALID_PROVIDERS:
-        raise HTTPException(status_code=400, detail=f"Geçersiz sağlayıcı.")
-    conn = get_db_conn()
-    try:
+        raise HTTPException(status_code=400, detail="Geçersiz sağlayıcı.")
+    with db_session() as conn:
         cur = conn.cursor()
         cur.execute(
             "DELETE FROM user_api_keys WHERE user_id = %s AND provider = %s",
@@ -1041,8 +1098,6 @@ async def delete_user_api_key(
         )
         conn.commit()
         cur.close()
-    finally:
-        conn.close()
     return Response(status_code=204)
 
 
@@ -1118,12 +1173,11 @@ async def health_check():
     load balancers can inspect db status without false-positive failover."""
     db_status = "down"
     try:
-        conn = get_db_conn()
-        cur = conn.cursor()
-        cur.execute("SELECT 1")
-        cur.fetchone()
-        cur.close()
-        conn.close()
+        with db_session() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT 1")
+            cur.fetchone()
+            cur.close()
         db_status = "ok"
     except Exception:
         db_status = "down"
@@ -1134,27 +1188,27 @@ async def health_check():
 
 @app.get("/api/admin/system")
 async def get_system_metrics(admin: dict = Depends(get_current_admin)):
-    conn = get_db_conn()
-    cur = db_execute(conn, "SELECT COUNT(*) FROM users")
-    users_count = cur.fetchone()[0]
-    cur.close()
-    cur = db_execute(conn, "SELECT COUNT(*) FROM query_history")
-    queries_count = cur.fetchone()[0]
-    cur.close()
-    chunks_count = 0
-    try:
-        cur = db_execute(conn, "SELECT COUNT(*) FROM chunks")
-        chunks_count = cur.fetchone()[0]
+    with db_session() as conn:
+        cur = db_execute(conn, "SELECT COUNT(*) FROM users")
+        users_count = cur.fetchone()[0]
         cur.close()
-    except:
-        pass
-    cur = db_execute(conn, "SELECT message FROM announcements WHERE active = 1 ORDER BY created_at DESC LIMIT 1")
-    active_announcement = cur.fetchone()
-    cur.close()
-    cur = db_execute(conn, "SELECT COUNT(*) FROM users WHERE is_approved = 0")
-    pending_count = cur.fetchone()[0]
-    cur.close()
-    conn.close()
+        cur = db_execute(conn, "SELECT COUNT(*) FROM query_history")
+        queries_count = cur.fetchone()[0]
+        cur.close()
+        chunks_count = 0
+        try:
+            cur = db_execute(conn, "SELECT COUNT(*) FROM chunks")
+            chunks_count = cur.fetchone()[0]
+            cur.close()
+        except Exception as e:
+            logger.debug(f"chunks count skipped: {e}")
+            conn.rollback()
+        cur = db_execute(conn, "SELECT message FROM announcements WHERE active = 1 ORDER BY created_at DESC LIMIT 1")
+        active_announcement = cur.fetchone()
+        cur.close()
+        cur = db_execute(conn, "SELECT COUNT(*) FROM users WHERE is_approved = 0")
+        pending_count = cur.fetchone()[0]
+        cur.close()
 
     return {
         "users_count": users_count,
@@ -1166,67 +1220,67 @@ async def get_system_metrics(admin: dict = Depends(get_current_admin)):
 
 @app.get("/api/admin/activity")
 async def get_admin_activity(admin: dict = Depends(get_current_admin)):
-    conn = get_db_conn()
-    cur = db_execute(conn, """
-        SELECT qh.query, qh.created_at, u.username, u.role
-        FROM query_history qh
-        JOIN users u ON qh.user_id = u.id
-        ORDER BY qh.created_at DESC
-        LIMIT 20
-    """)
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
+    with db_session() as conn:
+        cur = db_execute(conn, """
+            SELECT qh.query, qh.created_at, u.username, u.role
+            FROM query_history qh
+            JOIN users u ON qh.user_id = u.id
+            ORDER BY qh.created_at DESC
+            LIMIT 20
+        """)
+        rows = cur.fetchall()
+        cur.close()
     return [dict(r) for r in rows]
+
+_ANALYTICS_STOPWORDS = {
+    "ve", "bir", "ile", "bu", "için", "da", "de", "mi", "ne", "ben", "sen",
+    "biz", "siz", "o", "şu", "ki", "gibi", "ama", "veya", "ya", "daha",
+    "olan", "nasıl", "nedir", "hakkında", "bilgi", "ver", "söyle",
+    "the", "is", "a", "of", "in", "to", "what", "how", "about",
+}
+
 
 @app.get("/api/admin/analytics")
 async def get_admin_analytics(admin: dict = Depends(get_current_admin)):
-    conn = get_db_conn()
+    with db_session() as conn:
+        cur = db_execute(conn, "SELECT query FROM query_history")
+        all_queries = cur.fetchall()
+        cur.close()
 
-    cur = db_execute(conn, "SELECT query FROM query_history")
-    all_queries = cur.fetchall()
-    cur.close()
-    stopwords = {
-        "ve", "bir", "ile", "bu", "için", "da", "de", "mi", "ne", "ben", "sen",
-        "biz", "siz", "o", "bu", "şu", "ki", "gibi", "ama", "veya", "ya", "daha",
-        "olan", "nasıl", "nedir", "hakkında", "bilgi", "ver", "söyle",
-        "the", "is", "a", "of", "in", "to", "what", "how", "about"
-    }
-    word_counter = Counter()
-    for row in all_queries:
-        words = re.findall(r'\b[a-zA-ZğüşıöçĞÜŞİÖÇ]{4,}\b', row["query"].lower())
-        for w in words:
-            if w not in stopwords:
-                word_counter[w] += 1
-    top_keywords = [{"keyword": k, "count": v} for k, v in word_counter.most_common(10)]
+        word_counter = Counter()
+        for row in all_queries:
+            words = re.findall(r'\b[a-zA-ZğüşıöçĞÜŞİÖÇ]{4,}\b', row["query"].lower())
+            for w in words:
+                if w not in _ANALYTICS_STOPWORDS:
+                    word_counter[w] += 1
+        top_keywords = [{"keyword": k, "count": v} for k, v in word_counter.most_common(10)]
 
-    # Daily volume — last 7 days (PostgreSQL syntax)
-    cur = db_execute(conn, """
-        SELECT DATE(created_at) as day, COUNT(*) as count
-        FROM query_history
-        WHERE created_at >= NOW() - INTERVAL '7 days'
-        GROUP BY DATE(created_at)
-        ORDER BY day ASC
-    """)
-    daily_rows = cur.fetchall()
-    cur.close()
-    daily_volume = [dict(r) for r in daily_rows]
+        # Daily volume — last 7 days (PostgreSQL syntax)
+        cur = db_execute(conn, """
+            SELECT DATE(created_at) as day, COUNT(*) as count
+            FROM query_history
+            WHERE created_at >= NOW() - INTERVAL '7 days'
+            GROUP BY DATE(created_at)
+            ORDER BY day ASC
+        """)
+        daily_rows = cur.fetchall()
+        cur.close()
+        daily_volume = [dict(r) for r in daily_rows]
 
-    cur = db_execute(conn, "SELECT COUNT(*) FROM users")
-    total_users = cur.fetchone()[0]
-    cur.close()
+        cur = db_execute(conn, "SELECT COUNT(*) FROM users")
+        total_users = cur.fetchone()[0]
+        cur.close()
 
-    cur = db_execute(conn, "SELECT COUNT(DISTINCT user_id) FROM query_history WHERE created_at >= NOW() - INTERVAL '1 day'")
-    daily_active = cur.fetchone()[0]
-    cur.close()
-    daily_engagement_rate = round((daily_active / total_users * 100) if total_users > 0 else 0, 1)
+        cur = db_execute(conn, "SELECT COUNT(DISTINCT user_id) FROM query_history WHERE created_at >= NOW() - INTERVAL '1 day'")
+        daily_active = cur.fetchone()[0]
+        cur.close()
+        daily_engagement_rate = round((daily_active / total_users * 100) if total_users > 0 else 0, 1)
 
-    cur = db_execute(conn, "SELECT COUNT(DISTINCT user_id) FROM query_history WHERE created_at >= NOW() - INTERVAL '30 days'")
-    monthly_active = cur.fetchone()[0]
-    cur.close()
-    monthly_engagement_rate = round((monthly_active / total_users * 100) if total_users > 0 else 0, 1)
+        cur = db_execute(conn, "SELECT COUNT(DISTINCT user_id) FROM query_history WHERE created_at >= NOW() - INTERVAL '30 days'")
+        monthly_active = cur.fetchone()[0]
+        cur.close()
+        monthly_engagement_rate = round((monthly_active / total_users * 100) if total_users > 0 else 0, 1)
 
-    conn.close()
     return {
         "top_keywords": top_keywords,
         "daily_volume": daily_volume,
@@ -1364,112 +1418,120 @@ async def search_policies(
     q_mode: str = "phrase",
     current_user: dict = Depends(get_current_user),
 ):
-    conn = get_db_conn()
+    # Clamp pagination — limit cap (200) prevents accidental megabyte responses.
     try:
-        chunks = []
-        if chunk_id:
-            cur = db_execute(
-                conn,
-                "SELECT chunk_id, text_content, metadata_json FROM chunks WHERE chunk_id = %s",
-                (chunk_id,),
-            )
-            row = cur.fetchone()
-            cur.close()
-            chunks = [row] if row else []
-        elif q:
-            chunks = _search_policy_chunks(conn, q, q_mode, limit, offset)
-        else:
-            cur = db_execute(conn,
-                "SELECT chunk_id, text_content, metadata_json FROM chunks LIMIT %s OFFSET %s",
-                (limit, offset)
-            )
-            chunks = cur.fetchall()
-            cur.close()
+        safe_limit = max(1, min(int(limit), 200))
+    except (TypeError, ValueError):
+        safe_limit = 20
+    try:
+        safe_offset = max(0, int(offset))
+    except (TypeError, ValueError):
+        safe_offset = 0
 
-        results = []
-        for c in chunks:
-            item = _chunk_row_to_result(c)
-            meta_raw = json.dumps(item["metadata"], ensure_ascii=False) if item["metadata"] else ""
-            text_blob = item["full_text"] + meta_raw
-            if section and section.upper() not in item["title"].upper():
-                continue
-            if date_from and date_from not in text_blob:
-                continue
-            if date_to and date_to not in text_blob:
-                continue
-            if status_filter:
-                st = (item["metadata"].get("status") or item["metadata"].get("durum") or "").lower()
-                if status_filter.lower() not in st and status_filter.lower() not in text_blob.lower():
+    try:
+        with db_session() as conn:
+            chunks = []
+            if chunk_id:
+                cur = db_execute(
+                    conn,
+                    "SELECT chunk_id, text_content, metadata_json FROM chunks WHERE chunk_id = %s",
+                    (chunk_id,),
+                )
+                row = cur.fetchone()
+                cur.close()
+                chunks = [row] if row else []
+            elif q:
+                chunks = _search_policy_chunks(conn, q, q_mode, safe_limit, safe_offset)
+            else:
+                cur = db_execute(conn,
+                    "SELECT chunk_id, text_content, metadata_json FROM chunks LIMIT %s OFFSET %s",
+                    (safe_limit, safe_offset)
+                )
+                chunks = cur.fetchall()
+                cur.close()
+
+            results = []
+            for c in chunks:
+                item = _chunk_row_to_result(c)
+                meta_raw = json.dumps(item["metadata"], ensure_ascii=False) if item["metadata"] else ""
+                text_blob = item["full_text"] + meta_raw
+                if section and section.upper() not in item["title"].upper():
                     continue
-            results.append(item)
+                if date_from and date_from not in text_blob:
+                    continue
+                if date_to and date_to not in text_blob:
+                    continue
+                if status_filter:
+                    st = (item["metadata"].get("status") or item["metadata"].get("durum") or "").lower()
+                    if status_filter.lower() not in st and status_filter.lower() not in text_blob.lower():
+                        continue
+                results.append(item)
 
-        cur = db_execute(conn, "SELECT COUNT(*) FROM chunks")
-        total = cur.fetchone()[0]
-        cur.close()
+            cur = db_execute(conn, "SELECT COUNT(*) FROM chunks")
+            total = cur.fetchone()[0]
+            cur.close()
+    except HTTPException:
+        raise
     except Exception as e:
-        conn.close()
-        raise HTTPException(status_code=500, detail=f"Arama hatası: {str(e)}")
-    conn.close()
-    return {"results": results, "total": total, "offset": offset, "limit": limit}
+        logger.exception(f"policy search failed: {e}")
+        raise HTTPException(status_code=500, detail="Arama hatası.")
+    return {"results": results, "total": total, "offset": safe_offset, "limit": safe_limit}
 
 @app.put("/api/admin/users/{user_id}/role")
 async def update_user_role(user_id: str, data: RoleUpdate, admin: dict = Depends(get_current_admin)):
-    if data.role not in ["user", "admin"]:
+    if data.role not in VALID_USER_ROLES:
         raise HTTPException(status_code=400, detail="Geçersiz rol.")
-    conn = get_db_conn()
-    db_execute(conn, "UPDATE users SET role = %s WHERE id = %s", (data.role, user_id))
-    log_audit(conn, "role_updated", user_id=admin["id"], entity_type="user", entity_id=user_id, details={"new_role": data.role})
-    conn.commit()
-    conn.close()
+    with db_session() as conn:
+        db_execute(conn, "UPDATE users SET role = %s WHERE id = %s", (data.role, user_id))
+        log_audit(conn, "role_updated", user_id=admin["id"], entity_type="user", entity_id=user_id, details={"new_role": data.role})
+        conn.commit()
     return {"message": "Rol güncellendi."}
 
 @app.delete("/api/admin/users/{user_id}")
 async def delete_user(user_id: str, admin: dict = Depends(get_current_admin)):
     if user_id == admin["id"]:
         raise HTTPException(status_code=400, detail="Kendi hesabınızı silemezsiniz.")
-    conn = get_db_conn()
-    # 1. Delete feedback linked to user's queries
-    db_execute(conn, """
-        DELETE FROM user_feedback WHERE message_id IN (
-            SELECT id FROM query_history WHERE user_id = %s
-        )
-    """, (user_id,))
-    # 2. Delete agent runs linked to user's queries
-    db_execute(conn, """
-        DELETE FROM agent_runs WHERE trigger_message_id IN (
-            SELECT id FROM query_history WHERE user_id = %s
-        )
-    """, (user_id,))
-    # 3. Delete user's documents and history
-    db_execute(conn, "DELETE FROM user_documents WHERE user_id = %s", (user_id,))
-    db_execute(conn, "DELETE FROM query_history WHERE user_id = %s", (user_id,))
-    db_execute(conn, "DELETE FROM saved_responses WHERE user_id = %s", (user_id,))
-    # 4. Delete user's own audit logs (or nullify, but delete is safer for clean tests)
-    db_execute(conn, "DELETE FROM audit_logs WHERE user_id = %s", (user_id,))
-    # 5. Finally delete the user
-    db_execute(conn, "DELETE FROM users WHERE id = %s", (user_id,))
-    log_audit(conn, "user_deleted", user_id=admin["id"], entity_type="user", entity_id=user_id)
-    conn.commit()
-    conn.close()
+    with db_session() as conn:
+        # 1. Delete feedback linked to user's queries
+        db_execute(conn, """
+            DELETE FROM user_feedback WHERE message_id IN (
+                SELECT id FROM query_history WHERE user_id = %s
+            )
+        """, (user_id,))
+        # 2. Delete agent runs linked to user's queries
+        db_execute(conn, """
+            DELETE FROM agent_runs WHERE trigger_message_id IN (
+                SELECT id FROM query_history WHERE user_id = %s
+            )
+        """, (user_id,))
+        # 3. Delete user's documents and history
+        db_execute(conn, "DELETE FROM user_documents WHERE user_id = %s", (user_id,))
+        db_execute(conn, "DELETE FROM query_history WHERE user_id = %s", (user_id,))
+        db_execute(conn, "DELETE FROM saved_responses WHERE user_id = %s", (user_id,))
+        # 4. Delete user's own audit logs (or nullify, but delete is safer for clean tests)
+        db_execute(conn, "DELETE FROM audit_logs WHERE user_id = %s", (user_id,))
+        # 5. Finally delete the user
+        db_execute(conn, "DELETE FROM users WHERE id = %s", (user_id,))
+        log_audit(conn, "user_deleted", user_id=admin["id"], entity_type="user", entity_id=user_id)
+        conn.commit()
     return {"message": "Kullanıcı silindi."}
 
 @app.put("/api/admin/users/{user_id}/approve")
 async def approve_user(user_id: str, admin: dict = Depends(get_current_admin)):
-    conn = get_db_conn()
-    db_execute(conn, "UPDATE users SET is_approved = 1 WHERE id = %s", (user_id,))
-    log_audit(conn, "user_approved", user_id=admin["id"], entity_type="user", entity_id=user_id)
-    conn.commit()
-    conn.close()
+    with db_session() as conn:
+        db_execute(conn, "UPDATE users SET is_approved = 1 WHERE id = %s", (user_id,))
+        log_audit(conn, "user_approved", user_id=admin["id"], entity_type="user", entity_id=user_id)
+        conn.commit()
     return {"message": "Kullanıcı onaylandı."}
 
 @app.post("/api/admin/rebuild-index")
 async def rebuild_index(background_tasks: BackgroundTasks, admin: dict = Depends(get_current_admin)):
     global engine
-    
+
     def run_indexing():
         global engine
         try:
-            print("[BACKGROUND] Starting indexing task...")
+            logger.info("[BACKGROUND] Starting indexing task...")
             storage = SUT_Storage_Manager(engine.embeddings_model)
             success = storage.populate_database()
             if success:
@@ -1477,57 +1539,53 @@ async def rebuild_index(background_tasks: BackgroundTasks, admin: dict = Depends
                 new_engine = SUT_RAG_Engine()
                 if new_engine.load_database():
                     engine = new_engine
-                    print("[BACKGROUND] Indexing and engine reload complete.")
+                    logger.info("[BACKGROUND] Indexing and engine reload complete.")
                 else:
-                    print("[BACKGROUND] Indexing complete but engine reload failed.")
+                    logger.warning("[BACKGROUND] Indexing complete but engine reload failed.")
             else:
-                print("[BACKGROUND] Indexing failed.")
+                logger.warning("[BACKGROUND] Indexing failed.")
         except Exception as e:
-            print(f"[BACKGROUND] Indexing error: {str(e)}")
+            logger.exception(f"[BACKGROUND] Indexing error: {e}")
 
     background_tasks.add_task(run_indexing)
-    
-    dbconn = get_db_conn()
-    log_audit(dbconn, "index_rebuild_started", user_id=admin["id"])
-    dbconn.commit()
-    dbconn.close()
-    
+
+    with db_session() as dbconn:
+        log_audit(dbconn, "index_rebuild_started", user_id=admin["id"])
+        dbconn.commit()
+
     return {"message": "İndeksleme işlemi arka planda başlatıldı. İlerlemeyi sistem günlüklerinden takip edebilirsiniz."}
 
 # --- Announcements ---
 
 @app.post("/api/admin/announcements")
 async def create_announcement(data: AnnouncementCreate, admin: dict = Depends(get_current_admin)):
-    conn = get_db_conn()
-    db_execute(conn, "UPDATE announcements SET active = 0")
-    ann_id = str(uuid.uuid4())
-    db_execute(conn,
-        "INSERT INTO announcements (id, message, created_by, active) VALUES (%s, %s, %s, 1)",
-        (ann_id, data.message, admin["id"])
-    )
-    log_audit(conn, "announcement_created", user_id=admin["id"], entity_type="announcement", entity_id=ann_id)
-    conn.commit()
-    conn.close()
+    with db_session() as conn:
+        db_execute(conn, "UPDATE announcements SET active = 0")
+        ann_id = str(uuid.uuid4())
+        db_execute(conn,
+            "INSERT INTO announcements (id, message, created_by, active) VALUES (%s, %s, %s, 1)",
+            (ann_id, data.message, admin["id"])
+        )
+        log_audit(conn, "announcement_created", user_id=admin["id"], entity_type="announcement", entity_id=ann_id)
+        conn.commit()
     return {"message": "Duyuru yayınlandı."}
 
 @app.get("/api/announcements")
 async def get_active_announcement(current_user: dict = Depends(get_current_user)):
-    conn = get_db_conn()
-    cur = db_execute(conn,
-        "SELECT id, message, created_at FROM announcements WHERE active = 1 ORDER BY created_at DESC LIMIT 1"
-    )
-    row = cur.fetchone()
-    cur.close()
-    conn.close()
+    with db_session() as conn:
+        cur = db_execute(conn,
+            "SELECT id, message, created_at FROM announcements WHERE active = 1 ORDER BY created_at DESC LIMIT 1"
+        )
+        row = cur.fetchone()
+        cur.close()
     return dict(row) if row else {}
 
 @app.delete("/api/admin/announcements/{ann_id}")
 async def deactivate_announcement(ann_id: str, admin: dict = Depends(get_current_admin)):
-    conn = get_db_conn()
-    db_execute(conn, "UPDATE announcements SET active = 0 WHERE id = %s", (ann_id,))
-    log_audit(conn, "announcement_deactivated", user_id=admin["id"], entity_type="announcement", entity_id=ann_id)
-    conn.commit()
-    conn.close()
+    with db_session() as conn:
+        db_execute(conn, "UPDATE announcements SET active = 0 WHERE id = %s", (ann_id,))
+        log_audit(conn, "announcement_deactivated", user_id=admin["id"], entity_type="announcement", entity_id=ann_id)
+        conn.commit()
     return {"message": "Duyuru kaldırıldı."}
 
 # --- Knowledge Graph API (Postgres-backed) ---
@@ -1559,20 +1617,19 @@ async def search_kg_nodes(
 ):
     """Search KG nodes by label (string + semantic)."""
     try:
+        safe_limit = max(1, min(int(limit), 500))
+    except (TypeError, ValueError):
+        safe_limit = 20
+    try:
         type_filter = type.upper() if type else None
         if q:
-            exact = _get_kg().find_nodes_by_label(q, k=limit, type_filter=type_filter)
-            semantic = _get_kg().find_nodes_semantic(q, k=limit, type_filter=type_filter)
+            exact = _get_kg().find_nodes_by_label(q, k=safe_limit, type_filter=type_filter)
+            semantic = _get_kg().find_nodes_semantic(q, k=safe_limit, type_filter=type_filter)
             seen = {r["node_id"] for r in exact}
             merged = exact + [r for r in semantic if r["node_id"] not in seen]
-            return {"nodes": merged[:limit]}
-        else:
-            # Parameterized to prevent SQL injection — never interpolate user input.
-            conn = get_db_conn()
-            try:
-                safe_limit = max(1, min(int(limit), 500))
-            except (TypeError, ValueError):
-                safe_limit = 20
+            return {"nodes": merged[:safe_limit]}
+        # Parameterized to prevent SQL injection — never interpolate user input.
+        with db_session() as conn:
             base_sql = "SELECT node_id, label, type, text_content, atc_code, icd_code FROM kg_nodes"
             if type_filter:
                 cur = db_execute(
@@ -1584,10 +1641,10 @@ async def search_kg_nodes(
                 cur = db_execute(conn, base_sql + " LIMIT %s", (safe_limit,))
             rows = [dict(r) for r in cur.fetchall()]
             cur.close()
-            conn.close()
-            return {"nodes": rows}
+        return {"nodes": rows}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception(f"kg/nodes failed: {e}")
+        raise HTTPException(status_code=500, detail="Bilgi grafiği araması başarısız.")
 
 @app.get("/api/kg/node/{node_id}")
 async def get_kg_node(node_id: str, current_user: dict = Depends(get_current_user)):
@@ -1611,7 +1668,12 @@ async def find_kg_path(
     current_user: dict = Depends(get_current_user)
 ):
     """Find shortest path between two nodes."""
-    path = _get_kg().find_path(from_id, to_id, max_hops=max_hops)
+    # Cap max_hops — BFS over the full KG can explode at higher hop counts.
+    try:
+        safe_hops = max(1, min(int(max_hops), 5))
+    except (TypeError, ValueError):
+        safe_hops = 3
+    path = _get_kg().find_path(from_id, to_id, max_hops=safe_hops)
     return {"path": path, "found": len(path) > 0}
 
 @app.post("/api/admin/kg/rebuild")
@@ -1624,15 +1686,14 @@ async def rebuild_kg(background_tasks: BackgroundTasks, admin: dict = Depends(ge
             builder.build(clear_existing=True)
             enricher = KG_Enricher()
             enricher.enrich()
-            print("[KG_REBUILD] Complete.")
+            logger.info("[KG_REBUILD] Complete.")
         except Exception as e:
-            print(f"[KG_REBUILD] Error: {e}")
+            logger.exception(f"[KG_REBUILD] Error: {e}")
 
     background_tasks.add_task(run_kg_build)
-    dbconn = get_db_conn()
-    log_audit(dbconn, "kg_rebuild_started", user_id=admin["id"])
-    dbconn.commit()
-    dbconn.close()
+    with db_session() as dbconn:
+        log_audit(dbconn, "kg_rebuild_started", user_id=admin["id"])
+        dbconn.commit()
     return {"message": "KG yeniden oluşturma işlemi arka planda başlatıldı."}
 
 @app.get("/api/admin/kg/stats")
@@ -1697,32 +1758,40 @@ async def run_kg_benchmark(admin: dict = Depends(get_current_admin)):
 
 @app.get("/api/admin/audit-logs")
 async def get_audit_logs(admin: dict = Depends(get_current_admin), limit: int = 50, offset: int = 0):
-    conn = get_db_conn()
-    cur = db_execute(conn, """
-        SELECT a.log_id, a.action_type, a.entity_type, a.entity_id, a.details, a.created_at, u.username as user_name
-        FROM audit_logs a
-        LEFT JOIN users u ON a.user_id = u.id
-        ORDER BY a.created_at DESC
-        LIMIT %s OFFSET %s
-    """, (limit, offset))
-    logs = cur.fetchall()
-    cur.close()
-    
-    cur2 = db_execute(conn, "SELECT COUNT(*) FROM audit_logs")
-    total = cur2.fetchone()[0]
-    cur2.close()
-    conn.close()
-    
+    try:
+        safe_limit = max(1, min(int(limit), 500))
+    except (TypeError, ValueError):
+        safe_limit = 50
+    try:
+        safe_offset = max(0, int(offset))
+    except (TypeError, ValueError):
+        safe_offset = 0
+
+    with db_session() as conn:
+        cur = db_execute(conn, """
+            SELECT a.log_id, a.action_type, a.entity_type, a.entity_id, a.details, a.created_at, u.username as user_name
+            FROM audit_logs a
+            LEFT JOIN users u ON a.user_id = u.id
+            ORDER BY a.created_at DESC
+            LIMIT %s OFFSET %s
+        """, (safe_limit, safe_offset))
+        logs = cur.fetchall()
+        cur.close()
+
+        cur2 = db_execute(conn, "SELECT COUNT(*) FROM audit_logs")
+        total = cur2.fetchone()[0]
+        cur2.close()
+
     parsed_logs = []
     for log in logs:
         d = dict(log)
         if d["details"]:
             try:
                 d["details"] = json.loads(d["details"])
-            except:
+            except (TypeError, ValueError, json.JSONDecodeError):
                 pass
         parsed_logs.append(d)
-        
+
     return {"logs": parsed_logs, "total": total}
 
 if __name__ == "__main__":
