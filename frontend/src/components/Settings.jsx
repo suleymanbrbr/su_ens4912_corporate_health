@@ -15,10 +15,19 @@ function Settings({ user, onLogout }) {
   }, [])
 
   useEffect(() => {
-    setTheme(localStorage.getItem('theme') || 'light')
+    const savedTheme = localStorage.getItem('theme') || 'light'
+    setTheme(savedTheme)
     setModel(localStorage.getItem('model') || 'gemini')
     setDepth(parseInt(localStorage.getItem('k_depth') || '5', 10))
+    // Apply saved theme on mount
+    document.documentElement.setAttribute('data-theme', savedTheme)
   }, [])
+
+  // Apply theme to document and persist whenever it changes (instant feedback)
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('theme', theme)
+  }, [theme])
 
   const handleSave = () => {
     localStorage.setItem('theme', theme)
@@ -74,17 +83,17 @@ function Settings({ user, onLogout }) {
               <Cpu size={20} color="var(--accent)" /> Yapay Zeka Modeli
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: '1px solid var(--border)', borderRadius: '12px', cursor: 'pointer', background: model === 'gemini' ? '#f0fdf4' : 'white', borderColor: model === 'gemini' ? '#22c55e' : 'var(--border)' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: '1px solid var(--border)', borderRadius: '12px', cursor: 'pointer', background: model === 'gemini' ? 'rgba(34,197,94,0.08)' : 'transparent', borderColor: model === 'gemini' ? '#22c55e' : 'var(--border)' }}>
                 <input type="radio" name="model" value="gemini" checked={model === 'gemini'} onChange={() => setModel('gemini')} />
-                <div>
-                  <div style={{ fontWeight: 600 }}>Google Gemini 1.5 Flash</div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Varsayılan, hızlı ve güçlü akıl yürütme.</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600 }}>Google Gemini 2.5 Flash Lite</div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Varsayılan, hızlı ve güçlü akıl yürütme. Kendi API anahtarınızla çalışır.</div>
                 </div>
               </label>
-              
-              <label style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: '1px solid var(--border)', borderRadius: '12px', cursor: 'not-allowed', background: '#f8fafc', opacity: 0.6 }}>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: '1px solid var(--border)', borderRadius: '12px', cursor: 'not-allowed', background: 'var(--bg-secondary, rgba(148,163,184,0.08))', opacity: 0.6 }}>
                 <input type="radio" name="model" value="local" disabled />
-                <div>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 600 }}>Yerel LLM (LMStudio)</div>
                   <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Kurumsal gizlilik için %100 yerel çalışma. (Kurulum Gerekir)</div>
                 </div>
