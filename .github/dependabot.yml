@@ -1,0 +1,100 @@
+version: 2
+
+# Weekly dependency updates for both ecosystems.
+#  - Minor + patch bumps are grouped into a single PR per ecosystem so the
+#    repository doesn't get flooded with one-line PRs.
+#  - Major bumps for high-impact libraries are ignored — they need manual
+#    review (LangChain breaks APIs on every minor, React 19 -> 20 will need
+#    component changes, FastAPI 1.0 will reshape middleware).
+
+updates:
+  # ── Backend (Python / pip) ──────────────────────────────────────────────────
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Istanbul"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "backend"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      backend-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      - dependency-name: "langchain"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "langchain-community"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "langchain-huggingface"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "langchain-google-genai"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "langchain-openai"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "langchain-text-splitters"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "fastapi"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "torch"
+        update-types: ["version-update:semver-major"]
+
+  # ── Frontend (npm) ──────────────────────────────────────────────────────────
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Istanbul"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "frontend"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      frontend-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-router-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "vite"
+        update-types: ["version-update:semver-major"]
+
+  # ── GitHub Actions themselves ───────────────────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Istanbul"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "ci"
+    commit-message:
+      prefix: "chore(ci)"
+    groups:
+      actions-all:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
