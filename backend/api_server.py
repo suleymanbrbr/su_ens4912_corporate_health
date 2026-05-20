@@ -13,7 +13,7 @@ from collections import Counter
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-from fastapi import FastAPI, Depends, HTTPException, status, Body, BackgroundTasks, UploadFile, File
+from fastapi import FastAPI, Depends, HTTPException, status, Body, BackgroundTasks, UploadFile, File, Response
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -23,8 +23,18 @@ from dotenv import load_dotenv
 from auth_utils import get_password_hash, verify_password, create_access_token, decode_access_token
 from sut_rag_core import SUT_RAG_Engine
 from rag_storage import SUT_Storage_Manager
+from secrets_utils import encrypt_api_key, decrypt_api_key, make_key_hint
 
 load_dotenv()
+
+# --- Startup validation: required env vars must be present ---
+# auth_utils raises on import if JWT_SECRET_KEY is missing; we also need
+# API_KEY_ENCRYPTION_KEY for per-user key storage to work at all.
+if not os.getenv("API_KEY_ENCRYPTION_KEY"):
+    raise RuntimeError(
+        "API_KEY_ENCRYPTION_KEY env var is required. "
+        "Generate one with `python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"`"
+    )
 
 # --- Global Engine Instance ---
 engine = None
@@ -209,6 +219,27 @@ def init_system_tables():
             error_message    TEXT
         )
     """)
+
+    # --- Per-user API keys (Multi-tenant SaaS) ---
+    # NOTE: users.id is TEXT (UUID) in this schema, so user_id is TEXT here
+    # (the cross-team contract used INT but our existing users table is TEXT).
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS user_api_keys (
+            id              SERIAL PRIMARY KEY,
+            user_id         TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            provider        VARCHAR(50) NOT NULL CHECK (provider IN ('gemini','openrouter','local')),
+            encrypted_key   BYTEA NOT NULL,
+            base_url        VARCHAR(500),
+            key_hint        VARCHAR(8) NOT NULL,
+            is_active       BOOLEAN DEFAULT TRUE,
+            last_used_at    TIMESTAMP,
+            created_at      TIMESTAMP DEFAULT NOW(),
+            updated_at      TIMESTAMP DEFAULT NOW(),
+            UNIQUE(user_id, provider)
+        )
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_user_api_keys_user_id ON user_api_keys(user_id)")
+
     conn.commit()
     cur.close()
     conn.close()
@@ -238,10 +269,15 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="SUT Corporate Health API", lifespan=lifespan)
 
-# --- CORS ---
+# --- CORS (env-driven, no wildcard in production) ---
+_origins = [
+    o.strip()
+    for o in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+    if o.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -457,6 +493,7 @@ class ChatQuery(BaseModel):
     conversation_id: Optional[str] = None
     role: Optional[str] = "PATIENT"  # Default to PATIENT if not provided
     k: Optional[int] = None  # RAG top-k; defaults handled in engine if None
+    provider: Optional[str] = None  # 'gemini' | 'openrouter' | 'local' — picks which stored key to use
 
 class PasswordChange(BaseModel):
     old_password: str
@@ -491,6 +528,81 @@ class ConversationPatch(BaseModel):
 class FavoriteBody(BaseModel):
     favorited: bool = True
 
+
+# --- API Key Management Models ---
+class ApiKeyCreate(BaseModel):
+    provider: str  # 'gemini' | 'openrouter' | 'local'
+    api_key: str
+    base_url: Optional[str] = None
+
+
+class ApiKeyTest(BaseModel):
+    provider: str
+    api_key: str
+    base_url: Optional[str] = None
+
+
+_VALID_PROVIDERS = {"gemini", "openrouter", "local"}
+
+def _fetch_user_api_key(user_id: str, requested_provider: Optional[str]):
+    """Return (provider, plaintext_key, base_url, key_row_id) for the user.
+
+    Selection rule:
+    - If `requested_provider` is given, look up that exact row.
+    - Otherwise, fall back to the most-recently-used active key
+      (most recently created if none has been used yet).
+    Returns (None, None, None, None) if no active key is found.
+    """
+    conn = get_db_conn()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        if requested_provider:
+            cur.execute(
+                """
+                SELECT id, provider, encrypted_key, base_url
+                FROM user_api_keys
+                WHERE user_id = %s AND provider = %s AND is_active = TRUE
+                LIMIT 1
+                """,
+                (user_id, requested_provider),
+            )
+        else:
+            cur.execute(
+                """
+                SELECT id, provider, encrypted_key, base_url
+                FROM user_api_keys
+                WHERE user_id = %s AND is_active = TRUE
+                ORDER BY (last_used_at IS NULL), last_used_at DESC, created_at DESC
+                LIMIT 1
+                """,
+                (user_id,),
+            )
+        row = cur.fetchone()
+        cur.close()
+        if not row:
+            return None, None, None, None
+        plaintext = decrypt_api_key(row["encrypted_key"])
+        return row["provider"], plaintext, row["base_url"], row["id"]
+    finally:
+        conn.close()
+
+
+def _mark_api_key_used(key_id: int):
+    """Best-effort update of last_used_at. Errors are swallowed."""
+    try:
+        conn = get_db_conn()
+        cur = conn.cursor()
+        cur.execute(
+            "UPDATE user_api_keys SET last_used_at = NOW() WHERE id = %s",
+            (key_id,),
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"[WARN] Failed to update last_used_at for api_key {key_id}: {e}")
+
+
 # --- Chat ---
 @app.post("/api/chat/query")
 async def chat_query(q: ChatQuery, current_user: dict = Depends(get_current_user)):
@@ -498,6 +610,16 @@ async def chat_query(q: ChatQuery, current_user: dict = Depends(get_current_user
     effective_conv_id = q.conversation_id or str(uuid.uuid4())
     outbound_query_id = str(uuid.uuid4())
     rag_k = q.k if q.k is not None else 5
+
+    # 0. Resolve user's LLM API key (multi-tenant: each user brings their own).
+    provider, user_api_key, user_base_url, key_row_id = _fetch_user_api_key(
+        current_user["id"], q.provider
+    )
+    if not user_api_key:
+        raise HTTPException(
+            status_code=400,
+            detail="Please configure your LLM API key in Settings → API Keys before chatting.",
+        )
 
     # 1. Fetch user documents for this conversation to provide context
     user_docs_context = ""
@@ -542,23 +664,31 @@ async def chat_query(q: ChatQuery, current_user: dict = Depends(get_current_user
             }
         }
         yield f"data: {json.dumps(meta, ensure_ascii=False)}\n\n"
-        for chunk in engine.query_agentic_rag_stream(
-            full_query,
-            chat_history=history,
-            role=q.role or "PATIENT",
-            k=rag_k,
-        ):
-            if "final_answer" in chunk:
-                ensure_conversation_row(current_user["id"], effective_conv_id, q.query)
-                save_query_history(
-                    current_user["id"],
-                    effective_conv_id,
-                    q.query,
-                    chunk["final_answer"],
-                    file_metadata=active_file_metadata,
-                    query_id=outbound_query_id,
-                )
-            yield f"data: {json.dumps(chunk, ensure_ascii=False)}\n\n"
+        try:
+            for chunk in engine.query_agentic_rag_stream(
+                full_query,
+                chat_history=history,
+                role=q.role or "PATIENT",
+                k=rag_k,
+                user_api_key=user_api_key,
+                user_provider=provider,
+                user_base_url=user_base_url,
+            ):
+                if "final_answer" in chunk:
+                    ensure_conversation_row(current_user["id"], effective_conv_id, q.query)
+                    save_query_history(
+                        current_user["id"],
+                        effective_conv_id,
+                        q.query,
+                        chunk["final_answer"],
+                        file_metadata=active_file_metadata,
+                        query_id=outbound_query_id,
+                    )
+                yield f"data: {json.dumps(chunk, ensure_ascii=False)}\n\n"
+        finally:
+            # Best-effort: record that this key was just used.
+            if key_row_id is not None:
+                _mark_api_key_used(key_row_id)
 
     return StreamingResponse(generate(), media_type="text/event-stream")
 
@@ -798,6 +928,207 @@ async def submit_feedback_report(data: FeedbackReportCreate, current_user: dict 
     conn.commit()
     conn.close()
     return {"message": "Hata bildirimi kaydedildi. Teşekkürler!"}
+
+# --- Per-User API Key Management ---
+
+@app.post("/api/user/api-keys", status_code=201)
+async def create_or_update_user_api_key(
+    data: ApiKeyCreate,
+    current_user: dict = Depends(get_current_user),
+):
+    """Store (or replace) the user's API key for a given provider."""
+    if data.provider not in _VALID_PROVIDERS:
+        raise HTTPException(status_code=400, detail=f"Geçersiz sağlayıcı. Şunlardan biri olmalı: {sorted(_VALID_PROVIDERS)}")
+    if not data.api_key or not data.api_key.strip():
+        raise HTTPException(status_code=400, detail="API anahtarı boş olamaz.")
+
+    encrypted = encrypt_api_key(data.api_key.strip())
+    hint = make_key_hint(data.api_key.strip())
+
+    conn = get_db_conn()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        # Upsert: replace existing (user_id, provider) row.
+        cur.execute(
+            """
+            INSERT INTO user_api_keys (user_id, provider, encrypted_key, base_url, key_hint, is_active, updated_at)
+            VALUES (%s, %s, %s, %s, %s, TRUE, NOW())
+            ON CONFLICT (user_id, provider) DO UPDATE
+            SET encrypted_key = EXCLUDED.encrypted_key,
+                base_url      = EXCLUDED.base_url,
+                key_hint      = EXCLUDED.key_hint,
+                is_active     = TRUE,
+                updated_at    = NOW()
+            RETURNING id, provider, key_hint, created_at
+            """,
+            (current_user["id"], data.provider, encrypted, data.base_url, hint),
+        )
+        row = cur.fetchone()
+        log_audit(
+            conn,
+            "api_key_upserted",
+            user_id=current_user["id"],
+            entity_type="user_api_key",
+            entity_id=str(row["id"]),
+            details={"provider": data.provider},
+        )
+        conn.commit()
+        cur.close()
+        return {
+            "id": row["id"],
+            "provider": row["provider"],
+            "key_hint": row["key_hint"],
+            "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+        }
+    finally:
+        conn.close()
+
+
+@app.get("/api/user/api-keys")
+async def list_user_api_keys(current_user: dict = Depends(get_current_user)):
+    """List the user's stored API keys. Never returns decrypted keys."""
+    conn = get_db_conn()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(
+            """
+            SELECT id, provider, key_hint, is_active, last_used_at, created_at
+            FROM user_api_keys
+            WHERE user_id = %s
+            ORDER BY provider ASC
+            """,
+            (current_user["id"],),
+        )
+        rows = cur.fetchall()
+        cur.close()
+        return [
+            {
+                "id": r["id"],
+                "provider": r["provider"],
+                "key_hint": r["key_hint"],
+                "is_active": r["is_active"],
+                "last_used_at": r["last_used_at"].isoformat() if r["last_used_at"] else None,
+                "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+            }
+            for r in rows
+        ]
+    finally:
+        conn.close()
+
+
+@app.delete("/api/user/api-keys/{provider}", status_code=204)
+async def delete_user_api_key(
+    provider: str,
+    current_user: dict = Depends(get_current_user),
+):
+    """Delete the user's API key for a given provider. Returns 204 No Content."""
+    if provider not in _VALID_PROVIDERS:
+        raise HTTPException(status_code=400, detail=f"Geçersiz sağlayıcı.")
+    conn = get_db_conn()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "DELETE FROM user_api_keys WHERE user_id = %s AND provider = %s",
+            (current_user["id"], provider),
+        )
+        log_audit(
+            conn,
+            "api_key_deleted",
+            user_id=current_user["id"],
+            entity_type="user_api_key",
+            entity_id=provider,
+            details={"provider": provider},
+        )
+        conn.commit()
+        cur.close()
+    finally:
+        conn.close()
+    return Response(status_code=204)
+
+
+@app.post("/api/user/api-keys/test")
+async def test_user_api_key(
+    data: ApiKeyTest,
+    current_user: dict = Depends(get_current_user),
+):
+    """Perform a tiny live LLM call to validate the supplied API key.
+    Returns {valid: bool, error?: str}. Errors are truncated to 200 chars to
+    avoid leaking provider internals back to the UI.
+    """
+    if data.provider not in _VALID_PROVIDERS:
+        return {"valid": False, "error": "Geçersiz sağlayıcı."}
+    if not data.api_key or not data.api_key.strip():
+        return {"valid": False, "error": "API anahtarı boş olamaz."}
+
+    api_key = data.api_key.strip()
+    base_url = (data.base_url or "").strip() or None
+
+    try:
+        if data.provider == "gemini":
+            import google.generativeai as gg
+            gg.configure(api_key=api_key)
+            model = gg.GenerativeModel("gemini-1.5-flash")
+            # Use generation_config to limit tokens — cheapest possible probe.
+            model.generate_content(
+                "ping",
+                generation_config={"max_output_tokens": 1},
+            )
+            return {"valid": True}
+
+        elif data.provider == "openrouter":
+            import httpx
+            r = httpx.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={"Authorization": f"Bearer {api_key}"},
+                json={
+                    "model": "google/gemma-2-9b-it",
+                    "messages": [{"role": "user", "content": "ping"}],
+                    "max_tokens": 1,
+                },
+                timeout=15,
+            )
+            if r.status_code == 200:
+                return {"valid": True}
+            return {"valid": False, "error": f"HTTP {r.status_code}: {r.text[:160]}"}
+
+        elif data.provider == "local":
+            if not base_url:
+                return {"valid": False, "error": "Yerel LLM için base_url gerekli."}
+            import httpx
+            r = httpx.get(
+                f"{base_url.rstrip('/')}/v1/models",
+                headers={"Authorization": f"Bearer {api_key}"},
+                timeout=5,
+            )
+            if r.status_code == 200:
+                return {"valid": True}
+            return {"valid": False, "error": f"HTTP {r.status_code}"}
+
+    except Exception as e:
+        return {"valid": False, "error": str(e)[:200]}
+
+    return {"valid": False, "error": "Bilinmeyen sağlayıcı durumu."}
+
+
+# --- Health Check (no auth) ---
+
+@app.get("/health")
+async def health_check():
+    """Liveness + DB readiness probe. Always returns 200 with JSON body so
+    load balancers can inspect db status without false-positive failover."""
+    db_status = "down"
+    try:
+        conn = get_db_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT 1")
+        cur.fetchone()
+        cur.close()
+        conn.close()
+        db_status = "ok"
+    except Exception:
+        db_status = "down"
+    return {"status": "ok", "db": db_status, "version": "1.0.0"}
+
 
 # --- Admin Endpoints ---
 
@@ -1236,12 +1567,21 @@ async def search_kg_nodes(
             merged = exact + [r for r in semantic if r["node_id"] not in seen]
             return {"nodes": merged[:limit]}
         else:
+            # Parameterized to prevent SQL injection — never interpolate user input.
             conn = get_db_conn()
-            q_str = f"SELECT node_id, label, type, text_content, atc_code, icd_code FROM kg_nodes"
+            try:
+                safe_limit = max(1, min(int(limit), 500))
+            except (TypeError, ValueError):
+                safe_limit = 20
+            base_sql = "SELECT node_id, label, type, text_content, atc_code, icd_code FROM kg_nodes"
             if type_filter:
-                q_str += f" WHERE type = '{type_filter}'"
-            q_str += f" LIMIT {limit}"
-            cur = db_execute(conn, q_str)
+                cur = db_execute(
+                    conn,
+                    base_sql + " WHERE type = %s LIMIT %s",
+                    (type_filter, safe_limit),
+                )
+            else:
+                cur = db_execute(conn, base_sql + " LIMIT %s", (safe_limit,))
             rows = [dict(r) for r in cur.fetchall()]
             cur.close()
             conn.close()

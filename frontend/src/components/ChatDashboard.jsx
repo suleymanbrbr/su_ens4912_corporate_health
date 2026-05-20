@@ -408,6 +408,43 @@ function ChatDashboard({ user, onLogout }) {
         navigate('/login')
         return
       }
+      if (response.status === 400) {
+        // Backend signals missing LLM API key with a Turkish/English hint.
+        const errBody = await response.json().catch(() => ({}))
+        const detail = (errBody && (errBody.detail || errBody.message)) || ''
+        const looksLikeMissingKey = /api[\s-]?key|anahtar|configure|yapıland(ı|i)r/i.test(String(detail))
+        if (looksLikeMissingKey) {
+          toast((t) => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxWidth: 320 }}>
+              <span style={{ fontWeight: 600 }}>
+                ⚠️ Lütfen önce LLM API anahtarınızı ayarlayın.
+              </span>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  onClick={() => { toast.dismiss(t.id); navigate('/settings#api-keys') }}
+                  className="btn-primary"
+                  style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                >
+                  Ayarlar'a Git
+                </button>
+                <button
+                  onClick={() => toast.dismiss(t.id)}
+                  style={{
+                    padding: '0.4rem 0.8rem', fontSize: '0.85rem',
+                    background: 'transparent', color: 'var(--text-muted)',
+                    border: '1px solid var(--border)', borderRadius: 6, cursor: 'pointer',
+                  }}
+                >
+                  Kapat
+                </button>
+              </div>
+            </div>
+          ), { duration: 10000, icon: '🔑' })
+          setChatError(detail || 'LLM API anahtarı yapılandırılmamış.')
+          return
+        }
+        throw new Error(detail || 'Sunucu hatası.')
+      }
       if (!response.ok) {
         const errText = await response.text()
         throw new Error(errText || 'Sunucu hatası.')

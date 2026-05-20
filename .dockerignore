@@ -1,0 +1,81 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# .dockerignore — applied to the root Dockerfile build context for HF Spaces.
+# Keep the image small (~500 MB embeddings + ~150 MB Python deps + ~1 MB code).
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Version control & editor cruft
+.git
+.gitignore
+.gitattributes
+.DS_Store
+.vscode
+.idea
+*.swp
+*.swo
+
+# Python build / cache
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.python-version
+.venv
+venv
+env
+*.egg-info
+.eggs
+build
+dist
+
+# Coverage / tests / linters
+.coverage
+.coverage.*
+.pytest_cache
+.mypy_cache
+.ruff_cache
+htmlcov
+coverage.xml
+tests/
+
+# Frontend (built and served separately on Vercel — never ship from backend image)
+frontend/node_modules
+frontend/dist
+frontend/.next
+frontend/.vercel
+frontend/.parcel-cache
+node_modules
+
+# Local Postgres data (lives in volume / Neon)
+data/pgdata
+data/*.db
+data/sut_knowledge_base.db
+data/sut_faiss.index
+
+# Heavy / irrelevant backend artefacts
+backend/eval_results
+backend/pandoc-3.9.0.2-x86_64-macOS.pkg
+backend/__pycache__
+backend/.env
+backend/.env.*
+
+# Academic deliverable artefacts (not needed in the container)
+Draft_Final_Report_ENS4912.pdf
+Final_Report_ENS4912.tex
+Final_Report_ENS4912.pdf
+Final_Report_ENS4912.aux
+Final_Report_ENS4912.log
+Final_Report_ENS4912.out
+Final_Report_ENS4912.toc
+*.synctex.gz
+
+# Notebooks / scratch
+*.ipynb
+.ipynb_checkpoints
+notebooks/
+
+# Secrets (defense in depth — these should never be in git either)
+.env
+.env.*
+*.pem
+*.key
+secrets/

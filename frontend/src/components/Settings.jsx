@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import toast, { Toaster } from 'react-hot-toast'
-import { ArrowLeft, Settings as SettingsIcon, Moon, Sun, Monitor, Cpu, Sliders } from 'lucide-react'
+import { ArrowLeft, Settings as SettingsIcon, Moon, Sun, Monitor, Cpu, Sliders, Key } from 'lucide-react'
+import ApiKeyManager from './ApiKeyManager'
 
 function Settings({ user, onLogout }) {
   const [theme, setTheme] = useState('light')
@@ -89,6 +90,17 @@ function Settings({ user, onLogout }) {
                 </div>
               </label>
             </div>
+          </div>
+
+          <div id="api-keys" className="premium-card" style={{ padding: '2rem' }}>
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontSize: '1.2rem' }}>
+              <Key size={20} color="var(--accent)" /> LLM API Anahtarları
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '1.25rem' }}>
+              Sohbete başlamadan önce kendi LLM API anahtarınızı ekleyin. Anahtarınız şifreli olarak saklanır
+              ve yalnızca sizin sorgularınız için kullanılır.
+            </p>
+            <ApiKeyManager />
           </div>
 
           <div className="premium-card" style={{ padding: '2rem' }}>

@@ -29,6 +29,12 @@ os.environ.setdefault(
 )
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-for-pytest-only")
 os.environ.setdefault("GEMINI_API_KEY", "dummy-key-for-unit-tests")
+# API_KEY_ENCRYPTION_KEY is now required by api_server at import time.
+# Use a deterministic Fernet key so test data stays decryptable across runs.
+os.environ.setdefault(
+    "API_KEY_ENCRYPTION_KEY",
+    "vJ2vP3y4Z6v5sQ7mY8u9N0pL1tW2k3J4f5G6h7K8d9o=",
+)
 
 # ── Lazy import so unit tests (no DB) don't crash ────────────────────────────
 @pytest.fixture(scope="session")

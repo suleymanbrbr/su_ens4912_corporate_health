@@ -79,13 +79,17 @@ class SUT_RAG_Engine:
         self.embeddings_model = self._initialize_embeddings()
         print("[INIT] Loading Reranker Model...")
         self.reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2', device='cpu')
-        
+
         self.conn = None
         self.cursor = None
         self.llm = None
         self.provider = llm_provider
+        self.default_model_name = model_name
         self.kg = KG_Storage_Manager()
 
+        # Env-var fallback LLM (admin tasks, local dev).  In multi-tenant
+        # production, each request supplies user_api_key=… and we build a
+        # fresh client per call — see _build_llm_for_request().
         if llm_provider == "google":
             self._init_google_llm(model_name)
         elif llm_provider == "openrouter":
@@ -96,6 +100,67 @@ class SUT_RAG_Engine:
             self._init_google_llm("gemini-2.0-flash")
 
         print(f"[INIT] SUT Engine Initialized. Provider: '{llm_provider}', Model: '{model_name}'")
+
+    # ─── Per-Request LLM Builder (Multi-Tenant) ──────────────────────────────
+
+    def _build_llm_for_request(
+        self,
+        user_api_key: str | None,
+        user_provider: str | None,
+        user_base_url: str | None,
+    ):
+        """Build a fresh LangChain LLM client using the caller's credentials.
+
+        Returns the per-request LLM, or `self.llm` (env-var fallback) when no
+        user_api_key is given. Does NOT cache — every request gets its own
+        client so users never share an LLM connection / API key.
+        """
+        if not user_api_key:
+            return self.llm  # fallback to env-var-initialized LLM (local dev / admin)
+
+        provider = (user_provider or "gemini").lower()
+        try:
+            if provider == "gemini":
+                model_name = self.default_model_name if self.default_model_name.startswith("gemini") else "gemini-2.0-flash"
+                if model_name.startswith("gemma"):
+                    return _NativeGemmaWrapper(model_name, user_api_key)
+                return ChatGoogleGenerativeAI(
+                    model=model_name,
+                    google_api_key=user_api_key,
+                    temperature=0.1,
+                    max_retries=1,
+                    timeout=60.0,
+                )
+            elif provider == "openrouter":
+                # OpenRouter accepts any of its catalog models; default to a
+                # cheap one if the engine was initialized with a Google model.
+                model_name = self.default_model_name
+                if model_name.startswith("gemini") or model_name.startswith("gemma"):
+                    model_name = "google/gemma-2-9b-it"
+                return ChatOpenAI(
+                    model=model_name,
+                    openai_api_key=user_api_key,
+                    openai_api_base="https://openrouter.ai/api/v1",
+                    temperature=0.1,
+                )
+            elif provider == "local":
+                raw_base = (user_base_url or os.getenv("LOCAL_LLM_API_BASE", "http://localhost:1234/v1")).strip().rstrip("/")
+                base_url = raw_base if raw_base.endswith("/v1") else f"{raw_base}/v1"
+                # LM Studio accepts any non-empty key, but use the user-provided
+                # one when supplied so people running auth-protected servers work.
+                return ChatOpenAI(
+                    model=self.default_model_name,
+                    openai_api_key=user_api_key or "lm-studio",
+                    openai_api_base=base_url,
+                    temperature=0.1,
+                    request_timeout=300,
+                )
+            else:
+                print(f"[WARN] Unknown provider '{provider}', falling back to env LLM")
+                return self.llm
+        except Exception as e:
+            print(f"[ERROR] Failed to build per-request LLM for provider '{provider}': {e}")
+            return self.llm
 
     # ─── LLM Init ────────────────────────────────────────────────────────────
 
@@ -291,12 +356,19 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
         user_query: str,
         chat_history: List[Dict] = None,
         k: int = 5,
-        role: str = "PATIENT"
+        role: str = "PATIENT",
+        user_api_key: str | None = None,
+        user_provider: str | None = None,
+        user_base_url: str | None = None,
     ) -> Generator[Dict, None, None]:
 
         if chat_history is None:
             chat_history = []
-        if self.llm is None:
+
+        # Multi-tenant: build an LLM with the caller's API key when supplied.
+        # Falls back to self.llm (env-var) otherwise.
+        runtime_llm = self._build_llm_for_request(user_api_key, user_provider, user_base_url)
+        if runtime_llm is None:
             yield {"error": "LLM not initialized."}
             return
 
@@ -384,7 +456,7 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
 
             raw = ""
             try:
-                decision_msg = self.llm.invoke([HumanMessage(content=prompt)])
+                decision_msg = runtime_llm.invoke([HumanMessage(content=prompt)])
                 raw_content = decision_msg.content
                 if isinstance(raw_content, list):
                     parts = []
@@ -449,7 +521,7 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
                 else:
                     final_answer = str(raw_answer)
                 yield {"status": "🕵️ Critic denetimi yapılıyor..."}
-                critic_feedback = self._verify_with_critic(user_query, final_answer, obs_str)
+                critic_feedback = self._verify_with_critic(user_query, final_answer, obs_str, llm=runtime_llm)
                 
                 if critic_feedback.strip().upper() == "TAMAM":
                     agent_steps.append({
@@ -494,7 +566,7 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
             yield {"agent_step": step}
 
         yield {"status": "Yanıt oluşturuluyor..."}
-        fallback_answer = self._generate_fallback_answer(user_query, observations, chat_history)
+        fallback_answer = self._generate_fallback_answer(user_query, observations, chat_history, llm=runtime_llm)
         yield {"agent_steps_complete": agent_steps}
         yield from self._iter_answer_deltas(fallback_answer)
         yield {"final_answer": fallback_answer}
@@ -615,16 +687,18 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
             parts.append(f"[Adım {i+1}] Araç: {tool} | Girdi: {args_str}\nSonuç:\n{result_preview}")
         return "\n\n".join(parts)
 
-    def _verify_with_critic(self, user_query: str, final_answer: str, observations: str) -> str:
-        """Second-pass verification by a separate LLM call."""
+    def _verify_with_critic(self, user_query: str, final_answer: str, observations: str, llm=None) -> str:
+        """Second-pass verification by a separate LLM call.
+        ``llm`` overrides self.llm when supplied (multi-tenant per-request key)."""
         critic_prompt = self.CRITIC_PROMPT.format(
             user_query=user_query,
             observations=observations,
             final_answer=final_answer
         )
+        active_llm = llm if llm is not None else self.llm
         try:
             # Use same LLM for verification but with higher precision focus
-            response = self.llm.invoke([HumanMessage(content=critic_prompt)])
+            response = active_llm.invoke([HumanMessage(content=critic_prompt)])
             res_content = response.content
             if isinstance(res_content, list):
                 parts = []
@@ -640,11 +714,13 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
         self,
         user_query: str,
         observations: List[Dict],
-        chat_history: List[Dict]
+        chat_history: List[Dict],
+        llm=None,
     ) -> str:
         """Called when max iterations hit — asks LLM to synthesize from what we have.
         Uses invoke() instead of stream() for reliability with local models.
         Truncates observations to avoid huge prompts that cause timeouts.
+        ``llm`` overrides self.llm when supplied (multi-tenant per-request key).
         """
         obs_str = self._format_observations(observations)
         # Truncate to avoid blowing up the context window / causing timeouts
@@ -661,8 +737,9 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
             f"SORU: {user_query}\n\n"
             "YANIT:"
         )
+        active_llm = llm if llm is not None else self.llm
         try:
-            resp = self.llm.invoke([HumanMessage(content=combined_prompt)])
+            resp = active_llm.invoke([HumanMessage(content=combined_prompt)])
             raw = resp.content
             if isinstance(raw, list):
                 parts = []
