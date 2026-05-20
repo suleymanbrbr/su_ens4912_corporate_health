@@ -5,6 +5,7 @@ import {
   Activity, UserMinus, UserPlus, Megaphone, Clock, TrendingUp,
   BarChart2, BookOpen, Trash2, CheckCircle, List, Settings, Share2, RefreshCw
 } from 'lucide-react'
+import { SkeletonLine } from './Skeleton'
 // Eval tab is rarely opened; load on demand.
 const EvalDashboard = lazy(() => import('./EvalDashboard'))
 
@@ -269,7 +270,21 @@ function AdminPanel({ user, onLogout }) {
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '2rem' }}>
           {loading && tab === 'overview' ? (
-            <div style={{ color: 'var(--text-muted)' }}>Yükleniyor...</div>
+            <div aria-busy="true" aria-live="polite">
+              <SkeletonLine width="18rem" height="1.4rem" style={{ marginBottom: '1.5rem' }} />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
+                {[0, 1, 2, 3].map(i => (
+                  <div key={i} className="premium-card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--card-bg)' }}>
+                    <span className="skeleton-shimmer" aria-hidden style={{ width: '50px', height: '50px', borderRadius: '12px', display: 'inline-block', flexShrink: 0 }} />
+                    <div style={{ flex: 1 }}>
+                      <SkeletonLine width="60%" height="1.4rem" />
+                      <SkeletonLine width="40%" height="0.65rem" />
+                      <SkeletonLine width="55%" height="0.65rem" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           ) : (
             <>
               {/* OVERVIEW TAB */}

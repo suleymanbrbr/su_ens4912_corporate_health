@@ -13,6 +13,7 @@ import MarkdownBody from './MarkdownBody'
 import { extractSourceRefs } from '../utils/sourceRefs'
 import { CommandPalette } from './CommandPalette'
 import WelcomeModal from './WelcomeModal'
+import { SkeletonCard } from './Skeleton'
 import FocusTrap from 'focus-trap-react'
 
 const AUTH_HEADER = () => ({ 'Authorization': `Bearer ${localStorage.getItem('token')}` })
@@ -158,6 +159,9 @@ function ChatDashboard({ user, onLogout }) {
   const [announcement, setAnnouncement] = useState(null)
   const [annDismissed, setAnnDismissed] = useState(false)
   const [welcomeOpen, setWelcomeOpen] = useState(false)
+  // True until the initial refreshData() finishes — used to swap the
+  // sidebar "Son Konuşmalar" list for skeleton cards on first paint.
+  const [convListLoading, setConvListLoading] = useState(true)
   const chatEndRef = useRef(null)
   const fileInputRef = useRef(null)
   const pendingConvOpened = useRef(false)
@@ -219,6 +223,8 @@ function ChatDashboard({ user, onLogout }) {
       }
     } catch (e) {
       if (import.meta.env.DEV) console.error(e)
+    } finally {
+      setConvListLoading(false)
     }
   }, [navigate])
 
@@ -810,7 +816,13 @@ function ChatDashboard({ user, onLogout }) {
                 aria-label="Geçmişte ara"
                 style={{ width: '100%', padding: '0.45rem 0.6rem', marginBottom: '0.5rem', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '0.8rem', boxSizing: 'border-box' }}
               />
-              {mappedForSidebar.length === 0 ? (
+              {convListLoading && mappedForSidebar.length === 0 ? (
+                <div aria-busy="true" aria-live="polite" style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  {[0, 1, 2].map(i => (
+                    <SkeletonCard key={i} rows={2} style={{ padding: '0.55rem 0.65rem' }} />
+                  ))}
+                </div>
+              ) : mappedForSidebar.length === 0 ? (
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', padding: '0.5rem', textAlign: 'center' }}>Henüz konuşma yok.</p>
               ) : (
                 Object.entries(conversationGroups).map(([group, items]) => (

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, User, Lock, Clock, Bookmark, ShieldCheck } from 'lucide-react'
+import { SkeletonLine } from './Skeleton'
 
 function Profile({ user, onLogout }) {
   const [history, setHistory] = useState([])
@@ -120,7 +121,16 @@ function Profile({ user, onLogout }) {
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '1.2rem' }}>
                 <Clock size={20} color="#f59e0b" /> Son Aramalarınız
               </h3>
-              {loading ? <p>Yükleniyor...</p> : history.length === 0 ? (
+              {loading ? (
+                <div aria-busy="true" aria-live="polite" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {[0, 1, 2, 3].map(i => (
+                    <div key={i} style={{ padding: '1rem', background: 'var(--bg-elev)', borderRadius: '8px', borderLeft: '3px solid var(--border)' }}>
+                      <SkeletonLine width={`${60 + i * 8}%`} height="0.95rem" />
+                      <SkeletonLine width="35%" height="0.7rem" style={{ marginTop: '0.45rem' }} />
+                    </div>
+                  ))}
+                </div>
+              ) : history.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '1.5rem 0', color: 'var(--text-muted)' }}>
                   <p style={{ marginBottom: '0.75rem' }}>Henüz arama yapmadınız.</p>
                   <Link to="/" className="btn-primary" style={{ display: 'inline-block', textDecoration: 'none' }}>Sohbete Başla</Link>
