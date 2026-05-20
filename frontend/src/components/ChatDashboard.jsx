@@ -4,7 +4,7 @@ import toast, { Toaster } from 'react-hot-toast'
 import {
   MessageSquare, Send, BookOpen, Clock, Settings, LogOut, User, Search,
   HelpCircle, Shield, Bot, Bookmark, ThumbsUp, ThumbsDown,
-  Network, FileText, Book, X, Megaphone, Menu, Copy, Flag, Bell, Cpu, MoreHorizontal, Pencil, Star, Trash2
+  Network, FileText, Book, X, Megaphone, Menu, Copy, Flag, Bell, Cpu, MoreHorizontal, Pencil, Star, Trash2, RotateCw
 } from 'lucide-react'
 // KnowledgeGraph pulls in react-force-graph-2d (heavy). Lazy-load so the
 // chat path doesn't pay for it on every initial visit.
@@ -396,13 +396,17 @@ function ChatDashboard({ user, onLogout }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault()
-    if (!input.trim() || loading) return
+  /**
+   * Core send-and-stream routine. Called by both the form submit handler
+   * and the regenerate-answer button (which skips appending a duplicate
+   * user message because the original one is still in `messages`).
+   */
+  const sendQueryToBackend = async (userMessage, { appendUserMessage = true } = {}) => {
+    if (!userMessage || loading) return
 
-    const userMessage = input
-    setInput('')
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }])
+    if (appendUserMessage) {
+      setMessages(prev => [...prev, { role: 'user', content: userMessage }])
+    }
     setLoading(true)
     setStreamStarted(false)
     setChatError(null)
@@ -568,6 +572,69 @@ function ChatDashboard({ user, onLogout }) {
       setCurrentAnalysis('')
       setStreamStarted(false)
     }
+  }
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault()
+    if (!input.trim() || loading) return
+    const userMessage = input
+    setInput('')
+    await sendQueryToBackend(userMessage, { appendUserMessage: true })
+  }
+
+  /**
+   * Edit a user message: pulls its text back into the chat input and
+   * removes the message + the assistant reply that immediately follows
+   * it from the visible transcript. This is a LOCAL fork — server
+   * history is untouched. User can then modify and re-send.
+   */
+  const handleEditUserMessage = (index) => {
+    const target = messages[index]
+    if (!target || target.role !== 'user') return
+    if (loading) {
+      toast('Yanıt akışı sürüyor — beklenmeli.', { icon: '⌛' })
+      return
+    }
+    if (!window.confirm('Bu mesajı düzenlemek üzeresiniz. Mesaj ve devamındaki yanıt görünümden kaldırılacak. Devam edilsin mi?')) return
+    setMessages(prev => {
+      // Drop the user message + the next message if it's an assistant reply.
+      const next = [...prev]
+      const removeCount = (next[index + 1]?.role === 'assistant') ? 2 : 1
+      next.splice(index, removeCount)
+      return next
+    })
+    setInput(target.content || '')
+    // Focus the input on the next tick.
+    setTimeout(() => {
+      const el = document.querySelector('.chat-send-form input[type="text"]')
+      el?.focus?.()
+    }, 0)
+  }
+
+  /**
+   * Regenerate the LAST assistant message: drops it and re-sends the
+   * preceding user message to /api/chat/query with the same conversation
+   * context. Non-destructive (no confirmation prompt).
+   */
+  const handleRegenerateLast = async () => {
+    if (loading) return
+    // Locate the trailing assistant message and the user message just before it.
+    let assistantIdx = -1
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === 'assistant') { assistantIdx = i; break }
+      // If a user message appears after the latest assistant, can't regenerate yet.
+      if (messages[i].role === 'user') break
+    }
+    if (assistantIdx === -1) return
+    let userIdx = -1
+    for (let i = assistantIdx - 1; i >= 0; i--) {
+      if (messages[i].role === 'user') { userIdx = i; break }
+    }
+    if (userIdx === -1) return
+    const userText = messages[userIdx].content
+    // Drop the assistant message so the streaming reply takes its place.
+    setMessages(prev => prev.filter((_, i) => i !== assistantIdx))
+    await sendQueryToBackend(userText, { appendUserMessage: false })
   }
 
   const submitFeedbackReport = async () => {
@@ -1033,12 +1100,34 @@ function ChatDashboard({ user, onLogout }) {
                   const refs = isAssistant && msg.content
                     ? extractSourceRefs(msg.content.replace(/<KAYNAKLAR>[\s\S]*$/i, ''))
                     : []
+                  // Is this the LAST assistant message in the transcript?
+                  // Only the last one gets a Regenerate button.
+                  const isLastAssistant = isAssistant && !msg.streaming && (() => {
+                    for (let j = messages.length - 1; j >= 0; j--) {
+                      if (messages[j].role === 'assistant') return j === i
+                    }
+                    return false
+                  })()
                   return (
-                  <div key={msg.id || `m-${i}`} style={{ marginBottom: '2.5rem', animation: 'fadeIn 0.5s ease' }}>
-                    <div style={{ display: 'flex', gap: '1rem', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                  <div key={msg.id || `m-${i}`} className="msg-row" style={{ marginBottom: '2.5rem', animation: 'fadeIn 0.5s ease' }}>
+                    <div style={{ display: 'flex', gap: '1rem', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start', alignItems: 'flex-start' }}>
                       {isAssistant && (
                         <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0 }} aria-hidden>
                           <Bot size={18} />
+                        </div>
+                      )}
+                      {msg.role === 'user' && (
+                        <div className="msg-hover-actions no-print" style={{ alignSelf: 'center' }}>
+                          <button
+                            type="button"
+                            aria-label="Mesajı düzenle"
+                            title="Mesajı düzenle"
+                            className="msg-hover-btn"
+                            onClick={() => handleEditUserMessage(i)}
+                            disabled={loading}
+                          >
+                            <Pencil size={14} />
+                          </button>
                         </div>
                       )}
                       <div style={{ maxWidth: 'min(80%, 720px)' }}>
@@ -1122,6 +1211,20 @@ function ChatDashboard({ user, onLogout }) {
                       {msg.role === 'user' && (
                         <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--card-bg)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', flexShrink: 0 }}>
                           <User size={18} />
+                        </div>
+                      )}
+                      {isLastAssistant && (
+                        <div className="msg-hover-actions no-print" style={{ alignSelf: 'center' }}>
+                          <button
+                            type="button"
+                            aria-label="Yanıtı yeniden oluştur"
+                            title="Yanıtı yeniden oluştur"
+                            className="msg-hover-btn"
+                            onClick={handleRegenerateLast}
+                            disabled={loading}
+                          >
+                            <RotateCw size={14} />
+                          </button>
                         </div>
                       )}
                     </div>

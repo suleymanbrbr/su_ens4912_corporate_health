@@ -217,3 +217,48 @@ input:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .streaming-cursor { animation: none; opacity: 0.65; }
 }
+
+/* ─── Per-message hover actions (Edit / Regenerate buttons) ─── */
+.msg-row { position: relative; }
+
+.msg-hover-actions {
+  display: inline-flex;
+  gap: 0.25rem;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.msg-row:hover .msg-hover-actions,
+.msg-row:focus-within .msg-hover-actions {
+  opacity: 1;
+}
+
+/* On touch devices (no real hover), keep actions always visible so users
+   can still tap them. */
+@media (hover: none) {
+  .msg-hover-actions { opacity: 1; }
+}
+
+.msg-hover-btn {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 8px;
+  padding: 0.3rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.msg-hover-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.msg-hover-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
