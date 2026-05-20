@@ -1046,7 +1046,12 @@ function ChatDashboard({ user, onLogout }) {
                           {msg.role === 'user' ? (
                             <div style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</div>
                           ) : (
-                            renderMessageContent(msg.content)
+                            <>
+                              {renderMessageContent(msg.content)}
+                              {msg.streaming && (
+                                <span className="streaming-cursor" aria-hidden>▌</span>
+                              )}
+                            </>
                           )}
 
                           {isAssistant && refs.length > 0 && (
