@@ -1,13 +1,16 @@
 # sut_rag_core.py
 # Description: SUT Agentic RAG Engine — ReAct-style Tool-Calling Loop, PostgreSQL Edition
 
-import os
+import ast
+import logging
 import json
-import math
-import uuid
+import operator as _op
+import os
 import psycopg2
 from typing import List, Dict, Generator
 from sentence_transformers import CrossEncoder
+
+logger = logging.getLogger(__name__)
 
 # LangChain & AI Libraries
 import google.generativeai as google_genai
@@ -77,7 +80,7 @@ MIN_SEARCHES_BEFORE_FINISH = 1  # agent must call at least 1 search tool
 class SUT_RAG_Engine:
     def __init__(self, llm_provider: str = "google", model_name: str = "gemini-2.5-flash-lite"):
         self.embeddings_model = self._initialize_embeddings()
-        print("[INIT] Loading Reranker Model...")
+        logger.info("Loading Reranker Model...")
         self.reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2', device='cpu')
 
         self.conn = None
@@ -99,7 +102,7 @@ class SUT_RAG_Engine:
         else:
             self._init_google_llm("gemini-2.5-flash-lite")
 
-        print(f"[INIT] SUT Engine Initialized. Provider: '{llm_provider}', Model: '{model_name}'")
+        logger.info(f"SUT Engine Initialized. Provider: '{llm_provider}', Model: '{model_name}'")
 
     # ─── Per-Request LLM Builder (Multi-Tenant) ──────────────────────────────
 
@@ -156,10 +159,10 @@ class SUT_RAG_Engine:
                     request_timeout=300,
                 )
             else:
-                print(f"[WARN] Unknown provider '{provider}', falling back to env LLM")
+                logger.warning(f"Unknown provider '{provider}', falling back to env LLM")
                 return self.llm
         except Exception as e:
-            print(f"[ERROR] Failed to build per-request LLM for provider '{provider}': {e}")
+            logger.error(f"Failed to build per-request LLM for provider '{provider}': {e}")
             return self.llm
 
     # ─── LLM Init ────────────────────────────────────────────────────────────
@@ -201,7 +204,7 @@ class SUT_RAG_Engine:
         # OpenAI-compatible servers expect .../v1 (LM Studio default). Avoid silent failures when .env omits /v1.
         base_url = raw_base if raw_base.endswith("/v1") else f"{raw_base}/v1"
         api_key  = os.getenv("LOCAL_LLM_API_KEY",  "lm-studio")  # LM Studio accepts any non-empty string
-        print(f"[INIT] Connecting to local LLM server at: {base_url}")
+        logger.info(f"Connecting to local LLM server at: {base_url}")
         self.llm = ChatOpenAI(
             model=model_name,
             openai_api_key=api_key,
@@ -226,7 +229,7 @@ class SUT_RAG_Engine:
             exists = cur.fetchone()[0]
             if not exists:
                 cur.close()
-                print("[WARN] 'chunks' table not found. Re-index required from Admin Panel.")
+                logger.warning("'chunks' table not found. Re-index required from Admin Panel.")
                 return True
             cur.execute(
                 "SELECT vector_dims(embedding) FROM chunks WHERE embedding IS NOT NULL LIMIT 1"
@@ -236,12 +239,12 @@ class SUT_RAG_Engine:
             dim = row[0] if row else None
             resolved = resolve_embedding_model_name(dim)
             if resolved != self._embedding_model_name:
-                print(f"[INIT] Aligning embedding model with DB ({dim}d vectors): {resolved}")
+                logger.info(f"Aligning embedding model with DB ({dim}d vectors): {resolved}")
                 self._embedding_model_name = resolved
                 self.embeddings_model = build_hf_embeddings(resolved)
             return True
         except Exception as e:
-            print(f"[WARN] Postgres database connection failed: {e}")
+            logger.warning(f"Postgres database connection failed: {e}")
             return False
 
     # ─── Tool Definitions (schema injected into system prompt) ───────────────
@@ -629,7 +632,7 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
                 candidates.sort(key=lambda x: x['score'], reverse=True)
             return candidates[:k]
         except Exception as e:
-            print(f"[ERROR] Chunk retrieval failed: {e}")
+            logger.error(f"Chunk retrieval failed: {e}")
             if self.conn: self.conn.rollback()
             return []
 
@@ -654,18 +657,62 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
             cur.close()
             return results
         except Exception as e:
-            print(f"[ERROR] Full-text search failed: {e}")
+            logger.error(f"Full-text search failed: {e}")
             if self.conn: self.conn.rollback()
             return []
 
+    # Allowed AST operators for _safe_calculate. Explicit whitelist instead of
+    # eval() — even with sanitized input, eval() is an audit red flag for a
+    # tool exposed to LLM-generated arguments.
+    _ALLOWED_AST_OPS = {
+        ast.Add: _op.add,
+        ast.Sub: _op.sub,
+        ast.Mult: _op.mul,
+        ast.Div: _op.truediv,
+        ast.FloorDiv: _op.floordiv,
+        ast.Mod: _op.mod,
+        ast.Pow: _op.pow,
+        ast.USub: _op.neg,
+        ast.UAdd: _op.pos,
+    }
+
     def _safe_calculate(self, expression: str) -> str:
-        allowed_names = {"abs": abs, "round": round, "min": min, "max": max, "pow": pow, "sqrt": math.sqrt, "ceil": math.ceil, "floor": math.floor}
+        """Evaluate a simple math expression using ast.parse — never eval/exec.
+
+        Supports +, -, *, /, //, %, **, unary -/+ and parentheses on numeric
+        literals only. Anything else (names, attributes, calls, comprehensions,
+        f-strings, …) raises ValueError and returns an error string.
+        """
+        expr = (expression or "").strip()
+        if not expr:
+            return "Hesaplama hatası: ifade boş."
+        if len(expr) > 200:
+            return "Hesaplama hatası: ifade çok uzun."
         try:
-            safe_expr = "".join(c for c in expression if c in "0123456789+-*/.() ")
-            result = eval(safe_expr, {"__builtins__": {}}, allowed_names)
+            tree = ast.parse(expr, mode="eval")
+            result = self._eval_ast_node(tree.body)
             return f"Hesaplama: {expression} = {result}"
-        except Exception as e:
-            return f"Hesaplama hatası: {str(e)}"
+        except ZeroDivisionError:
+            return "Hesaplama hatası: sıfıra bölünme."
+        except (ValueError, SyntaxError, TypeError, OverflowError) as e:
+            return f"Hesaplama hatası: {str(e)[:120]}"
+
+    def _eval_ast_node(self, node):
+        if isinstance(node, ast.Constant):
+            if isinstance(node.value, (int, float)):
+                return node.value
+            raise ValueError("yalnızca sayılar desteklenir")
+        if isinstance(node, ast.BinOp):
+            op = self._ALLOWED_AST_OPS.get(type(node.op))
+            if op is None:
+                raise ValueError(f"desteklenmeyen operatör: {type(node.op).__name__}")
+            return op(self._eval_ast_node(node.left), self._eval_ast_node(node.right))
+        if isinstance(node, ast.UnaryOp):
+            op = self._ALLOWED_AST_OPS.get(type(node.op))
+            if op is None:
+                raise ValueError(f"desteklenmeyen tek terimli operatör: {type(node.op).__name__}")
+            return op(self._eval_ast_node(node.operand))
+        raise ValueError(f"desteklenmeyen ifade: {type(node).__name__}")
 
     def _format_chunks_result(self, chunks: List[Dict]) -> str:
         if not chunks: return "Araştırma sonucu bulunamadı. Farklı anahtar kelimeler deneyin."
@@ -755,5 +802,5 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
                 result = result.split("</think>", 1)[-1].strip()
             return result if result else "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı."
         except Exception as e:
-            print(f"[FALLBACK ERROR] {type(e).__name__}: {e}")
+            logger.error(f"Fallback synthesis failed [{type(e).__name__}]: {e}")
             return "Bu soruya ilişkin SUT mevzuatında yeterli bilgi bulunamadı."
