@@ -7,23 +7,40 @@ import uuid
 import json
 import re
 from typing import List, Optional
-from contextlib import asynccontextmanager, contextmanager
+from contextlib import asynccontextmanager
 from collections import Counter
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
 from fastapi import FastAPI, Depends, HTTPException, status, Body, BackgroundTasks, UploadFile, File, Response
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, EmailStr
 from dotenv import load_dotenv
 
-from auth_utils import get_password_hash, verify_password, create_access_token, decode_access_token
 from sut_rag_core import SUT_RAG_Engine
 from rag_storage import SUT_Storage_Manager
-from secrets_utils import encrypt_api_key, decrypt_api_key, make_key_hint
+from secrets_utils import decrypt_api_key
+
+# Shared dependencies + DB helpers live in deps.py since multiple routers
+# need them. We re-import them at module scope so anything that still
+# references ``api_server.db_session`` etc. keeps working.
+from deps import (  # noqa: F401  (re-exported for tests and legacy callers)
+    HISTORY_PAGE_LIMIT,
+    MAX_PDF_UPLOAD_BYTES,
+    MIN_PASSWORD_LENGTH,
+    VALID_PROVIDERS as _VALID_PROVIDERS,
+    VALID_USER_ROLES,
+    db_execute,
+    db_session,
+    get_current_admin,
+    get_current_user,
+    get_db_conn,
+    log_audit,
+)
+from routers import auth as _auth_router
+from routers import user_keys as _user_keys_router
 
 load_dotenv()
 
@@ -44,51 +61,14 @@ if not os.getenv("API_KEY_ENCRYPTION_KEY"):
     )
 
 # --- Global Engine Instance ---
+# Set by the lifespan handler below; exposed at module scope so tests can
+# patch ``api_server.engine`` directly (see tests/conftest.py).
 engine = None
 
-# --- Constants ---
-VALID_USER_ROLES = {"user", "admin"}
-MIN_PASSWORD_LENGTH = 8           # registration minimum (existing accounts not enforced)
-MAX_PDF_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MiB server-side cap on PDF uploads
-HISTORY_PAGE_LIMIT = 200
-
-# --- DB Helper ---
-def get_db_conn():
-    """Open a new psycopg2 connection. Callers MUST close it (use `db_session`)."""
-    conn = psycopg2.connect(os.getenv("DATABASE_URL"), cursor_factory=psycopg2.extras.DictCursor)
-    return conn
-
-
-@contextmanager
-def db_session():
-    """Context manager that yields a connection and guarantees `.close()`.
-
-    Always rolls back on exception so a failed query never leaves a connection
-    in an inconsistent state in the pool. Callers still call `.commit()`
-    explicitly on the happy path — this preserves the existing transaction
-    semantics across endpoints.
-    """
-    conn = get_db_conn()
-    try:
-        yield conn
-    except Exception:
-        try:
-            conn.rollback()
-        except Exception:  # noqa: BLE001
-            pass
-        raise
-    finally:
-        try:
-            conn.close()
-        except Exception:  # noqa: BLE001
-            pass
-
-
-def db_execute(conn, query, params=None):
-    """Helper: run a query and return cursor."""
-    cur = conn.cursor()
-    cur.execute(query, params)
-    return cur
+# Constants (VALID_USER_ROLES, MIN_PASSWORD_LENGTH, MAX_PDF_UPLOAD_BYTES,
+# HISTORY_PAGE_LIMIT) and helpers (get_db_conn, db_session, db_execute) are
+# imported from ``deps`` above; we keep the names available at api_server
+# module scope as re-exports for any legacy callers.
 
 # --- DB Init Helper ---
 def init_system_tables():
@@ -284,17 +264,8 @@ def init_system_tables():
     cur.close()
     conn.close()
 
-def log_audit(conn, action_type, user_id=None, entity_type=None, entity_id=None, details=None):
-    try:
-        details_json = json.dumps(details, ensure_ascii=False) if details else None
-        cur = conn.cursor()
-        cur.execute(
-            "INSERT INTO audit_logs (log_id, user_id, action_type, entity_type, entity_id, details) VALUES (%s, %s, %s, %s, %s, %s)",
-            (str(uuid.uuid4()), user_id, action_type, entity_type, entity_id, details_json)
-        )
-        cur.close()
-    except Exception as e:
-        logger.warning(f"Failed to log audit: {e}")
+# ``log_audit`` is imported from ``deps`` (see top of file).
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -323,111 +294,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- Auth Models ---
-class UserRegister(BaseModel):
-    username: str
-    email: EmailStr
-    password: str
-    role: Optional[str] = "user"
+# --- Routers wired in below ---
+# Auth + user-key endpoints live in ``routers/auth.py`` and ``routers/user_keys.py``.
+# Their Pydantic models (UserRegister, Token, UserResponse, PasswordChange,
+# ApiKeyCreate, ApiKeyTest) are defined alongside the routers. We re-export
+# the response models that other endpoints in this file still annotate with.
+from routers.auth import Token, UserRegister, UserResponse  # noqa: F401,E402
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
+app.include_router(_auth_router.router)
+app.include_router(_user_keys_router.router)
 
-class UserResponse(BaseModel):
-    id: str
-    username: str
-    email: str
-    role: str
-    is_approved: int
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
-
-async def get_current_user(token: str = Depends(oauth2_scheme)):
-    payload = decode_access_token(token)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
-    username: str = payload.get("sub")
-    with db_session() as conn:
-        cur = db_execute(conn, "SELECT * FROM users WHERE username = %s", (username,))
-        user = cur.fetchone()
-        cur.close()
-
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
-    return dict(user)
-
-async def get_current_admin(current_user: dict = Depends(get_current_user)):
-    if current_user.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Admin privileges required")
-    return current_user
-
-# --- Endpoints ---
-
-@app.post("/api/auth/register", response_model=UserResponse)
-async def register(user: UserRegister):
-    # Server-side password policy. The frontend also enforces this, but never
-    # trust the client.  We accept any 8+ char password (bcrypt then caps at
-    # 72 utf-8 bytes); existing accounts are not affected.
-    if len(user.password or "") < MIN_PASSWORD_LENGTH:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Şifre en az {MIN_PASSWORD_LENGTH} karakter olmalıdır.",
-        )
-
-    # Basic username hygiene — keep API response shape but avoid empty / whitespace.
-    if not user.username or not user.username.strip():
-        raise HTTPException(status_code=400, detail="Kullanıcı adı zorunludur.")
-
-    with db_session() as conn:
-        cur = db_execute(conn, "SELECT id FROM users WHERE username = %s OR email = %s", (user.username, user.email))
-        existing = cur.fetchone()
-        cur.close()
-        if existing:
-            raise HTTPException(status_code=400, detail="User already exists")
-
-        user_id = str(uuid.uuid4())
-        hashed_pwd = get_password_hash(user.password)
-        role = user.role if user.role in VALID_USER_ROLES else "user"
-
-        cur = db_execute(conn, "SELECT COUNT(*) FROM users")
-        user_count = cur.fetchone()[0]
-        cur.close()
-        is_approved = 1 if user_count == 0 else 0
-
-        db_execute(conn,
-            "INSERT INTO users (id, username, email, hashed_password, role, is_approved) VALUES (%s, %s, %s, %s, %s, %s)",
-            (user_id, user.username, user.email, hashed_pwd, role, is_approved)
-        )
-        log_audit(conn, "register", user_id=user_id, entity_type="user", entity_id=user_id, details={"username": user.username, "roles": role})
-        conn.commit()
-        return {"id": user_id, "username": user.username, "email": user.email, "role": role, "is_approved": is_approved}
-
-@app.post("/api/auth/login", response_model=Token)
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    with db_session() as conn:
-        cur = db_execute(conn, "SELECT * FROM users WHERE username = %s OR email = %s", (form_data.username, form_data.username))
-        user = cur.fetchone()
-        cur.close()
-
-        if not user or not verify_password(form_data.password, user["hashed_password"]):
-            raise HTTPException(status_code=401, detail="Incorrect credentials")
-
-        if user["is_approved"] == 0:
-            raise HTTPException(status_code=403, detail="Hesabınız henüz onaylanmamıştır.")
-
-        log_audit(conn, "login", user_id=user["id"])
-        conn.commit()
-        username = user["username"]
-        role = user["role"]
-
-    access_token = create_access_token(data={"sub": username, "role": role})
-    return {"access_token": access_token, "token_type": "bearer"}
-
-@app.get("/api/auth/me", response_model=UserResponse)
-async def me(current_user: dict = Depends(get_current_user)):
-    return current_user
 
 @app.get("/api/admin/users", response_model=List[UserResponse])
 async def list_users(admin: dict = Depends(get_current_admin)):
@@ -540,10 +416,7 @@ class ChatQuery(BaseModel):
     k: Optional[int] = None  # RAG top-k; defaults handled in engine if None
     provider: Optional[str] = None  # 'gemini' | 'openrouter' | 'local' — picks which stored key to use
 
-class PasswordChange(BaseModel):
-    old_password: str
-    new_password: str
-
+# ``PasswordChange`` lives in routers.auth.
 class SaveResponse(BaseModel):
     query: str
     response: str
@@ -574,20 +447,8 @@ class FavoriteBody(BaseModel):
     favorited: bool = True
 
 
-# --- API Key Management Models ---
-class ApiKeyCreate(BaseModel):
-    provider: str  # 'gemini' | 'openrouter' | 'local'
-    api_key: str
-    base_url: Optional[str] = None
-
-
-class ApiKeyTest(BaseModel):
-    provider: str
-    api_key: str
-    base_url: Optional[str] = None
-
-
-_VALID_PROVIDERS = {"gemini", "openrouter", "local"}
+# ``ApiKeyCreate`` / ``ApiKeyTest`` live in routers.user_keys.
+# ``_VALID_PROVIDERS`` is re-exported from deps at module top.
 
 def _fetch_user_api_key(user_id: str, requested_provider: Optional[str]):
     """Return (provider, plaintext_key, base_url, key_row_id) for the user.
@@ -813,28 +674,6 @@ async def submit_feedback(data: FeedbackCreate, current_user: dict = Depends(get
         conn.commit()
     return {"message": "Geri bildiriminiz kaydedildi. Teşekkürler!"}
 
-@app.put("/api/auth/password")
-async def change_password(data: PasswordChange, current_user: dict = Depends(get_current_user)):
-    # Enforce the same min-length policy on password change.
-    if len(data.new_password or "") < MIN_PASSWORD_LENGTH:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Yeni şifre en az {MIN_PASSWORD_LENGTH} karakter olmalıdır.",
-        )
-
-    with db_session() as conn:
-        cur = db_execute(conn, "SELECT hashed_password FROM users WHERE id = %s", (current_user["id"],))
-        user = cur.fetchone()
-        cur.close()
-        if not user or not verify_password(data.old_password, user["hashed_password"]):
-            raise HTTPException(status_code=400, detail="Mevcut şifre yanlış")
-
-        new_hashed = get_password_hash(data.new_password)
-        db_execute(conn, "UPDATE users SET hashed_password = %s WHERE id = %s", (new_hashed, current_user["id"]))
-        log_audit(conn, "password_change", user_id=current_user["id"])
-        conn.commit()
-    return {"message": "Şifre başarıyla güncellendi."}
-
 @app.get("/api/history")
 async def get_history(current_user: dict = Depends(get_current_user)):
     with db_session() as conn:
@@ -993,176 +832,7 @@ async def submit_feedback_report(data: FeedbackReportCreate, current_user: dict 
         conn.commit()
     return {"message": "Hata bildirimi kaydedildi. Teşekkürler!"}
 
-# --- Per-User API Key Management ---
-
-@app.post("/api/user/api-keys", status_code=201)
-async def create_or_update_user_api_key(
-    data: ApiKeyCreate,
-    current_user: dict = Depends(get_current_user),
-):
-    """Store (or replace) the user's API key for a given provider."""
-    if data.provider not in _VALID_PROVIDERS:
-        raise HTTPException(status_code=400, detail=f"Geçersiz sağlayıcı. Şunlardan biri olmalı: {sorted(_VALID_PROVIDERS)}")
-    if not data.api_key or not data.api_key.strip():
-        raise HTTPException(status_code=400, detail="API anahtarı boş olamaz.")
-
-    encrypted = encrypt_api_key(data.api_key.strip())
-    hint = make_key_hint(data.api_key.strip())
-
-    with db_session() as conn:
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        # Upsert: replace existing (user_id, provider) row.
-        cur.execute(
-            """
-            INSERT INTO user_api_keys (user_id, provider, encrypted_key, base_url, key_hint, is_active, updated_at)
-            VALUES (%s, %s, %s, %s, %s, TRUE, NOW())
-            ON CONFLICT (user_id, provider) DO UPDATE
-            SET encrypted_key = EXCLUDED.encrypted_key,
-                base_url      = EXCLUDED.base_url,
-                key_hint      = EXCLUDED.key_hint,
-                is_active     = TRUE,
-                updated_at    = NOW()
-            RETURNING id, provider, key_hint, created_at
-            """,
-            (current_user["id"], data.provider, encrypted, data.base_url, hint),
-        )
-        row = cur.fetchone()
-        log_audit(
-            conn,
-            "api_key_upserted",
-            user_id=current_user["id"],
-            entity_type="user_api_key",
-            entity_id=str(row["id"]),
-            details={"provider": data.provider},
-        )
-        conn.commit()
-        cur.close()
-        return {
-            "id": row["id"],
-            "provider": row["provider"],
-            "key_hint": row["key_hint"],
-            "created_at": row["created_at"].isoformat() if row["created_at"] else None,
-        }
-
-
-@app.get("/api/user/api-keys")
-async def list_user_api_keys(current_user: dict = Depends(get_current_user)):
-    """List the user's stored API keys. Never returns decrypted keys."""
-    with db_session() as conn:
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute(
-            """
-            SELECT id, provider, key_hint, is_active, last_used_at, created_at
-            FROM user_api_keys
-            WHERE user_id = %s
-            ORDER BY provider ASC
-            """,
-            (current_user["id"],),
-        )
-        rows = cur.fetchall()
-        cur.close()
-    return [
-        {
-            "id": r["id"],
-            "provider": r["provider"],
-            "key_hint": r["key_hint"],
-            "is_active": r["is_active"],
-            "last_used_at": r["last_used_at"].isoformat() if r["last_used_at"] else None,
-            "created_at": r["created_at"].isoformat() if r["created_at"] else None,
-        }
-        for r in rows
-    ]
-
-
-@app.delete("/api/user/api-keys/{provider}", status_code=204)
-async def delete_user_api_key(
-    provider: str,
-    current_user: dict = Depends(get_current_user),
-):
-    """Delete the user's API key for a given provider. Returns 204 No Content."""
-    if provider not in _VALID_PROVIDERS:
-        raise HTTPException(status_code=400, detail="Geçersiz sağlayıcı.")
-    with db_session() as conn:
-        cur = conn.cursor()
-        cur.execute(
-            "DELETE FROM user_api_keys WHERE user_id = %s AND provider = %s",
-            (current_user["id"], provider),
-        )
-        log_audit(
-            conn,
-            "api_key_deleted",
-            user_id=current_user["id"],
-            entity_type="user_api_key",
-            entity_id=provider,
-            details={"provider": provider},
-        )
-        conn.commit()
-        cur.close()
-    return Response(status_code=204)
-
-
-@app.post("/api/user/api-keys/test")
-async def test_user_api_key(
-    data: ApiKeyTest,
-    current_user: dict = Depends(get_current_user),
-):
-    """Perform a tiny live LLM call to validate the supplied API key.
-    Returns {valid: bool, error?: str}. Errors are truncated to 200 chars to
-    avoid leaking provider internals back to the UI.
-    """
-    if data.provider not in _VALID_PROVIDERS:
-        return {"valid": False, "error": "Geçersiz sağlayıcı."}
-    if not data.api_key or not data.api_key.strip():
-        return {"valid": False, "error": "API anahtarı boş olamaz."}
-
-    api_key = data.api_key.strip()
-    base_url = (data.base_url or "").strip() or None
-
-    try:
-        if data.provider == "gemini":
-            import google.generativeai as gg
-            gg.configure(api_key=api_key)
-            model = gg.GenerativeModel("gemini-2.5-flash-lite")
-            # Use generation_config to limit tokens — cheapest possible probe.
-            model.generate_content(
-                "ping",
-                generation_config={"max_output_tokens": 1},
-            )
-            return {"valid": True}
-
-        elif data.provider == "openrouter":
-            import httpx
-            r = httpx.post(
-                "https://openrouter.ai/api/v1/chat/completions",
-                headers={"Authorization": f"Bearer {api_key}"},
-                json={
-                    "model": "google/gemma-2-9b-it",
-                    "messages": [{"role": "user", "content": "ping"}],
-                    "max_tokens": 1,
-                },
-                timeout=15,
-            )
-            if r.status_code == 200:
-                return {"valid": True}
-            return {"valid": False, "error": f"HTTP {r.status_code}: {r.text[:160]}"}
-
-        elif data.provider == "local":
-            if not base_url:
-                return {"valid": False, "error": "Yerel LLM için base_url gerekli."}
-            import httpx
-            r = httpx.get(
-                f"{base_url.rstrip('/')}/v1/models",
-                headers={"Authorization": f"Bearer {api_key}"},
-                timeout=5,
-            )
-            if r.status_code == 200:
-                return {"valid": True}
-            return {"valid": False, "error": f"HTTP {r.status_code}"}
-
-    except Exception as e:
-        return {"valid": False, "error": str(e)[:200]}
-
-    return {"valid": False, "error": "Bilinmeyen sağlayıcı durumu."}
+# Per-user API key endpoints now live in routers/user_keys.py.
 
 
 # --- Health Check (no auth) ---
