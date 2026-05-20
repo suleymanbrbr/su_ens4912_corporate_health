@@ -10,6 +10,9 @@ license: mit
 short_description: Multi-tenant Agentic RAG for the Turkish SUT health-policy corpus.
 ---
 
+[![CI](https://github.com/suleymanbrbr/su_ens4912_corporate_health/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/suleymanbrbr/su_ens4912_corporate_health/actions/workflows/ci.yml)
+[![Frontend build](https://github.com/suleymanbrbr/su_ens4912_corporate_health/actions/workflows/frontend-build.yml/badge.svg)](https://github.com/suleymanbrbr/su_ens4912_corporate_health/actions/workflows/frontend-build.yml)
+
 # MAHIKS-TR
 
 **M**ulti-tenant **A**gentic **H**ealth **I**nformation **K**nowledge **S**ystem
