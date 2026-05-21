@@ -24,7 +24,7 @@ from langchain_core.messages import HumanMessage
 load_dotenv()
 
 # ─── Configuration ────────────────────────────────────────────────────────────
-GEMINI_MODEL       = "gemini-2.0-flash"
+GEMINI_MODEL       = "gemini-2.5-flash-lite"
 BATCH_SLEEP_SEC    = 1.0          # sleep between chunks to avoid quota
 MAX_RETRIES        = 3
 DEDUP_COSINE_THRESH = 0.92        # merge nodes if cosine similarity >= this

@@ -122,26 +122,110 @@ async def find_kg_path(
 
 
 # --- Admin KG endpoints ---
+def _pull_admin_gemini_key(admin_id: str) -> str | None:
+    """Fetch the admin's stored Gemini API key (decrypted) for KG building.
+
+    Multi-tenant production has no GEMINI_API_KEY env var, so the KG builder
+    falls back to using the triggering admin's own stored Gemini key.
+    """
+    from secrets_utils import decrypt_api_key
+    try:
+        with db_session() as conn:
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT encrypted_key FROM user_api_keys "
+                "WHERE user_id = %s AND provider = %s AND is_active = TRUE",
+                (admin_id, "gemini"),
+            )
+            row = cur.fetchone()
+            cur.close()
+        if not row:
+            return None
+        return decrypt_api_key(row[0])
+    except Exception:  # noqa: BLE001
+        logger.exception("Failed to fetch admin Gemini key")
+        return None
+
+
 @router.post("/api/admin/kg/rebuild")
-async def rebuild_kg(background_tasks: BackgroundTasks, admin: dict = Depends(get_current_admin)):
-    """Trigger a full KG rebuild in the background."""
+async def rebuild_kg(
+    background_tasks: BackgroundTasks,
+    admin: dict = Depends(get_current_admin),
+    sync: bool = False,
+):
+    """Trigger a full KG rebuild. Uses admin's own stored Gemini key.
+
+    Pass ?sync=true for inline execution with error surfacing.
+    """
+    import os
+    import traceback
+
+    api_key = os.getenv("GEMINI_API_KEY") or _pull_admin_gemini_key(admin["id"])
+    if not api_key:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "KG build için Gemini API anahtarı gerekli. "
+                "Settings → API Anahtarları'ndan ekleyin veya HF Space'e "
+                "GEMINI_API_KEY secret'ı koyun."
+            ),
+        )
 
     def run_kg_build():
+        msg = ""
+        ok = False
+        # Temporarily inject the admin key for legacy kg_builder code paths.
+        previous = os.environ.get("GEMINI_API_KEY")
+        os.environ["GEMINI_API_KEY"] = api_key
         try:
             from kg_builder import KG_Builder, KG_Enricher
             builder = KG_Builder()
             builder.build(clear_existing=True)
             enricher = KG_Enricher()
             enricher.enrich()
-            logger.info("[KG_REBUILD] Complete.")
+            ok = True
+            msg = "KG build + enrich complete."
+            logger.info("[KG_REBUILD] %s", msg)
         except Exception as e:  # noqa: BLE001
-            logger.exception(f"[KG_REBUILD] Error: {e}")
+            tb = traceback.format_exc()
+            msg = f"{type(e).__name__}: {e}\n{tb[-800:]}"
+            logger.exception("[KG_REBUILD] Error")
+        finally:
+            # Restore original env to keep multi-tenant isolation intact.
+            if previous is None:
+                os.environ.pop("GEMINI_API_KEY", None)
+            else:
+                os.environ["GEMINI_API_KEY"] = previous
+        try:
+            with db_session() as dbconn:
+                log_audit(
+                    dbconn,
+                    "kg_rebuild_finished" if ok else "kg_rebuild_failed",
+                    user_id=admin["id"],
+                    details=msg[:500],
+                )
+                dbconn.commit()
+        except Exception:  # noqa: BLE001
+            logger.exception("[KG_REBUILD] audit log write failed")
+        return ok, msg
 
-    background_tasks.add_task(run_kg_build)
     with db_session() as dbconn:
         log_audit(dbconn, "kg_rebuild_started", user_id=admin["id"])
         dbconn.commit()
-    return {"message": "KG yeniden oluşturma işlemi arka planda başlatıldı."}
+
+    if sync:
+        ok, msg = run_kg_build()
+        if not ok:
+            raise HTTPException(status_code=500, detail=msg)
+        return {"message": msg, "ok": True}
+
+    background_tasks.add_task(run_kg_build)
+    return {
+        "message": (
+            "KG yeniden oluşturma işlemi arka planda başlatıldı. "
+            "Sonuç audit_logs tablosuna yazılacak."
+        )
+    }
 
 
 @router.get("/api/admin/kg/stats")
