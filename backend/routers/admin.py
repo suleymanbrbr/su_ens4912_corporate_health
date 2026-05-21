@@ -344,9 +344,8 @@ def _do_indexing():
 
     try:
         storage = SUT_Storage_Manager(api_server.engine.embeddings_model)
-        success = storage.populate_database()
-        if not success:
-            return False, "populate_database() False döndü — pandoc veya chunking adımı başarısız."
+        # populate_database now raises on failure with step-specific messages
+        storage.populate_database()
 
         new_engine = api_server.SUT_RAG_Engine()
         if new_engine.load_database():
@@ -356,7 +355,7 @@ def _do_indexing():
     except Exception as e:  # noqa: BLE001
         tb = traceback.format_exc()
         logger.exception("[INDEXING] error")
-        return False, f"{type(e).__name__}: {e}\n{tb[-800:]}"
+        return False, f"{type(e).__name__}: {e}\n{tb[-1200:]}"
 
 
 @router.post("/rebuild-index")

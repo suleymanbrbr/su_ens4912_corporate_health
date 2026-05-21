@@ -32,25 +32,35 @@ class SUT_Storage_Manager:
 
         Always closes the DB connection it opens (even on early-exit / errors)
         so background-task failures don't leak a connection from Neon's pool.
+        Raises RuntimeError with a specific step name on failure, so callers
+        can surface the exact failing step (HF Space logs are opaque).
         """
+        import os as _os
         logger.info("Starting database population...")
+        logger.info(f"  cwd      = {_os.getcwd()}")
+        logger.info(f"  DOCX     = {DOCX_FILE_PATH}  (exists={_os.path.exists(DOCX_FILE_PATH)})")
 
         cleaned_path = self._remove_strikethrough_and_save_temp(DOCX_FILE_PATH)
         if not cleaned_path:
-            logger.error("Failed to clean DOCX. Aborting.")
-            return False
+            raise RuntimeError(
+                f"DOCX cleaning failed (python-docx step). "
+                f"Path={DOCX_FILE_PATH}, cwd={_os.getcwd()}, "
+                f"exists={_os.path.exists(DOCX_FILE_PATH)}"
+            )
 
         logger.info("Converting to Markdown (Pandoc)...")
         try:
             pypandoc.convert_file(cleaned_path, 'md', outputfile=MARKDOWN_FILE_PATH)
         except Exception as e:
-            logger.error(f"Pandoc conversion failed: {e}")
-            return False
+            raise RuntimeError(f"Pandoc conversion failed: {type(e).__name__}: {e}") from e
 
         logger.info("Splitting text into semantic chunks...")
         chunks = self._get_markdown_chunks(MARKDOWN_FILE_PATH)
         if not chunks:
-            return False
+            raise RuntimeError(
+                f"Chunking returned 0 chunks. "
+                f"Markdown size={_os.path.getsize(MARKDOWN_FILE_PATH) if _os.path.exists(MARKDOWN_FILE_PATH) else 'NO_FILE'}"
+            )
 
         try:
             self._setup_database()
