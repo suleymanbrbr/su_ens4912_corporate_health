@@ -24,7 +24,7 @@ for the **T**urkish **R**epublic's *Sağlık Uygulama Tebliği* (SUT) corpus.
 > Each tenant brings their own LLM API key — the platform itself runs entirely
 > on free-tier cloud services.
 
-Bu proje **Yeditepe Üniversitesi Endüstri ve Sistem Mühendisliği Bölümü
+Bu proje **Sabancı Üniversitesi Bilgisayar Mühendisliği Bölümü
 ENS4912 Bitirme Projesi** kapsamında geliştirilmiştir.
 
 ---
