@@ -389,7 +389,7 @@ veya proje hakkında sorularınız için issue açabilirsiniz.
 
 ## 🙏 Acknowledgments
 
-Bu proje **Yeditepe Üniversitesi Endüstri ve Sistem Mühendisliği Bölümü
+Bu proje **Sabancı Üniversitesi Bilgisayar Mühendisliği Bölümü
 ENS 491-492 Bitirme Projesi** olarak hazırlanmıştır.
 
 - **Proje Süpervizörü**: İnanç Arın
