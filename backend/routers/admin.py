@@ -320,45 +320,95 @@ async def get_audit_logs(
 
 
 # --- Index rebuild ---
-@router.post("/rebuild-index")
-async def rebuild_index(background_tasks: BackgroundTasks, admin: dict = Depends(get_current_admin)):
-    """Re-populate the chunks table from the on-disk SUT PDF/source.
+def _do_indexing():
+    """Shared indexing routine used by both sync and async paths.
 
-    Runs the storage manager in a background task so the request returns
-    immediately. The new engine instance is swapped onto ``api_server.engine``
-    so subsequent chat requests pick it up.
+    Returns (success: bool, message: str). Logs the exception details
+    into audit_logs and returns the error message in case of failure so
+    the caller can surface it to the operator (HF Space logs are not
+    accessible via the public API).
     """
-    # Imported lazily so tests that patch api_server.SUT_RAG_Engine still work.
+    import os
+    import traceback
+
     import api_server
-    from rag_storage import SUT_Storage_Manager
+    from rag_storage import SUT_Storage_Manager, DOCX_FILE_PATH
 
-    def run_indexing():
-        try:
-            logger.info("[BACKGROUND] Starting indexing task...")
-            storage = SUT_Storage_Manager(api_server.engine.embeddings_model)
-            success = storage.populate_database()
-            if success:
-                new_engine = api_server.SUT_RAG_Engine()
-                if new_engine.load_database():
-                    api_server.engine = new_engine
-                    logger.info("[BACKGROUND] Indexing and engine reload complete.")
-                else:
-                    logger.warning("[BACKGROUND] Indexing complete but engine reload failed.")
-            else:
-                logger.warning("[BACKGROUND] Indexing failed.")
-        except Exception as e:  # noqa: BLE001
-            logger.exception(f"[BACKGROUND] Indexing error: {e}")
+    # Pre-flight checks — surface specific errors instead of a generic crash.
+    if api_server.engine is None or getattr(api_server.engine, "embeddings_model", None) is None:
+        return False, "Engine veya embeddings_model henüz başlatılmamış."
 
-    background_tasks.add_task(run_indexing)
+    abs_path = os.path.abspath(DOCX_FILE_PATH)
+    if not os.path.exists(DOCX_FILE_PATH):
+        return False, f"SUT .docx dosyası bulunamadı: {abs_path} (cwd={os.getcwd()})"
 
+    try:
+        storage = SUT_Storage_Manager(api_server.engine.embeddings_model)
+        success = storage.populate_database()
+        if not success:
+            return False, "populate_database() False döndü — pandoc veya chunking adımı başarısız."
+
+        new_engine = api_server.SUT_RAG_Engine()
+        if new_engine.load_database():
+            api_server.engine = new_engine
+            return True, "Indeksleme ve motor yeniden yüklemesi tamamlandı."
+        return False, "Indeksleme tamamlandı ama motor yeniden yüklenemedi."
+    except Exception as e:  # noqa: BLE001
+        tb = traceback.format_exc()
+        logger.exception("[INDEXING] error")
+        return False, f"{type(e).__name__}: {e}\n{tb[-800:]}"
+
+
+@router.post("/rebuild-index")
+async def rebuild_index(
+    background_tasks: BackgroundTasks,
+    admin: dict = Depends(get_current_admin),
+    sync: bool = False,
+):
+    """Re-populate the chunks table from the on-disk SUT source.
+
+    By default runs in a background task (returns immediately).
+    Pass ``?sync=true`` to run inline and surface any error in the response —
+    useful for debugging when HF Space logs are not accessible.
+    """
     with db_session() as dbconn:
         log_audit(dbconn, "index_rebuild_started", user_id=admin["id"])
         dbconn.commit()
 
+    if sync:
+        ok, msg = _do_indexing()
+        with db_session() as dbconn:
+            log_audit(
+                dbconn,
+                "index_rebuild_finished" if ok else "index_rebuild_failed",
+                user_id=admin["id"],
+                details=msg[:500],
+            )
+            dbconn.commit()
+        if not ok:
+            raise HTTPException(status_code=500, detail=msg)
+        return {"message": msg, "ok": True}
+
+    # Background path — also log result to audit_logs for later inspection.
+    def run_indexing():
+        ok, msg = _do_indexing()
+        try:
+            with db_session() as dbconn:
+                log_audit(
+                    dbconn,
+                    "index_rebuild_finished" if ok else "index_rebuild_failed",
+                    user_id=admin["id"],
+                    details=msg[:500],
+                )
+                dbconn.commit()
+        except Exception:  # noqa: BLE001
+            logger.exception("[BACKGROUND] failed to write audit log")
+
+    background_tasks.add_task(run_indexing)
     return {
         "message": (
             "İndeksleme işlemi arka planda başlatıldı. "
-            "İlerlemeyi sistem günlüklerinden takip edebilirsiniz."
+            "Sonuç audit_logs tablosuna yazılacak (index_rebuild_finished/failed)."
         )
     }
 
