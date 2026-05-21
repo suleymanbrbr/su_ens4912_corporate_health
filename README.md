@@ -7,7 +7,7 @@ sdk: docker
 app_port: 7860
 pinned: false
 license: mit
-short_description: Multi-tenant Agentic RAG for the Turkish SUT health-policy corpus.
+short_description: Agentic RAG for the Turkish SUT health corpus.
 ---
 
 ![CI](https://github.com/suleymanbrbr/su_ens4912_corporate_health/actions/workflows/ci.yml/badge.svg)
