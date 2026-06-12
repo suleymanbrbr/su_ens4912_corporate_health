@@ -224,6 +224,7 @@ class SUT_RAG_Engine:
             # Use LOCAL_DATABASE_URL as fallback for dev outside Docker.
             db_url = os.getenv("DATABASE_URL") or os.getenv("LOCAL_DATABASE_URL")
             self.conn = psycopg2.connect(db_url)
+            self.conn.autocommit = True  # read-only retrieval engine; avoid idle-in-transaction
             cur = self.conn.cursor()
             cur.execute("SELECT EXISTS (SELECT FROM pg_tables WHERE schemaname='public' AND tablename='chunks')")
             exists = cur.fetchone()[0]
@@ -246,6 +247,55 @@ class SUT_RAG_Engine:
         except Exception as e:
             logger.warning(f"Postgres database connection failed: {e}")
             return False
+
+    def _ensure_conn(self):
+        """Return a live DB connection, reconnecting if the cached one died.
+
+        Neon (serverless Postgres) autosuspends after a few minutes idle and
+        closes open connections. The engine holds a single long-lived
+        ``self.conn``; once Neon drops it, every retrieval previously raised,
+        got swallowed, and returned [] until the Space process restarted — so
+        the chatbot looked "up" (health uses fresh pooled connections) but
+        could never retrieve anything. Reconnect on demand instead.
+        """
+        if self.conn is not None:
+            try:
+                if not self.conn.closed:
+                    return self.conn
+            except Exception:  # noqa: BLE001
+                pass
+        db_url = os.getenv("DATABASE_URL") or os.getenv("LOCAL_DATABASE_URL")
+        self.conn = psycopg2.connect(db_url)
+        # Read-only retrieval — autocommit avoids leaving "idle in transaction"
+        # sessions that Neon would later reap.
+        self.conn.autocommit = True
+        return self.conn
+
+    def _db_fetchall(self, sql: str, params: tuple):
+        """Run a read query with one transparent reconnect-and-retry.
+
+        Handles the case where ``self.conn`` looks open but the underlying
+        socket was already dropped server-side (Neon autosuspend) — psycopg2
+        only discovers this on the next ``execute``.
+        """
+        for attempt in (1, 2):
+            try:
+                conn = self._ensure_conn()
+                cur = conn.cursor()
+                cur.execute(sql, params)
+                rows = cur.fetchall()
+                cur.close()
+                return rows
+            except (psycopg2.OperationalError, psycopg2.InterfaceError) as e:
+                logger.warning(f"DB connection lost (attempt {attempt}/2): {e}; reconnecting")
+                try:
+                    if self.conn is not None and not self.conn.closed:
+                        self.conn.close()
+                except Exception:  # noqa: BLE001
+                    pass
+                self.conn = None
+                if attempt == 2:
+                    raise
 
     # ─── Tool Definitions (schema injected into system prompt) ───────────────
 
@@ -607,23 +657,20 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
             return f"[ARAÇ HATASI] {tool_name}: {str(e)}"
 
     def _retrieve_chunks(self, query: str, k: int) -> List[Dict]:
-        if not self.conn: return []
         initial_k = k * 3
         try:
             q_vec = embed_query_retrieval(self.embeddings_model, self._embedding_model_name, query)
             q_vec_str = "[" + ",".join(map(str, q_vec)) + "]"
-            cur = self.conn.cursor()
-            cur.execute("""
+            rows = self._db_fetchall("""
                 SELECT chunk_id, text_content, metadata_json
                 FROM chunks
                 ORDER BY embedding <=> %s
                 LIMIT %s
             """, (q_vec_str, initial_k))
             candidates = []
-            for row in cur.fetchall():
+            for row in rows:
                 meta = row[2] if isinstance(row[2], dict) else json.loads(row[2])
                 candidates.append({"id": row[0], "text": row[1], "metadata": meta})
-            cur.close()
             if candidates:
                 pairs = [[query, doc['text']] for doc in candidates]
                 scores = self.reranker.predict(pairs)
@@ -633,14 +680,11 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
             return candidates[:k]
         except Exception as e:
             logger.error(f"Chunk retrieval failed: {e}")
-            if self.conn: self.conn.rollback()
             return []
 
     def _fulltext_search(self, query: str, k: int) -> List[Dict]:
-        if not self.conn: return []
         try:
-            cur = self.conn.cursor()
-            cur.execute("""
+            rows = self._db_fetchall("""
                 SELECT chunk_id, text_content, metadata_json,
                        ts_rank(to_tsvector('turkish', COALESCE(header_text,'') || ' ' || text_content),
                                 websearch_to_tsquery('turkish', %s)) AS rank
@@ -651,14 +695,12 @@ Eğer hata varsa, hatayı açıklayan kısa bir geri bildirim yaz ve asistanın 
                 LIMIT %s
             """, (query, query, k))
             results = []
-            for row in cur.fetchall():
+            for row in rows:
                 meta = row[2] if isinstance(row[2], dict) else json.loads(row[2])
                 results.append({"id": row[0], "text": row[1], "metadata": meta, "score": float(row[3])})
-            cur.close()
             return results
         except Exception as e:
             logger.error(f"Full-text search failed: {e}")
-            if self.conn: self.conn.rollback()
             return []
 
     # Allowed AST operators for _safe_calculate. Explicit whitelist instead of
