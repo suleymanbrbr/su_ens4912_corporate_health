@@ -21,7 +21,7 @@ psycopg2-binary==2.9.9
 pgvector==0.3.2
 
 # ── ML / Embeddings ───────────────────────────────────────────────────────────
-sentence-transformers==3.0.1
+sentence-transformers==5.5.1
 transformers==4.44.2
 torch==2.3.1
 
