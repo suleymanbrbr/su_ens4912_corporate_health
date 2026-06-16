@@ -33,4 +33,4 @@ numpy==1.26.4
 
 # ── Multi-tenant SaaS: per-user encrypted API keys & live key validation ─────
 cryptography>=42.0.0
-httpx>=0.27.0
+httpx>=0.28.1
