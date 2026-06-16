@@ -28,7 +28,7 @@ torch==2.3.1
 # ── Document Processing ───────────────────────────────────────────────────────
 pypandoc==1.13
 python-docx==1.1.2
-pypdf==4.2.0
+pypdf==6.11.0
 numpy==1.26.4
 
 # ── Multi-tenant SaaS: per-user encrypted API keys & live key validation ─────
